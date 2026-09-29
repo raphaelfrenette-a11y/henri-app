@@ -442,7 +442,7 @@ function renderMonth(){
     const today=key==='2026-09-28';
     const hasSomething=entries.length||pedago;
     out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+''+'">'+
-      '<button class="monthDayButton" onclick="selectMonthDay(\''+key+'\')">'+
+      '<button class="monthDayButton" onclick="openDayPlan(\''+key+'\')">'+
         '<span class="dayNum">'+d+'</span>'+
         (hasSomething?'<span class="eventDot"></span>':'')+
       '</button>'+
@@ -450,40 +450,6 @@ function renderMonth(){
   }
   monthGrid.innerHTML=out;
 }
-function selectMonthDay(key){
-  selectedMonthDay=selectedMonthDay===key?null:key;
-  renderMonth();
-}
-function renderMonthDetails(){
-  if(!monthDetails) return;
-  if(!selectedMonthDay){
-    monthDetails.classList.remove('show');
-    monthDetails.innerHTML='';
-    return;
-  }
-  const entries=scheduleEntries[selectedMonthDay]||[];
-  const cycle=schoolDays[selectedMonthDay]||'';
-  const d=new Date(selectedMonthDay+'T12:00:00');
-  const title=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()];
-  let html='<div class="monthDetailsHead"><strong>'+title+'</strong><span class="monthDetailsMeta">'+cycle+'</span></div>';
-  if(entries.length){
-    entries.forEach((entry,idx)=>{
-      const plan=entry.annualPlan||'Planification à venir';
-      const session=entry.session||'';
-      html+='<button class="monthLesson" onclick="openCourseEntry(\''+selectedMonthDay+'\','+idx+')">'+
-        '<span class="time">'+entry.time+'</span>'+
-        '<span class="monthLessonMain">'+entry.group+'<small>'+entry.activity+'</small><span class="monthLessonPlan">'+plan+(session?' · '+session:'')+'</span></span>'+
-        '<span class="chev">›</span>'+
-      '</button>';
-    });
-  }else{
-    html+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu')+'</div>';
-  }
-  monthDetails.innerHTML=html;
-  monthDetails.classList.add('show');
-}
-
-
 function changeMonth(delta){
   shownMonth+=delta;
   if(shownMonth<0){shownMonth=11;shownYear--}
