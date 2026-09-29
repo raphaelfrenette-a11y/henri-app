@@ -397,13 +397,22 @@ function setSkill(id,skill){const s=getActiveStudent(id);if(!s)return;s.skill=sk
 function toggleLeader(id){const s=getActiveStudent(id);if(!s)return;s.leader=!s.leader;saveGroups();renderStudents()}
 function addRelation(id,type,targetId){
   if(!targetId||id===targetId) return;
-  const s=getActiveStudent(id);if(!s)return;
+  const g=groupsData.find(x=>x.id===activeGroupId);if(!g)return;
+  const s=g.students.find(x=>x.id===id),t=g.students.find(x=>x.id===targetId);if(!s||!t)return;
   const opposite=type==='compatible'?'incompatible':'compatible';
   s[opposite]=s[opposite].filter(x=>x!==targetId);
+  t[opposite]=t[opposite].filter(x=>x!==id);
   if(!s[type].includes(targetId)) s[type].push(targetId);
+  if(!t[type].includes(id)) t[type].push(id);
   saveGroups();renderStudents();
 }
-function removeRelation(id,type,targetId){const s=getActiveStudent(id);if(!s)return;s[type]=s[type].filter(x=>x!==targetId);saveGroups();renderStudents()}
+function removeRelation(id,type,targetId){
+  const g=groupsData.find(x=>x.id===activeGroupId);if(!g)return;
+  const s=g.students.find(x=>x.id===id),t=g.students.find(x=>x.id===targetId);if(!s||!t)return;
+  s[type]=s[type].filter(x=>x!==targetId);
+  t[type]=t[type].filter(x=>x!==id);
+  saveGroups();renderStudents();
+}
 
 const setupFiles={teacherSchedule:false,schoolCalendar:false,groupSheets:false};
 function handleSetupFile(type,input){
