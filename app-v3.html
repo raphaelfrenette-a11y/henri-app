@@ -350,14 +350,100 @@ function changeMonth(delta){
 }
 
 const defaultGroups=[
-  {id:'s2-01',name:'Secondaire 2 · Groupe 01',students:['Élève 1','Élève 2','Élève 3','Élève 4','Élève 5','Élève 6']},
-  {id:'s3-02',name:'Secondaire 3 · Groupe 02',students:['Élève 1','Élève 2','Élève 3','Élève 4','Élève 5','Élève 6']},
-  {id:'s4-01',name:'Secondaire 4 · Groupe 01',students:['Élève 1','Élève 2','Élève 3','Élève 4','Élève 5','Élève 6']}
+  {
+    id:'s2-01',
+    name:'Secondaire 2 · Groupe 01',
+    students:[
+      {name:'Alexis Gagnon',skill:4,leader:true},
+      {name:'Camille Roy',skill:3,leader:false},
+      {name:'Thomas Bouchard',skill:5,leader:true},
+      {name:'Élodie Tremblay',skill:2,leader:false},
+      {name:'Nathan Côté',skill:3,leader:false},
+      {name:'Mia Pelletier',skill:4,leader:false},
+      {name:'Samuel Lavoie',skill:2,leader:false},
+      {name:'Juliette Morin',skill:3,leader:true},
+      {name:'Lucas Fortin',skill:4,leader:false},
+      {name:'Zoé Beaulieu',skill:3,leader:false},
+      {name:'Félix Caron',skill:2,leader:false},
+      {name:'Emma Gosselin',skill:5,leader:true}
+    ]
+  },
+  {
+    id:'s3-02',
+    name:'Secondaire 3 · Groupe 02',
+    students:[
+      {name:'William Nadeau',skill:5,leader:true},
+      {name:'Léa Martel',skill:4,leader:false},
+      {name:'Olivier Girard',skill:3,leader:false},
+      {name:'Chloé Bélanger',skill:2,leader:false},
+      {name:'Émile Bergeron',skill:4,leader:true},
+      {name:'Florence Paquet',skill:3,leader:false},
+      {name:'Antoine Lessard',skill:2,leader:false},
+      {name:'Rose Lefebvre',skill:4,leader:false},
+      {name:'Gabriel Mercier',skill:3,leader:true},
+      {name:'Alice Parent',skill:3,leader:false},
+      {name:'Jacob Simard',skill:5,leader:false},
+      {name:'Clara Hébert',skill:2,leader:false}
+    ]
+  },
+  {
+    id:'s4-01',
+    name:'Secondaire 4 · Groupe 01',
+    students:[
+      {name:'Raphaël Dubois',skill:4,leader:true},
+      {name:'Maude Lapointe',skill:3,leader:false},
+      {name:'Charles Proulx',skill:5,leader:true},
+      {name:'Laurence Desjardins',skill:3,leader:false},
+      {name:'Maxime Renaud',skill:2,leader:false},
+      {name:'Anaïs Cloutier',skill:4,leader:false},
+      {name:'Jérôme Vachon',skill:3,leader:false},
+      {name:'Sofia Richard',skill:5,leader:true},
+      {name:'Mathis Leblanc',skill:2,leader:false},
+      {name:'Noémie Dion',skill:3,leader:false},
+      {name:'Xavier Lemieux',skill:4,leader:false},
+      {name:'Charlotte Dufour',skill:2,leader:false}
+    ]
+  }
 ];
-let groupsData=JSON.parse(localStorage.getItem('henriGroupsData')||'null')||defaultGroups.map(g=>({
-  ...g,
-  students:g.students.map((name,i)=>({id:g.id+'-'+i,name,skill:3,leader:false,compatible:[],incompatible:[]}))
-}));
+
+function makeDefaultGroups(){
+  const groups=defaultGroups.map(g=>({
+    id:g.id,
+    name:g.name,
+    students:g.students.map((s,i)=>({
+      id:g.id+'-'+i,
+      name:s.name,
+      skill:s.skill,
+      leader:s.leader,
+      compatible:[],
+      incompatible:[]
+    }))
+  }));
+
+  const g1=groups[0].students;
+  g1[0].compatible=[g1[1].id];
+  g1[1].compatible=[g1[0].id];
+  g1[2].incompatible=[g1[4].id];
+  g1[4].incompatible=[g1[2].id];
+  g1[7].compatible=[g1[9].id];
+  g1[9].compatible=[g1[7].id];
+
+  const g2=groups[1].students;
+  g2[0].compatible=[g2[4].id];
+  g2[4].compatible=[g2[0].id];
+  g2[2].incompatible=[g2[6].id];
+  g2[6].incompatible=[g2[2].id];
+
+  const g3=groups[2].students;
+  g3[0].compatible=[g3[5].id];
+  g3[5].compatible=[g3[0].id];
+  g3[2].incompatible=[g3[8].id];
+  g3[8].incompatible=[g3[2].id];
+
+  return groups;
+}
+
+let groupsData=JSON.parse(localStorage.getItem('henriGroupsData')||'null')||makeDefaultGroups();
 let activeGroupId=null;
 function saveGroups(){localStorage.setItem('henriGroupsData',JSON.stringify(groupsData))}
 function renderGroups(){
