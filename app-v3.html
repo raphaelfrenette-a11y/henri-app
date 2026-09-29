@@ -107,8 +107,17 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .planStat small{display:block;color:var(--muted);font-size:10px;font-weight:720}
 .planStat strong{display:block;font-size:22px;margin-top:3px;letter-spacing:-.03em}
 .annualList{display:grid;gap:9px;margin-top:12px}
-.annualItem{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px}
-.annualTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.annualItem{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.annualItem.dragging{opacity:.6;border-color:#9eafb8;background:#f7fafb}
+.annualTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dragHandle{width:34px;height:34px;flex:0 0 34px;border:0;background:#f3f4f3;border-radius:10px;color:#8b9296;font-size:18px;font-weight:800;display:grid;place-items:center;cursor:grab;touch-action:none}
+.dragHandle:active{cursor:grabbing}
+.annualMain{min-width:0;flex:1}
+.annualDates{margin-top:6px;color:var(--accent);font-size:12px;font-weight:740}
+.annualDates.unplaced{color:#9a6d31}
+.annualReorder{display:flex;gap:5px;margin-left:auto}
+.orderBtn{width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:10px;color:var(--accent);font-weight:800}
+@media(hover:hover) and (pointer:fine){.dragHandle:hover{background:#e9edef}}
 .compBadge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800}
 .annualSport{font-size:16px;font-weight:780;margin-top:7px}
 .annualMeta{color:var(--muted);font-size:12px;margin-top:3px}
@@ -214,7 +223,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.1</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.2</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -623,12 +632,35 @@ function fillPlanGroupSelects(){
   if(quickGroup) quickGroup.innerHTML=opts;
 }
 function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('annualPlanner')}
-function getGroupCourseSlots(groupId){
+function getGroupCourseDates(groupId){
   const g=groupsData.find(x=>x.id===groupId);
-  if(!g) return 0;
-  const exact=Object.values(scheduleEntries).flat().filter(e=>e.group===g.name).length;
-  const demoMode=localStorage.getItem('henriDemoSchedule')==='1';
-  return demoMode&&exact<20?28:(exact||28);
+  if(!g) return [];
+  return Object.keys(scheduleEntries)
+    .filter(date=>(scheduleEntries[date]||[]).some(e=>e.group===g.name))
+    .sort();
+}
+function getGroupCourseSlots(groupId){
+  return getGroupCourseDates(groupId).length;
+}
+function formatPlanDate(date){
+  if(!date) return '';
+  const d=new Date(date+'T12:00:00');
+  return d.getDate()+' '+shortMonths[d.getMonth()];
+}
+function getAnnualRanges(groupId,blocks){
+  const dates=getGroupCourseDates(groupId);
+  let cursor=0;
+  return blocks.map(block=>{
+    const need=Math.max(0,Number(block.courses)||0);
+    const slice=dates.slice(cursor,cursor+need);
+    cursor+=need;
+    return {
+      start:slice[0]||null,
+      end:slice[slice.length-1]||null,
+      allocated:slice.length,
+      needed:need
+    };
+  });
 }
 function ensureAnnualPlan(groupId){
   if(!annualPlans[groupId]) annualPlans[groupId]=[
@@ -646,12 +678,34 @@ function renderAnnualPlanner(){
   ensureAnnualPlan(groupId);
   const possible=getGroupCourseSlots(groupId);
   const blocks=annualPlans[groupId];
+  const ranges=getAnnualRanges(groupId,blocks);
   const planned=blocks.reduce((n,b)=>n+Number(b.courses||0),0);
   const remaining=Math.max(0,possible-planned);
   annualPossible.textContent=possible;
   annualPlanned.textContent=planned;
   annualRemaining.textContent=remaining;
-  annualList.innerHTML=blocks.map(b=>'<div class="annualItem"><div class="annualTop"><div><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><div class="annualSport">'+b.sport+'</div><div class="annualMeta">'+b.courses+' cours</div></div></div><div class="itemActions"><button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button><button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button></div></div>').join('');
+  annualList.innerHTML=blocks.map((b,i)=>{
+    const r=ranges[i];
+    let datesText='À placer';
+    let dateClass='annualDates unplaced';
+    if(r.start&&r.end){
+      datesText=r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end);
+      dateClass='annualDates';
+      if(r.allocated<r.needed){
+        datesText+=' · '+(r.needed-r.allocated)+' cours sans date';
+        dateClass+=' unplaced';
+      }
+    }
+    return '<div class="annualItem" draggable="true" data-id="'+b.id+'">'+
+      '<div class="annualTop">'+
+        '<button class="dragHandle" type="button" aria-label="Glisser '+b.sport+'" data-drag-id="'+b.id+'">≡</button>'+
+        '<div class="annualMain"><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><div class="annualSport">'+b.sport+'</div><div class="annualMeta">'+b.courses+' cours</div><div class="'+dateClass+'">'+datesText+'</div></div>'+
+        '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
+      '</div>'+
+      '<div class="itemActions"><button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button><button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button></div>'+
+    '</div>';
+  }).join('');
+  setupAnnualDrag();
 }
 function saveAnnual(){localStorage.setItem('henriAnnualPlans',JSON.stringify(annualPlans))}
 function addAnnualBlock(){
@@ -674,6 +728,82 @@ function deleteAnnualBlock(id){
   const groupId=annualGroup.value;
   annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
   saveAnnual();renderAnnualPlanner();
+}
+
+function moveAnnualBlock(id,delta){
+  const groupId=annualGroup.value;
+  const blocks=annualPlans[groupId]||[];
+  const i=blocks.findIndex(b=>b.id===id), j=i+delta;
+  if(i<0||j<0||j>=blocks.length) return;
+  [blocks[i],blocks[j]]=[blocks[j],blocks[i]];
+  saveAnnual();renderAnnualPlanner();
+}
+function commitAnnualDomOrder(){
+  const groupId=annualGroup.value;
+  const blocks=annualPlans[groupId]||[];
+  const ids=[...annualList.querySelectorAll('.annualItem')].map(el=>el.dataset.id);
+  annualPlans[groupId]=ids.map(id=>blocks.find(b=>b.id===id)).filter(Boolean);
+  saveAnnual();renderAnnualPlanner();
+}
+function setupAnnualDrag(){
+  if(!annualList) return;
+  let dragged=null;
+
+  annualList.querySelectorAll('.annualItem').forEach(item=>{
+    item.addEventListener('dragstart',e=>{
+      if(e.target.closest('button')&&!e.target.closest('.dragHandle')){e.preventDefault();return}
+      dragged=item;
+      item.classList.add('dragging');
+      if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',item.dataset.id)}
+    });
+    item.addEventListener('dragover',e=>{
+      if(!dragged||dragged===item)return;
+      e.preventDefault();
+      const rect=item.getBoundingClientRect();
+      const before=e.clientY<rect.top+rect.height/2;
+      annualList.insertBefore(dragged,before?item:item.nextSibling);
+    });
+    item.addEventListener('drop',e=>e.preventDefault());
+    item.addEventListener('dragend',()=>{
+      if(!dragged)return;
+      dragged.classList.remove('dragging');
+      dragged=null;
+      commitAnnualDomOrder();
+    });
+  });
+
+  annualList.querySelectorAll('.dragHandle').forEach(handle=>{
+    let activeItem=null;
+    let pointerId=null;
+    const onMove=e=>{
+      if(!activeItem||e.pointerId!==pointerId)return;
+      const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.annualItem');
+      if(!target||target===activeItem||target.parentElement!==annualList)return;
+      const rect=target.getBoundingClientRect();
+      const before=e.clientY<rect.top+rect.height/2;
+      annualList.insertBefore(activeItem,before?target:target.nextSibling);
+    };
+    const onUp=e=>{
+      if(!activeItem||e.pointerId!==pointerId)return;
+      activeItem.classList.remove('dragging');
+      try{handle.releasePointerCapture(pointerId)}catch(_){}
+      activeItem=null;pointerId=null;
+      handle.removeEventListener('pointermove',onMove);
+      handle.removeEventListener('pointerup',onUp);
+      handle.removeEventListener('pointercancel',onUp);
+      commitAnnualDomOrder();
+    };
+    handle.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='mouse'&&e.button!==0)return;
+      activeItem=handle.closest('.annualItem');
+      pointerId=e.pointerId;
+      activeItem.classList.add('dragging');
+      handle.setPointerCapture(pointerId);
+      handle.addEventListener('pointermove',onMove);
+      handle.addEventListener('pointerup',onUp);
+      handle.addEventListener('pointercancel',onUp);
+    });
+  });
 }
 
 function openSequenceSetup(){fillPlanGroupSelects();go('sequenceSetup')}
