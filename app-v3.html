@@ -83,6 +83,36 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .generateHint{text-align:center;color:var(--muted);font-size:11px;margin:10px 2px 0;line-height:1.4}
 .setupSuccess{display:none;margin-top:14px;border-radius:16px;background:#eef4f1;padding:13px 14px;color:#355848;font-size:13px;font-weight:650}
 .setupSuccess.show{display:block}
+.groupsSection{margin-top:28px}
+.groupsSection h2{margin:0 0 12px;font-size:22px;letter-spacing:-.03em}
+.groupList{display:grid;gap:9px}
+.groupCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:18px;padding:15px 16px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 12px rgba(0,0,0,.018)}
+.groupCard strong{display:block;font-size:15px}
+.groupCard span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.groupArrow{font-size:22px;color:#a0a5a8}
+.studentList{display:grid;gap:9px}
+.studentCard{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.studentHead{width:100%;border:0;background:#fff;padding:14px 15px;display:flex;align-items:center;justify-content:space-between;text-align:left}
+.studentName{font-weight:760}
+.studentMeta{color:var(--muted);font-size:11px;margin-top:3px}
+.studentDetails{display:none;padding:0 15px 15px;border-top:1px solid #f1f1ef}
+.studentCard.open .studentDetails{display:block}
+.detailRow{padding-top:14px}
+.detailLabel{font-size:12px;font-weight:760;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.rating{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rating button{border:1px solid var(--line);background:#f7f7f5;border-radius:10px;padding:8px 0;font-size:12px;font-weight:760}
+.rating button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.toggleRow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.switch{width:46px;height:27px;border:0;border-radius:999px;background:#d8dcde;padding:3px;transition:.18s}
+.switch::after{content:"";display:block;width:21px;height:21px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}
+.switch.on{background:var(--accent)}
+.switch.on::after{transform:translateX(19px)}
+.relationBox{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.relationSelect{width:100%;border:1px solid var(--line);background:#f8f8f6;border-radius:11px;padding:10px;font:inherit;font-size:12px}
+.relationTags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{border:0;border-radius:999px;background:#eef2f4;color:var(--accent);padding:6px 9px;font-size:11px;font-weight:700}
+.tag.bad{background:#f6ecea;color:#865045}
+.dataNote{margin-top:14px;color:var(--muted);font-size:11px;line-height:1.45}
 .schoolMeta{font-size:9px;font-weight:730;color:#9a6d31;background:#faf2e6;border-radius:5px;padding:2px 4px;margin-top:4px;display:inline-block}
 .dayCell.pedago{background:#fbf8f2}
 .dayCell.pedago .dayNum{color:#9a6d31}
@@ -120,7 +150,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.3</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.4</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -219,6 +249,19 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <p class="generateHint">Les trois sources doivent être importées. Tu pourras ensuite modifier manuellement ce qu’Henri a reconnu.</p>
     <div id="setupSuccess" class="setupSuccess">Horaire généré. Ton calendrier Henri est maintenant prêt.</div>
   </div>
+
+  <div class="groupsSection">
+    <h2>Mes groupes</h2>
+    <div id="groupList" class="groupList"></div>
+    <p class="dataNote">Les profils élèves sont conservés dans Henri et serviront plus tard automatiquement à l’outil de formation d’équipes.</p>
+  </div>
+</section>
+
+<section id="groupProfile" class="screen">
+  <button class="back" onclick="go('settings')">‹ Retour aux paramètres</button>
+  <div class="muted" id="groupProfileMeta"></div>
+  <h1 id="groupProfileTitle">Groupe</h1>
+  <div id="studentList" class="studentList"></div>
 </section>
 
 <section id="session" class="screen"><button class="back" onclick="go(previousScreen)">‹ Retour</button><div class="muted" id="sessionMeta"></div><h1 id="sessionTitle"></h1><div class="placeholder"><strong>Séance clé en main</strong><p class="muted">Le contenu pédagogique complet sera branché à la banque Henri. Ce lien confirme le circuit agenda → séance.</p></div></section>
@@ -306,6 +349,62 @@ function changeMonth(delta){
   renderMonth();
 }
 
+const defaultGroups=[
+  {id:'s2-01',name:'Secondaire 2 · Groupe 01',students:['Élève 1','Élève 2','Élève 3','Élève 4','Élève 5','Élève 6']},
+  {id:'s3-02',name:'Secondaire 3 · Groupe 02',students:['Élève 1','Élève 2','Élève 3','Élève 4','Élève 5','Élève 6']},
+  {id:'s4-01',name:'Secondaire 4 · Groupe 01',students:['Élève 1','Élève 2','Élève 3','Élève 4','Élève 5','Élève 6']}
+];
+let groupsData=JSON.parse(localStorage.getItem('henriGroupsData')||'null')||defaultGroups.map(g=>({
+  ...g,
+  students:g.students.map((name,i)=>({id:g.id+'-'+i,name,skill:3,leader:false,compatible:[],incompatible:[]}))
+}));
+let activeGroupId=null;
+function saveGroups(){localStorage.setItem('henriGroupsData',JSON.stringify(groupsData))}
+function renderGroups(){
+  if(!groupList) return;
+  groupList.innerHTML=groupsData.map(g=>'<button class="groupCard" onclick="openGroup(\''+g.id+'\')"><span><strong>'+g.name+'</strong><span>'+g.students.length+' élèves · profils modifiables</span></span><span class="groupArrow">›</span></button>').join('');
+}
+function openGroup(id){
+  activeGroupId=id;
+  const g=groupsData.find(x=>x.id===id);
+  if(!g) return;
+  groupProfileTitle.textContent=g.name;
+  groupProfileMeta.textContent=g.students.length+' élèves';
+  renderStudents();
+  go('groupProfile');
+}
+function renderStudents(){
+  const g=groupsData.find(x=>x.id===activeGroupId);
+  if(!g||!studentList) return;
+  studentList.innerHTML=g.students.map((s,idx)=>{
+    const others=g.students.filter(x=>x.id!==s.id);
+    const options='<option value="">Ajouter…</option>'+others.map(o=>'<option value="'+o.id+'">'+o.name+'</option>').join('');
+    const comp=s.compatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag" onclick="removeRelation(\''+s.id+'\',\'compatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
+    const incomp=s.incompatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag bad" onclick="removeRelation(\''+s.id+'\',\'incompatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
+    return '<div class="studentCard" id="student-'+idx+'">'+
+      '<button class="studentHead" onclick="toggleStudent('+idx+')"><span><span class="studentName">'+s.name+'</span><span class="studentMeta">Habileté '+s.skill+'/5'+(s.leader?' · Leader':'')+'</span></span><span class="groupArrow">›</span></button>'+
+      '<div class="studentDetails">'+
+        '<div class="detailRow"><div class="detailLabel"><span>Habiletés sportives</span><span>'+s.skill+'/5</span></div><div class="rating">'+[1,2,3,4,5].map(n=>'<button class="'+(s.skill===n?'on':'')+'" onclick="setSkill(\''+s.id+'\','+n+')">'+n+'</button>').join('')+'</div></div>'+
+        '<div class="detailRow toggleRow"><div><div class="detailLabel" style="margin:0">Leader</div><div class="studentMeta">Peut guider et équilibrer une équipe</div></div><button class="switch '+(s.leader?'on':'')+'" onclick="toggleLeader(\''+s.id+'\')"></button></div>'+
+        '<div class="detailRow"><div class="detailLabel">Compatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'compatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+comp+'</div></div>'+
+        '<div class="detailRow"><div class="detailLabel">Incompatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'incompatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+incomp+'</div></div>'+
+      '</div></div>';
+  }).join('');
+}
+function toggleStudent(i){document.getElementById('student-'+i)?.classList.toggle('open')}
+function getActiveStudent(id){return groupsData.find(x=>x.id===activeGroupId)?.students.find(x=>x.id===id)}
+function setSkill(id,skill){const s=getActiveStudent(id);if(!s)return;s.skill=skill;saveGroups();renderStudents()}
+function toggleLeader(id){const s=getActiveStudent(id);if(!s)return;s.leader=!s.leader;saveGroups();renderStudents()}
+function addRelation(id,type,targetId){
+  if(!targetId||id===targetId) return;
+  const s=getActiveStudent(id);if(!s)return;
+  const opposite=type==='compatible'?'incompatible':'compatible';
+  s[opposite]=s[opposite].filter(x=>x!==targetId);
+  if(!s[type].includes(targetId)) s[type].push(targetId);
+  saveGroups();renderStudents();
+}
+function removeRelation(id,type,targetId){const s=getActiveStudent(id);if(!s)return;s[type]=s[type].filter(x=>x!==targetId);saveGroups();renderStudents()}
+
 const setupFiles={teacherSchedule:false,schoolCalendar:false,groupSheets:false};
 function handleSetupFile(type,input){
   const hasFile=input.files&&input.files.length>0;
@@ -321,6 +420,7 @@ function handleSetupFile(type,input){
     card.classList.remove('ready');
   }
   updateGenerateState();
+  if(type==='groupSheets'&&hasFile) renderGroups();
 }
 function updateGenerateState(){
   generateScheduleBtn.disabled=!Object.values(setupFiles).every(Boolean);
@@ -350,6 +450,7 @@ function generateMySchedule(){
   setTimeout(()=>{go('home');setCalendarView('month')},450);
 }
 renderMonth();
+renderGroups();
 </script>
 </body>
 </html>
