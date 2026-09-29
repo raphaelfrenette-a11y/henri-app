@@ -86,6 +86,8 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .dayPlanGroup{font-size:15px;font-weight:780;letter-spacing:-.015em;margin-top:3px}
 .dayPlanSport{margin-top:11px;font-size:13px;font-weight:760;color:var(--accent)}
 .dayPlanPath{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
+.sessionLink{margin-top:9px;border:0;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:780}
+.sessionLink:hover{filter:brightness(.98)}
 .dayPlanCycle{display:inline-block;margin-bottom:12px;color:var(--muted);font-size:12px;font-weight:680}
 .placeholder{background:#fff;border:1px solid var(--line);border-radius:20px;padding:21px;box-shadow:0 3px 14px rgba(0,0,0,.02)}
 .settingsIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5;max-width:650px}
@@ -164,7 +166,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.9</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.0</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -202,7 +204,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 
 <section id="plan" class="screen">
   <h1>Planifier</h1>
-  <div class="placeholder"><strong>Planification annuelle</strong><p class="muted">Macroplanification C1, C2 et C3.</p></div>
+  <div class="placeholder"><strong>Sport</strong><p class="muted">Macroplanification C1, C2 et C3.</p></div>
   <div class="placeholder" style="margin-top:10px"><strong>Planifier une séquence</strong><p class="muted">Plusieurs séances en progression.</p></div>
   <div class="placeholder" style="margin-top:10px"><strong>Planifier une séance unique</strong><p class="muted">Cours ponctuel indépendant.</p></div>
 </section>
@@ -277,11 +279,11 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <p class="muted" id="courseAnnualPlan">À venir · ce cours pourra recevoir automatiquement le moyen d’action prévu dans la planification annuelle.</p>
   </div>
   <div class="placeholder" style="margin-top:10px">
-    <strong>Séquence</strong>
+    <strong>Progression</strong>
     <p class="muted" id="courseSequence">À venir · la séquence active pourra être liée automatiquement à ce cours.</p>
   </div>
   <div class="placeholder" style="margin-top:10px">
-    <strong>Séance</strong>
+    <strong>Planification prévue</strong>
     <p class="muted" id="courseSession">À venir · la séance correspondante pourra ensuite être ouverte directement depuis le calendrier.</p>
   </div>
 </section>
@@ -392,13 +394,13 @@ function openDayPlan(date){
   dayPlanMeta.textContent=cycle;
   if(entries.length){
     dayPlanCourses.innerHTML=entries.map((entry,idx)=>{
-      const sport=entry.annualPlan||'Planification à venir';
-      const path=[entry.sequence,entry.session].filter(Boolean).join(' · ');
-      return '<button class="dayPlanCard" onclick="openCourseEntry(\''+date+'\','+idx+')">'+
-        '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div><span class="chev">›</span></div>'+
+      const sport=entry.annualPlan||'Sport à planifier';
+      const session=entry.session||'Séance à planifier';
+      return '<div class="dayPlanCard">'+
+        '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
         '<div class="dayPlanSport">'+sport+'</div>'+
-        '<div class="dayPlanPath">'+(path||'Séquence et séance à venir')+'</div>'+
-      '</button>';
+        '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+idx+')">'+session+'</button>'+
+      '</div>';
     }).join('');
   }else{
     const label=cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu';
@@ -410,13 +412,13 @@ function openDayPlan(date){
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
-  courseDetailTitle.textContent=entry.activity||'Cours';
+  courseDetailTitle.textContent=entry.annualPlan||entry.activity||'Cours';
   courseDetailMeta.textContent=date+' · '+entry.time;
   courseDetailGroup.textContent=entry.group;
   courseDetailCycle.textContent=schoolDays[date]||'';
-  courseAnnualPlan.textContent=entry.annualPlan||'À venir · ce cours pourra recevoir automatiquement le moyen d’action prévu dans la planification annuelle.';
-  courseSequence.textContent=entry.sequence||'À venir · la séquence active pourra être liée automatiquement à ce cours.';
-  courseSession.textContent=entry.session||'À venir · la séance correspondante pourra ensuite être ouverte directement depuis le calendrier.';
+  courseAnnualPlan.textContent=entry.annualPlan||'Sport à planifier';
+  courseSequence.textContent=entry.sequence||'Séquence à planifier';
+  courseSession.textContent=entry.session||'Séance à planifier';
   go('courseDetail');
 }
 
