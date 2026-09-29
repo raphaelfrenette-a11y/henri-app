@@ -90,6 +90,54 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .sessionLink:hover{filter:brightness(.98)}
 .dayPlanCycle{display:inline-block;margin-bottom:12px;color:var(--muted);font-size:12px;font-weight:680}
 .placeholder{background:#fff;border:1px solid var(--line);border-radius:20px;padding:21px;box-shadow:0 3px 14px rgba(0,0,0,.02)}
+.planIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5}
+.planMenu{display:grid;gap:10px}
+.planMenuCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:20px;padding:18px;text-align:left;display:grid;grid-template-columns:44px 1fr auto;gap:13px;align-items:center;box-shadow:0 3px 14px rgba(0,0,0,.02)}
+.planMenuIcon{width:44px;height:44px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820}
+.planMenuCard strong{display:block;font-size:16px;letter-spacing:-.015em}
+.planMenuCard small{display:block;color:var(--muted);margin-top:4px;line-height:1.35}
+.planForm{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px}
+.planGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.planField label{display:block;color:var(--muted);font-size:11px;font-weight:760;margin:0 0 6px}
+.planControl{width:100%;min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:0 11px;color:var(--ink);font:inherit}
+.planPrimary{width:100%;border:0;border-radius:14px;background:var(--accent);color:#fff;min-height:49px;font-weight:780;margin-top:12px}
+.planSecondary{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--accent);min-height:47px;font-weight:740;margin-top:8px}
+.planStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.planStat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
+.planStat small{display:block;color:var(--muted);font-size:10px;font-weight:720}
+.planStat strong{display:block;font-size:22px;margin-top:3px;letter-spacing:-.03em}
+.annualList{display:grid;gap:9px;margin-top:12px}
+.annualItem{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px}
+.annualTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.compBadge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800}
+.annualSport{font-size:16px;font-weight:780;margin-top:7px}
+.annualMeta{color:var(--muted);font-size:12px;margin-top:3px}
+.itemActions{display:flex;gap:6px;margin-top:11px}
+.itemBtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;color:var(--accent);font-size:11px;font-weight:720}
+.itemBtn.danger{color:#925048}
+.planHint{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.4}
+.seqHeader{background:var(--accent);color:#fff;border-radius:22px;padding:20px;margin:12px 0 14px}
+.seqHeader small{opacity:.72;font-weight:720}
+.seqHeader h2{margin:6px 0 4px;font-size:24px;letter-spacing:-.03em}
+.seqHeader p{margin:0;opacity:.82;line-height:1.4}
+.seqList{display:grid;gap:9px}
+.seqLesson{width:100%;border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;display:grid;grid-template-columns:36px 1fr auto;gap:11px;align-items:center;text-align:left}
+.seqNum{width:36px;height:36px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820}
+.seqLesson strong{display:block}
+.seqLesson small{display:block;color:var(--muted);margin-top:3px}
+.sessionObjective{background:var(--accent-soft);border-radius:16px;padding:14px;margin:12px 0}
+.sessionObjective small{display:block;color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.sessionObjective p{margin:5px 0 0;line-height:1.4}
+.editBlocks{display:grid;gap:9px}
+.editBlock{background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px}
+.editBlockTop{display:flex;justify-content:space-between;gap:10px}
+.editBlockType{color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.editBlockTitle{font-weight:760;margin-top:4px}
+.editBlockActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.addSection{width:100%;border:1px dashed #bcc5c9;background:transparent;border-radius:15px;min-height:48px;color:var(--accent);font-weight:760;margin-top:10px}
+.quickResult{display:none;margin-top:14px}
+.quickResult.show{display:block}
+@media(max-width:600px){.planGrid{grid-template-columns:1fr}.planStats{grid-template-columns:repeat(3,1fr)}}
 .settingsIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5;max-width:650px}
 .setupStack{display:grid;gap:10px}
 .importCard{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:17px 18px;display:grid;grid-template-columns:44px 1fr auto;gap:13px;align-items:center;box-shadow:0 3px 14px rgba(0,0,0,.018);transition:.18s ease}
@@ -166,7 +214,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.0</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.1</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -204,9 +252,87 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 
 <section id="plan" class="screen">
   <h1>Planifier</h1>
-  <div class="placeholder"><strong>Sport</strong><p class="muted">Macroplanification C1, C2 et C3.</p></div>
-  <div class="placeholder" style="margin-top:10px"><strong>Planifier une séquence</strong><p class="muted">Plusieurs séances en progression.</p></div>
-  <div class="placeholder" style="margin-top:10px"><strong>Planifier une séance unique</strong><p class="muted">Cours ponctuel indépendant.</p></div>
+  <p class="planIntro">De l’année complète jusqu’au prochain cours. Henri garde la même structure, mais tu peux toujours la modifier.</p>
+  <div class="planMenu">
+    <button class="planMenuCard" onclick="openAnnualPlanner()"><span class="planMenuIcon">A</span><span><strong>Planification annuelle</strong><small>Répartir C1, C2 et C3, choisir les sports et utiliser les jours de cours disponibles.</small></span><span class="groupArrow">›</span></button>
+    <button class="planMenuCard" onclick="openSequenceSetup()"><span class="planMenuIcon">S</span><span><strong>Planifier une séquence</strong><small>Créer une progression de 3, 4, 5, 6 ou 7 cours avec un gabarit entièrement modifiable.</small></span><span class="groupArrow">›</span></button>
+    <button class="planMenuCard" onclick="openQuickSession()"><span class="planMenuIcon">1</span><span><strong>Séance individuelle</strong><small>Préparer rapidement une période ponctuelle, sans l’intégrer à une séquence.</small></span><span class="groupArrow">›</span></button>
+  </div>
+</section>
+
+<section id="annualPlanner" class="screen">
+  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <h1>Planification annuelle</h1>
+  <p class="planIntro">Construis l’année par blocs. Henri calcule les cours disponibles et ce qu’il reste à planifier.</p>
+  <div class="planForm">
+    <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="renderAnnualPlanner()"></select></div>
+  </div>
+  <div class="planStats">
+    <div class="planStat"><small>Cours possibles</small><strong id="annualPossible">0</strong></div>
+    <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
+    <div class="planStat"><small>Restants</small><strong id="annualRemaining">0</strong></div>
+  </div>
+  <div id="annualList" class="annualList"></div>
+  <div class="planForm" style="margin-top:12px">
+    <div class="planGrid">
+      <div class="planField"><label>Compétence</label><select id="annualComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
+      <div class="planField"><label>Sport / moyen d’action</label><select id="annualSport" class="planControl"><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Conditionnement physique</option><option>Course</option><option>Musculation</option></select></div>
+      <div class="planField"><label>Nombre de cours</label><input id="annualCourses" class="planControl" type="number" min="1" max="12" value="4"></div>
+    </div>
+    <button class="planPrimary" onclick="addAnnualBlock()">Ajouter à l’année</button>
+    <p class="planHint">Exemple : s’il reste 4 cours possibles, Henri te le montre immédiatement pour t’aider à terminer l’année avec une séquence de 4 cours.</p>
+  </div>
+</section>
+
+<section id="sequenceSetup" class="screen">
+  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <h1>Nouvelle séquence</h1>
+  <p class="planIntro">Choisis la compétence, le sport et le nombre de cours. Henri prépare ensuite un gabarit modifiable.</p>
+  <div class="planForm">
+    <div class="planGrid">
+      <div class="planField"><label>Compétence</label><select id="seqComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
+      <div class="planField"><label>Sport</label><select id="seqSport" class="planControl"><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Handball</option><option>Conditionnement physique</option></select></div>
+      <div class="planField"><label>Groupe / niveau</label><select id="seqGroup" class="planControl"></select></div>
+      <div class="planField"><label>Nombre de cours</label><select id="seqCount" class="planControl"><option>3</option><option selected>5</option><option>4</option><option>6</option><option>7</option></select></div>
+      <div class="planField"><label>Durée habituelle</label><select id="seqDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
+    </div>
+    <button class="planPrimary" onclick="createSequenceFromTemplate()">Utiliser le gabarit par défaut</button>
+    <button class="planSecondary" onclick="generateSequenceDemo()">Générer avec Henri</button>
+  </div>
+</section>
+
+<section id="sequenceEditor" class="screen">
+  <button class="back" onclick="go('sequenceSetup')">‹ Modifier les choix</button>
+  <div id="sequenceHeader" class="seqHeader"></div>
+  <div id="sequenceLessons" class="seqList"></div>
+  <button class="addSection" onclick="addSequenceLesson()">+ Ajouter un cours</button>
+  <button class="planPrimary" onclick="saveSequence()">Enregistrer la séquence</button>
+</section>
+
+<section id="sessionEditor" class="screen">
+  <button class="back" onclick="returnFromSessionEditor()">‹ Retour</button>
+  <div class="muted" id="editSessionMeta"></div>
+  <h1 id="editSessionTitle">Séance</h1>
+  <div class="sessionObjective"><small>Objectif du cours</small><p id="editSessionObjective"></p></div>
+  <button class="planSecondary" onclick="editSessionObjective()">Modifier l’objectif</button>
+  <div id="editBlocks" class="editBlocks" style="margin-top:12px"></div>
+  <button class="addSection" onclick="addSessionSection()">+ Ajouter une section</button>
+</section>
+
+<section id="quickSession" class="screen">
+  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <h1>Séance individuelle</h1>
+  <p class="planIntro">Prépare un cours ponctuel rapidement. Il reste indépendant et n’est pas ajouté à une séquence sauf si tu décides de le faire plus tard.</p>
+  <div class="planForm">
+    <div class="planGrid">
+      <div class="planField"><label>Sport</label><select id="quickSport" class="planControl"><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Conditionnement physique</option></select></div>
+      <div class="planField"><label>Groupe / niveau</label><select id="quickGroup" class="planControl"></select></div>
+      <div class="planField"><label>Durée</label><select id="quickDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
+      <div class="planField"><label>Objectif</label><input id="quickObjective" class="planControl" value="Travailler l’habileté ciblée dans une situation progressive."></div>
+    </div>
+    <button class="planPrimary" onclick="buildQuickSession()">Créer la séance</button>
+  </div>
+  <div id="quickResult" class="quickResult"></div>
 </section>
 
 <section id="tools" class="screen"><h1>Outils</h1><div class="placeholder">À intégrer ensuite.</div></section>
@@ -483,6 +609,150 @@ function changeMonth(delta){
   renderMonth();
 }
 
+const planCompetenceNames={C1:'Agir',C2:'Interagir',C3:'Mode de vie sain et actif'};
+let annualPlans=JSON.parse(localStorage.getItem('henriAnnualPlans')||'{}');
+let activeSequence=JSON.parse(localStorage.getItem('henriActiveSequence')||'null');
+let activeSessionIndex=0;
+let sessionEditorSource='sequence';
+let quickSessionData=null;
+
+function fillPlanGroupSelects(){
+  const opts=groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
+  if(annualGroup) annualGroup.innerHTML=opts;
+  if(seqGroup) seqGroup.innerHTML=opts;
+  if(quickGroup) quickGroup.innerHTML=opts;
+}
+function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('annualPlanner')}
+function getGroupCourseSlots(groupId){
+  const g=groupsData.find(x=>x.id===groupId);
+  if(!g) return 0;
+  const exact=Object.values(scheduleEntries).flat().filter(e=>e.group===g.name).length;
+  return exact||18;
+}
+function ensureAnnualPlan(groupId){
+  if(!annualPlans[groupId]) annualPlans[groupId]=[
+    {id:'a1',comp:'C2',sport:'Ultimate',courses:5},
+    {id:'a2',comp:'C1',sport:'Conditionnement physique',courses:4},
+    {id:'a3',comp:'C2',sport:'Badminton',courses:5}
+  ];
+}
+function renderAnnualPlanner(){
+  if(!annualGroup) return;
+  const groupId=annualGroup.value||groupsData[0]?.id;
+  if(!groupId) return;
+  ensureAnnualPlan(groupId);
+  const possible=getGroupCourseSlots(groupId);
+  const blocks=annualPlans[groupId];
+  const planned=blocks.reduce((n,b)=>n+Number(b.courses||0),0);
+  const remaining=Math.max(0,possible-planned);
+  annualPossible.textContent=possible;
+  annualPlanned.textContent=planned;
+  annualRemaining.textContent=remaining;
+  annualList.innerHTML=blocks.map(b=>'<div class="annualItem"><div class="annualTop"><div><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><div class="annualSport">'+b.sport+'</div><div class="annualMeta">'+b.courses+' cours</div></div></div><div class="itemActions"><button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button><button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button></div></div>').join('');
+}
+function saveAnnual(){localStorage.setItem('henriAnnualPlans',JSON.stringify(annualPlans))}
+function addAnnualBlock(){
+  const groupId=annualGroup.value;
+  ensureAnnualPlan(groupId);
+  const courses=Math.max(1,Number(annualCourses.value)||1);
+  annualPlans[groupId].push({id:'a'+Date.now(),comp:annualComp.value,sport:annualSport.value,courses});
+  saveAnnual();renderAnnualPlanner();
+}
+function editAnnualBlock(id){
+  const groupId=annualGroup.value, b=(annualPlans[groupId]||[]).find(x=>x.id===id);if(!b)return;
+  const n=prompt('Nombre de cours pour '+b.sport,b.courses);
+  if(n!==null&&Number(n)>0){b.courses=Number(n);saveAnnual();renderAnnualPlanner()}
+}
+function deleteAnnualBlock(id){
+  const groupId=annualGroup.value;
+  annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
+  saveAnnual();renderAnnualPlanner();
+}
+
+function openSequenceSetup(){fillPlanGroupSelects();go('sequenceSetup')}
+function defaultBlockSet(){
+  return [
+    {type:'Échauffement',title:'Activation liée au thème',minutes:7},
+    {type:'Éducatif 1',title:'Découvrir le principe ciblé',minutes:10},
+    {type:'Éducatif 2',title:'Réinvestir avec opposition progressive',minutes:15},
+    {type:'Situation de partie',title:'Réinvestissement en contexte de jeu',minutes:32}
+  ];
+}
+function createSequenceFromTemplate(){buildSequence(false)}
+function generateSequenceDemo(){buildSequence(true)}
+function buildSequence(generated){
+  const count=Number(seqCount.value);
+  const sport=seqSport.value;
+  const group=groupsData.find(g=>g.id===seqGroup.value);
+  activeSequence={id:'seq-'+Date.now(),comp:seqComp.value,sport,groupId:seqGroup.value,groupName:group?.name||'',duration:seqDuration.value,sessions:[]};
+  for(let i=0;i<count;i++){
+    activeSequence.sessions.push({
+      title:(generated?['Découvrir','Stabiliser','Appliquer','Adapter','Réinvestir','Consolider','Évaluer'][i]||('Cours '+(i+1)):'Cours '+(i+1))+' · '+sport,
+      objective:'Progresser dans '+sport+' à partir du principe ciblé de la séquence.',
+      blocks:defaultBlockSet().map(b=>({...b}))
+    });
+  }
+  renderSequenceEditor();go('sequenceEditor');
+}
+function renderSequenceEditor(){
+  if(!activeSequence)return;
+  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+activeSequence.sessions.length+' cours · '+activeSequence.duration+'</p>';
+  sequenceLessons.innerHTML=activeSequence.sessions.map((s,i)=>'<button class="seqLesson" onclick="openSessionEditor('+i+',\'sequence\')"><span class="seqNum">'+(i+1)+'</span><span><strong>'+s.title+'</strong><small>'+s.blocks.map(b=>b.type).join(' · ')+'</small></span><span class="groupArrow">›</span></button>').join('');
+}
+function addSequenceLesson(){
+  if(!activeSequence)return;
+  activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:'Objectif à préciser.',blocks:defaultBlockSet().map(b=>({...b}))});
+  renderSequenceEditor();
+}
+function saveSequence(){if(!activeSequence)return;localStorage.setItem('henriActiveSequence',JSON.stringify(activeSequence));alert('Séquence enregistrée dans Henri.')}
+function openSessionEditor(index,source){
+  sessionEditorSource=source||'sequence';
+  activeSessionIndex=index;
+  const session=sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[index];
+  if(!session)return;
+  editSessionMeta.textContent=sessionEditorSource==='quick'?'Séance individuelle':'Séance '+(index+1)+' sur '+activeSequence.sessions.length;
+  editSessionTitle.textContent=session.title;
+  editSessionObjective.textContent=session.objective;
+  renderSessionBlocks(session);
+  go('sessionEditor');
+}
+function renderSessionBlocks(session){
+  editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+b.type+'</div><div class="editBlockTitle">'+b.title+'</div></div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
+}
+function currentEditableSession(){return sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[activeSessionIndex]}
+function editSessionObjective(){const s=currentEditableSession();if(!s)return;const v=prompt('Objectif du cours',s.objective);if(v!==null){s.objective=v;editSessionObjective.textContent=v}}
+function editSessionBlock(i){
+  const s=currentEditableSession(),b=s?.blocks[i];if(!b)return;
+  const title=prompt('Titre de la section',b.title);if(title!==null&&title.trim())b.title=title.trim();
+  const mins=prompt('Durée (minutes)',b.minutes);if(mins!==null&&Number(mins)>0)b.minutes=Number(mins);
+  renderSessionBlocks(s);
+}
+function moveSessionBlock(i,delta){
+  const s=currentEditableSession();if(!s)return;const j=i+delta;if(j<0||j>=s.blocks.length)return;
+  [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];renderSessionBlocks(s);
+}
+function deleteSessionBlock(i){const s=currentEditableSession();if(!s)return;s.blocks.splice(i,1);renderSessionBlocks(s)}
+function addSessionSection(){
+  const s=currentEditableSession();if(!s)return;
+  const type=prompt('Type de section','Éducatif');if(!type)return;
+  const title=prompt('Titre','Nouvelle activité')||'Nouvelle activité';
+  s.blocks.push({type,title,minutes:10});renderSessionBlocks(s);
+}
+function returnFromSessionEditor(){
+  if(sessionEditorSource==='quick'){renderQuickResult();go('quickSession')}else{renderSequenceEditor();go('sequenceEditor')}
+}
+function openQuickSession(){fillPlanGroupSelects();go('quickSession')}
+function buildQuickSession(){
+  const sport=quickSport.value;
+  quickSessionData={title:sport+' · séance individuelle',objective:quickObjective.value||'Objectif à préciser.',blocks:defaultBlockSet().map(b=>({...b}))};
+  renderQuickResult();
+}
+function renderQuickResult(){
+  if(!quickSessionData){quickResult.classList.remove('show');quickResult.innerHTML='';return}
+  quickResult.classList.add('show');
+  quickResult.innerHTML='<button class="planMenuCard" onclick="openSessionEditor(0,\'quick\')"><span class="planMenuIcon">1</span><span><strong>'+quickSessionData.title+'</strong><small>'+quickSessionData.blocks.length+' sections · modifiable immédiatement</small></span><span class="groupArrow">›</span></button>';
+}
+
 const defaultGroups=[
   {
     id:'s2-01',
@@ -582,6 +852,7 @@ const legacyDemoGroups=storedGroups&&storedGroups.some(g=>g.students?.some(s=>/^
 let groupsData=(!storedGroups||legacyDemoGroups)?makeDefaultGroups():storedGroups;
 if(legacyDemoGroups) localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
 let activeGroupId=null;
+setTimeout(fillPlanGroupSelects,0);
 function saveGroups(){localStorage.setItem('henriGroupsData',JSON.stringify(groupsData))}
 function renderGroups(){
   if(!groupList) return;
