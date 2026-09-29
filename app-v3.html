@@ -495,7 +495,10 @@ function makeDefaultGroups(){
   return groups;
 }
 
-let groupsData=JSON.parse(localStorage.getItem('henriGroupsData')||'null')||makeDefaultGroups();
+let storedGroups=JSON.parse(localStorage.getItem('henriGroupsData')||'null');
+const legacyDemoGroups=storedGroups&&storedGroups.some(g=>g.students?.some(s=>/^Élève \d+$/.test(s.name||'')));
+let groupsData=(!storedGroups||legacyDemoGroups)?makeDefaultGroups():storedGroups;
+if(legacyDemoGroups) localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
 let activeGroupId=null;
 function saveGroups(){localStorage.setItem('henriGroupsData',JSON.stringify(groupsData))}
 function renderGroups(){
@@ -645,12 +648,18 @@ function generateMySchedule(){
 
   localStorage.setItem('henriSetupComplete','1');
   localStorage.setItem('henriDemoSchedule','1');
+  localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
+  localStorage.setItem('henriSchoolDays',JSON.stringify(schoolDays));
   setupSuccess.textContent='Horaire démo généré à partir du calendrier scolaire et du cycle de 9 jours.';
   setupSuccess.classList.add('show');
   renderMonth();
   renderWeek();
   setTimeout(()=>{go('home');setCalendarView('month')},450);
 }
+const savedScheduleEntries=JSON.parse(localStorage.getItem('henriScheduleEntries')||'null');
+const savedSchoolDays=JSON.parse(localStorage.getItem('henriSchoolDays')||'null');
+if(savedScheduleEntries) scheduleEntries=savedScheduleEntries;
+if(savedSchoolDays) schoolDays=savedSchoolDays;
 rebuildCalendarEvents();
 renderMonth();
 renderWeek();
