@@ -64,7 +64,7 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .dayCell.mutedDay{color:#c0c3c5}
 .dayNum{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:650}
 .dayCell.today .dayNum{background:var(--accent);color:#fff}
-.monthEvent{margin-top:5px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:9px;font-weight:700;padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.monthEvent{display:block;width:100%;margin-top:5px;border:0;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:9px;font-weight:700;padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
 .eventDot{display:none;width:5px;height:5px;border-radius:50%;background:var(--accent);margin:5px auto 0}
 .placeholder{background:#fff;border:1px solid var(--line);border-radius:20px;padding:21px;box-shadow:0 3px 14px rgba(0,0,0,.02)}
 .settingsIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5;max-width:650px}
@@ -150,7 +150,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.5</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.6</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -169,32 +169,10 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     </div>
 
     <div id="weekView" class="calendarView on">
-      <div class="week">
-        <div class="weekDay today">
-          <div class="dayHead"><span class="todayBadge"><span class="todayDot"></span><span class="dayName">Lundi</span></span><span class="dayDate">28 sept.</span></div>
-          <button class="weekEvent" onclick="openSession('Flag football — Espace libre','Séance 1/5 · Secondaire 2')"><span class="time">9 h 50</span><span class="course">Sec. 2 · Flag football<small>Séance 1/5 · Espace libre</small></span><span class="chev">›</span></button>
-        </div>
-        <div class="weekDay">
-          <div class="dayHead"><span class="dayName">Mardi</span><span class="dayDate">29 sept.</span></div>
-          <button class="weekEvent" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')"><span class="time">8 h 35</span><span class="course">Sec. 3 · Ultimate<small>Séance 2/5 · Se démarquer</small></span><span class="chev">›</span></button>
-          <button class="weekEvent" onclick="openSession('Badminton — Dégagement','Séance 3/5 · Secondaire 3')"><span class="time">13 h 10</span><span class="course">Sec. 3 · Badminton<small>Séance 3/5 · Dégagement</small></span><span class="chev">›</span></button>
-        </div>
-        <div class="weekDay">
-          <div class="dayHead"><span class="dayName">Mercredi</span><span class="dayDate">30 sept.</span></div>
-          <button class="weekEvent" onclick="openSession('Taekwondo','Séance unique · Secondaire 4')"><span class="time">10 h 55</span><span class="course">Sec. 4 · Taekwondo<small>Séance unique</small></span><span class="chev">›</span></button>
-        </div>
-        <div class="weekDay">
-          <div class="dayHead"><span class="dayName">Jeudi</span><span class="dayDate">1 oct.</span></div>
-          <button class="weekEvent" onclick="openSession('Conditionnement','Séance 1/4 · Secondaire 2')"><span class="time">13 h 10</span><span class="course">Sec. 2 · Conditionnement<small>Séance 1/4</small></span><span class="chev">›</span></button>
-        </div>
-        <div class="weekDay">
-          <div class="dayHead"><span class="dayName">Vendredi</span><span class="dayDate">2 oct.</span></div>
-          <div class="empty">Aucun cours prévu</div>
-        </div>
-      </div>
+      <div id="weekGrid" class="week"></div>
     </div>
 
-    <div id="monthView" class="calendarView">
+        <div id="monthView" class="calendarView">
       <div class="monthCard">
         <div class="monthTop">
           <span id="monthTitle" class="monthTitle"></span>
@@ -264,6 +242,28 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <div id="studentList" class="studentList"></div>
 </section>
 
+<section id="courseDetail" class="screen">
+  <button class="back" onclick="go('home')">‹ Retour au calendrier</button>
+  <div class="muted" id="courseDetailMeta"></div>
+  <h1 id="courseDetailTitle">Cours</h1>
+  <div class="placeholder">
+    <strong id="courseDetailGroup"></strong>
+    <p class="muted" id="courseDetailCycle"></p>
+  </div>
+  <div class="placeholder" style="margin-top:10px">
+    <strong>Planification annuelle</strong>
+    <p class="muted" id="courseAnnualPlan">À venir · ce cours pourra recevoir automatiquement le moyen d’action prévu dans la planification annuelle.</p>
+  </div>
+  <div class="placeholder" style="margin-top:10px">
+    <strong>Séquence</strong>
+    <p class="muted" id="courseSequence">À venir · la séquence active pourra être liée automatiquement à ce cours.</p>
+  </div>
+  <div class="placeholder" style="margin-top:10px">
+    <strong>Séance</strong>
+    <p class="muted" id="courseSession">À venir · la séance correspondante pourra ensuite être ouverte directement depuis le calendrier.</p>
+  </div>
+</section>
+
 <section id="session" class="screen"><button class="back" onclick="go(previousScreen)">‹ Retour</button><div class="muted" id="sessionMeta"></div><h1 id="sessionTitle"></h1><div class="placeholder"><strong>Séance clé en main</strong><p class="muted">Le contenu pédagogique complet sera branché à la banque Henri. Ce lien confirme le circuit agenda → séance.</p></div></section>
 </main>
 
@@ -305,12 +305,13 @@ function setCalendarView(view){
   weekBtn.classList.toggle('on',isWeek);
   monthBtn.classList.toggle('on',!isWeek);
 }
-let calendarEvents={
-  '2026-09-28':'Sec. 2 · Flag',
-  '2026-09-29':'Sec. 3 · Ultimate',
-  '2026-09-30':'Sec. 4 · Taekwondo',
-  '2026-10-01':'Sec. 2 · Cond.'
+let scheduleEntries={
+  '2026-09-28':[{time:'9 h 45',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}],
+  '2026-09-29':[{time:'8 h 15',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}],
+  '2026-09-30':[{time:'11 h 10',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}],
+  '2026-10-01':[{time:'13 h 30',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}]
 };
+let calendarEvents={};
 let schoolDays={
   '2026-09-28':'Jour 2',
   '2026-09-29':'Jour 3',
@@ -318,6 +319,55 @@ let schoolDays={
   '2026-10-01':'Jour 5',
   '2026-10-02':'Pédagogique'
 };
+function rebuildCalendarEvents(){
+  calendarEvents={};
+  Object.entries(scheduleEntries).forEach(([date,entries])=>{
+    if(entries?.length){
+      const first=entries[0];
+      calendarEvents[date]=first.time+' · '+first.group+(entries.length>1?' · +'+(entries.length-1):'');
+    }
+  });
+  Object.entries(schoolDays).forEach(([date,type])=>{
+    if(!calendarEvents[date]&&(type==='Pédagogique'||type==='Congé')) calendarEvents[date]=type==='Pédagogique'?'Journée pédagogique':'Congé';
+  });
+}
+const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const shortMonths=['janv.','févr.','mars','avr.','mai','juin','juill.','août','sept.','oct.','nov.','déc.'];
+function renderWeek(){
+  if(!weekGrid) return;
+  const start=new Date(2026,8,28);
+  let out='';
+  for(let i=0;i<5;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const key=dateKey(d.getFullYear(),d.getMonth(),d.getDate());
+    const entries=scheduleEntries[key]||[];
+    const cycle=schoolDays[key];
+    const today=key==='2026-09-28';
+    out+='<div class="weekDay'+(today?' today':'')+'"><div class="dayHead"><span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span></div>';
+    if(entries.length){
+      entries.forEach((entry,idx)=>{
+        out+='<button class="weekEvent" onclick="openCourseEntry(\''+key+'\','+idx+')"><span class="time">'+entry.time+'</span><span class="course">'+entry.group+'<small>'+entry.activity+(cycle?' · '+cycle:'')+'</small></span><span class="chev">›</span></button>';
+      });
+    }else{
+      out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu')+'</div>';
+    }
+    out+='</div>';
+  }
+  weekGrid.innerHTML=out;
+}
+function openCourseEntry(date,index){
+  const entry=(scheduleEntries[date]||[])[index];
+  if(!entry) return;
+  courseDetailTitle.textContent=entry.activity||'Cours';
+  courseDetailMeta.textContent=date+' · '+entry.time;
+  courseDetailGroup.textContent=entry.group;
+  courseDetailCycle.textContent=schoolDays[date]||'';
+  courseAnnualPlan.textContent=entry.annualPlan||'À venir · ce cours pourra recevoir automatiquement le moyen d’action prévu dans la planification annuelle.';
+  courseSequence.textContent=entry.sequence||'À venir · la séquence active pourra être liée automatiquement à ce cours.';
+  courseSession.textContent=entry.session||'À venir · la séance correspondante pourra ensuite être ouverte directement depuis le calendrier.';
+  go('courseDetail');
+}
+
 const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 let shownYear=2026,shownMonth=8;
 function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
@@ -335,10 +385,12 @@ function renderMonth(){
     else d=i-offset+1;
     const key=dateKey(y,m,d);
     const event=calendarEvents[key];
+    const entries=scheduleEntries[key]||[];
     const schoolDay=schoolDays[key];
     const pedago=schoolDay==='Pédagogique'||schoolDay==='Congé';
     const today=key==='2026-09-28';
-    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'"><span class="dayNum">'+d+'</span>'+(schoolDay?'<span class="schoolMeta">'+schoolDay+'</span>':'')+(event?'<div class="monthEvent">'+event+'</div><span class="eventDot"></span>':'')+'</div>';
+    const eventHtml=event?(entries.length?'<button class="monthEvent" onclick="openCourseEntry(\''+key+'\',0)">'+event+'</button><span class="eventDot"></span>':'<div class="monthEvent">'+event+'</div>'):'';
+    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'"><span class="dayNum">'+d+'</span>'+(schoolDay?'<span class="schoolMeta">'+schoolDay+'</span>':'')+eventHtml+'</div>';
   }
   monthGrid.innerHTML=out;
 }
@@ -576,28 +628,32 @@ function generateMySchedule(){
   if(!Object.values(setupFiles).every(Boolean)) return;
 
   schoolDays={...demoSchoolDays};
-  calendarEvents={};
+  scheduleEntries={};
 
   Object.entries(schoolDays).forEach(([date,cycle])=>{
     const lessons=demoTeacherSchedule[cycle]||[];
     if(lessons.length){
-      const first=lessons[0];
-      calendarEvents[date]=first.time+' · '+first.group+(lessons.length>1?' · +'+(lessons.length-1):'');
-    }else if(cycle==='Pédagogique'){
-      calendarEvents[date]='Journée pédagogique';
-    }else if(cycle==='Congé'){
-      calendarEvents[date]='Congé';
+      scheduleEntries[date]=lessons.map(lesson=>({
+        ...lesson,
+        annualPlan:null,
+        sequence:null,
+        session:null
+      }));
     }
   });
+  rebuildCalendarEvents();
 
   localStorage.setItem('henriSetupComplete','1');
   localStorage.setItem('henriDemoSchedule','1');
   setupSuccess.textContent='Horaire démo généré à partir du calendrier scolaire et du cycle de 9 jours.';
   setupSuccess.classList.add('show');
   renderMonth();
+  renderWeek();
   setTimeout(()=>{go('home');setCalendarView('month')},450);
 }
+rebuildCalendarEvents();
 renderMonth();
+renderWeek();
 renderGroups();
 </script>
 </body>
