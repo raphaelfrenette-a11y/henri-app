@@ -125,6 +125,21 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .itemBtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;color:var(--accent);font-size:11px;font-weight:720}
 .itemBtn.danger{color:#925048}
 .planHint{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.4}
+.macroSeqList{display:grid;gap:9px;margin-top:12px}
+.macroSeqCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:18px;padding:15px 16px;text-align:left;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.macroSeqSport{font-size:16px;font-weight:790;letter-spacing:-.015em}
+.macroSeqMeta{color:var(--muted);font-size:12px;margin-top:4px;line-height:1.35}
+.seqStatus{display:inline-block;margin-top:7px;border-radius:999px;background:#f1f3f4;color:var(--muted);padding:5px 8px;font-size:10px;font-weight:760}
+.seqStatus.ready{background:#eef4f1;color:#3f6756}
+.choiceHero{background:var(--accent);color:#fff;border-radius:22px;padding:20px;margin:12px 0}
+.choiceHero small{display:block;opacity:.72;font-weight:720}
+.choiceHero h2{font-size:26px;margin:6px 0 4px;letter-spacing:-.035em}
+.choiceHero p{margin:0;opacity:.82;line-height:1.45}
+.choiceCards{display:grid;gap:10px}
+.choiceCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:19px;padding:17px;text-align:left;display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center}
+.choiceIcon{width:40px;height:40px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820}
+.choiceCard strong{display:block;font-size:15px}
+.choiceCard small{display:block;color:var(--muted);font-size:12px;line-height:1.4;margin-top:3px}
 .seqHeader{background:var(--accent);color:#fff;border-radius:22px;padding:20px;margin:12px 0 14px}
 .seqHeader small{opacity:.72;font-weight:720}
 .seqHeader h2{margin:6px 0 4px;font-size:24px;letter-spacing:-.03em}
@@ -223,7 +238,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.2</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.3</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -295,23 +310,44 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 
 <section id="sequenceSetup" class="screen">
   <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
-  <h1>Nouvelle séquence</h1>
-  <p class="planIntro">Choisis la compétence, le sport et le nombre de cours. Henri prépare ensuite un gabarit modifiable.</p>
+  <h1>Séquences</h1>
+  <p class="planIntro">Les sports viennent directement de ta planification annuelle. Choisis le bloc que tu veux maintenant détailler.</p>
+  <div class="planForm">
+    <div class="planField"><label>Groupe</label><select id="seqGroup" class="planControl" onchange="renderMacroSequences()"></select></div>
+  </div>
+  <div id="macroSequenceList" class="macroSeqList"></div>
+  <button class="planSecondary" onclick="openStandaloneSequence()">Créer une séquence hors planification annuelle</button>
+</section>
+
+<section id="sequenceChoice" class="screen">
+  <button class="back" onclick="go('sequenceSetup')">‹ Retour aux séquences</button>
+  <div id="sequenceChoiceHero" class="choiceHero"></div>
+  <div id="existingSequenceAction"></div>
+  <div class="choiceCards">
+    <button class="choiceCard" onclick="createSequenceFromMacro(false)"><span class="choiceIcon">G</span><span><strong>Partir du gabarit</strong><small>Crée les cours avec Échauffement, Éducatif 1, Éducatif 2 et Situation de partie. Tu remplis et modifies tout librement.</small></span><span class="groupArrow">›</span></button>
+    <button class="choiceCard" onclick="createSequenceFromMacro(true)"><span class="choiceIcon">H</span><span><strong>Utiliser la planification Henri</strong><small>Henri propose une progression complète adaptée au sport et au nombre de cours. Tout demeure modifiable.</small></span><span class="groupArrow">›</span></button>
+  </div>
+</section>
+
+<section id="standaloneSequence" class="screen">
+  <button class="back" onclick="go('sequenceSetup')">‹ Retour aux séquences</button>
+  <h1>Séquence indépendante</h1>
+  <p class="planIntro">Pour créer une séquence qui n’est pas encore liée à la planification annuelle.</p>
   <div class="planForm">
     <div class="planGrid">
       <div class="planField"><label>Compétence</label><select id="seqComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
       <div class="planField"><label>Sport</label><select id="seqSport" class="planControl"><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Handball</option><option>Conditionnement physique</option></select></div>
-      <div class="planField"><label>Groupe / niveau</label><select id="seqGroup" class="planControl"></select></div>
+      <div class="planField"><label>Groupe / niveau</label><select id="standaloneSeqGroup" class="planControl"></select></div>
       <div class="planField"><label>Nombre de cours</label><select id="seqCount" class="planControl"><option>3</option><option selected>5</option><option>4</option><option>6</option><option>7</option></select></div>
       <div class="planField"><label>Durée habituelle</label><select id="seqDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
     </div>
     <button class="planPrimary" onclick="createSequenceFromTemplate()">Utiliser le gabarit par défaut</button>
-    <button class="planSecondary" onclick="generateSequenceDemo()">Générer avec Henri</button>
+    <button class="planSecondary" onclick="generateSequenceDemo()">Utiliser la planification Henri</button>
   </div>
 </section>
 
 <section id="sequenceEditor" class="screen">
-  <button class="back" onclick="go('sequenceSetup')">‹ Modifier les choix</button>
+  <button class="back" onclick="returnFromSequenceEditor()">‹ Retour</button>
   <div id="sequenceHeader" class="seqHeader"></div>
   <div id="sequenceLessons" class="seqList"></div>
   <button class="addSection" onclick="addSequenceLesson()">+ Ajouter un cours</button>
@@ -621,6 +657,9 @@ function changeMonth(delta){
 const planCompetenceNames={C1:'Agir',C2:'Interagir',C3:'Mode de vie sain et actif'};
 let annualPlans=JSON.parse(localStorage.getItem('henriAnnualPlans')||'{}');
 let activeSequence=JSON.parse(localStorage.getItem('henriActiveSequence')||'null');
+let savedSequences=JSON.parse(localStorage.getItem('henriSequences')||'{}');
+let selectedAnnualBlockId=null;
+let selectedAnnualGroupId=null;
 let activeSessionIndex=0;
 let sessionEditorSource='sequence';
 let quickSessionData=null;
@@ -629,6 +668,7 @@ function fillPlanGroupSelects(){
   const opts=groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
   if(annualGroup) annualGroup.innerHTML=opts;
   if(seqGroup) seqGroup.innerHTML=opts;
+  if(standaloneSeqGroup) standaloneSeqGroup.innerHTML=opts;
   if(quickGroup) quickGroup.innerHTML=opts;
 }
 function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('annualPlanner')}
@@ -806,7 +846,74 @@ function setupAnnualDrag(){
   });
 }
 
-function openSequenceSetup(){fillPlanGroupSelects();go('sequenceSetup')}
+function openSequenceSetup(){
+  fillPlanGroupSelects();
+  renderMacroSequences();
+  go('sequenceSetup');
+}
+function renderMacroSequences(){
+  if(!seqGroup||!macroSequenceList) return;
+  const groupId=seqGroup.value||groupsData[0]?.id;
+  if(!groupId) return;
+  ensureAnnualPlan(groupId);
+  const blocks=annualPlans[groupId]||[];
+  const ranges=getAnnualRanges(groupId,blocks);
+  if(!blocks.length){
+    macroSequenceList.innerHTML='<div class="placeholder">Aucun sport dans la planification annuelle de ce groupe.</div>';
+    return;
+  }
+  macroSequenceList.innerHTML=blocks.map((b,i)=>{
+    const r=ranges[i];
+    const range=r.start&&r.end?(r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end)):'Dates à venir';
+    const saved=savedSequences[b.id];
+    return '<button class="macroSeqCard" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+
+      '<span><span class="compBadge">'+b.comp+'</span><span class="macroSeqSport">'+b.sport+'</span><span class="macroSeqMeta">'+b.courses+' cours · '+range+'</span><span class="seqStatus'+(saved?' ready':'')+'">'+(saved?'Séquence enregistrée':'À planifier')+'</span></span>'+
+      '<span class="groupArrow">›</span>'+
+    '</button>';
+  }).join('');
+}
+function openMacroSequence(groupId,blockId){
+  selectedAnnualGroupId=groupId;
+  selectedAnnualBlockId=blockId;
+  const blocks=annualPlans[groupId]||[];
+  const block=blocks.find(b=>b.id===blockId);
+  if(!block) return;
+  const i=blocks.findIndex(b=>b.id===blockId);
+  const range=getAnnualRanges(groupId,blocks)[i];
+  const group=groupsData.find(g=>g.id===groupId);
+  const rangeText=range?.start&&range?.end?(range.start===range.end?formatPlanDate(range.start):formatPlanDate(range.start)+' au '+formatPlanDate(range.end)):'Dates à venir';
+  sequenceChoiceHero.innerHTML='<small>'+block.comp+' · '+planCompetenceNames[block.comp]+'</small><h2>'+block.sport+'</h2><p>'+group.name+' · '+block.courses+' cours · '+rangeText+'</p>';
+  const saved=savedSequences[blockId];
+  existingSequenceAction.innerHTML=saved?'<button class="planPrimary" onclick="continueSavedSequence()">Continuer / modifier ma séquence</button>':'';
+  go('sequenceChoice');
+}
+function continueSavedSequence(){
+  const saved=savedSequences[selectedAnnualBlockId];
+  if(!saved) return;
+  activeSequence=JSON.parse(JSON.stringify(saved));
+  renderSequenceEditor();
+  go('sequenceEditor');
+}
+function createSequenceFromMacro(useHenri){
+  const blocks=annualPlans[selectedAnnualGroupId]||[];
+  const block=blocks.find(b=>b.id===selectedAnnualBlockId);
+  const group=groupsData.find(g=>g.id===selectedAnnualGroupId);
+  if(!block||!group) return;
+  activeSequence=makeSequence({
+    comp:block.comp,
+    sport:block.sport,
+    groupId:selectedAnnualGroupId,
+    groupName:group.name,
+    count:Number(block.courses),
+    duration:'70 min',
+    annualBlockId:block.id,
+    useHenri
+  });
+  renderSequenceEditor();
+  go('sequenceEditor');
+}
+function openStandaloneSequence(){fillPlanGroupSelects();go('standaloneSequence')}
+function returnFromSequenceEditor(){go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
 function defaultBlockSet(){
   return [
     {type:'Échauffement',title:'Activation liée au thème',minutes:7},
@@ -815,25 +922,66 @@ function defaultBlockSet(){
     {type:'Situation de partie',title:'Réinvestissement en contexte de jeu',minutes:32}
   ];
 }
-function createSequenceFromTemplate(){buildSequence(false)}
-function generateSequenceDemo(){buildSequence(true)}
-function buildSequence(generated){
-  const count=Number(seqCount.value);
-  const sport=seqSport.value;
-  const group=groupsData.find(g=>g.id===seqGroup.value);
-  activeSequence={id:'seq-'+Date.now(),comp:seqComp.value,sport,groupId:seqGroup.value,groupName:group?.name||'',duration:seqDuration.value,sessions:[]};
-  for(let i=0;i<count;i++){
-    activeSequence.sessions.push({
-      title:(generated?['Découvrir','Stabiliser','Appliquer','Adapter','Réinvestir','Consolider','Évaluer'][i]||('Cours '+(i+1)):'Cours '+(i+1))+' · '+sport,
-      objective:'Progresser dans '+sport+' à partir du principe ciblé de la séquence.',
+function henriSequencePlan(sport,count){
+  const plans={
+    'Ultimate':[
+      ['Créer des options de passe','Se rendre disponible et occuper l’espace libre.'],
+      ['Se démarquer efficacement','Créer une séparation avant de recevoir.'],
+      ['Enchaîner passes et déplacements','Synchroniser les actions avec les partenaires.'],
+      ['Défendre les espaces','Marquer et protéger les corridors de passe.'],
+      ['Élaborer une stratégie','Observer, décider et ajuster collectivement.']
+    ],
+    'Badminton':[
+      ['Contrôler l’échange','Stabiliser les frappes et le replacement.'],
+      ['Créer de la profondeur','Utiliser le dégagement pour repousser l’adversaire.'],
+      ['Déplacer l’adversaire','Alterner profondeur et largeur.'],
+      ['Construire le point','Choisir une frappe selon la position adverse.'],
+      ['Réinvestir en match','Adapter ses choix dans une opposition réelle.']
+    ],
+    'Flag football':[
+      ['Occuper l’espace libre','Offrir une solution au porteur.'],
+      ['Se démarquer','Créer une séparation avec son défenseur.'],
+      ['Synchroniser les tracés','Coordonner les déplacements offensifs.'],
+      ['Défendre les corridors','Fermer les options de passe.'],
+      ['Ajuster une stratégie','Lire le jeu et modifier les choix collectifs.']
+    ]
+  };
+  return Array.from({length:count},(_,i)=>{
+    const source=plans[sport]?.[i%Math.min(plans[sport]?.length||1,count)];
+    return source||['Cours '+(i+1)+' · '+sport,'Progresser dans le principe ciblé de la séquence.'];
+  });
+}
+function makeSequence({comp,sport,groupId,groupName,count,duration,annualBlockId=null,useHenri=false}){
+  const suggested=henriSequencePlan(sport,count);
+  return {
+    id:'seq-'+Date.now(),annualBlockId,comp,sport,groupId,groupName,duration,sessions:
+    Array.from({length:count},(_,i)=>({
+      title:useHenri?suggested[i][0]:'Cours '+(i+1)+' · '+sport,
+      objective:useHenri?suggested[i][1]:'Objectif à préciser pour '+sport+'.',
       blocks:defaultBlockSet().map(b=>({...b}))
-    });
-  }
+    }))
+  };
+}
+function createSequenceFromTemplate(){buildStandaloneSequence(false)}
+function generateSequenceDemo(){buildStandaloneSequence(true)}
+function buildStandaloneSequence(useHenri){
+  const group=groupsData.find(g=>g.id===standaloneSeqGroup.value);
+  activeSequence=makeSequence({
+    comp:seqComp.value,sport:seqSport.value,groupId:standaloneSeqGroup.value,groupName:group?.name||'',
+    count:Number(seqCount.value),duration:seqDuration.value,useHenri
+  });
   renderSequenceEditor();go('sequenceEditor');
 }
 function renderSequenceEditor(){
   if(!activeSequence)return;
-  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+activeSequence.sessions.length+' cours · '+activeSequence.duration+'</p>';
+  let macroDates='';
+  if(activeSequence.annualBlockId){
+    const blocks=annualPlans[activeSequence.groupId]||[];
+    const i=blocks.findIndex(b=>b.id===activeSequence.annualBlockId);
+    const r=getAnnualRanges(activeSequence.groupId,blocks)[i];
+    if(r?.start&&r?.end) macroDates=' · '+(r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end));
+  }
+  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+activeSequence.sessions.length+' cours · '+activeSequence.duration+macroDates+'</p>';
   sequenceLessons.innerHTML=activeSequence.sessions.map((s,i)=>'<button class="seqLesson" onclick="openSessionEditor('+i+',\'sequence\')"><span class="seqNum">'+(i+1)+'</span><span><strong>'+s.title+'</strong><small>'+s.blocks.map(b=>b.type).join(' · ')+'</small></span><span class="groupArrow">›</span></button>').join('');
 }
 function addSequenceLesson(){
@@ -841,7 +989,15 @@ function addSequenceLesson(){
   activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:'Objectif à préciser.',blocks:defaultBlockSet().map(b=>({...b}))});
   renderSequenceEditor();
 }
-function saveSequence(){if(!activeSequence)return;localStorage.setItem('henriActiveSequence',JSON.stringify(activeSequence));alert('Séquence enregistrée dans Henri.')}
+function saveSequence(){
+  if(!activeSequence)return;
+  localStorage.setItem('henriActiveSequence',JSON.stringify(activeSequence));
+  if(activeSequence.annualBlockId){
+    savedSequences[activeSequence.annualBlockId]=JSON.parse(JSON.stringify(activeSequence));
+    localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
+  }
+  alert('Séquence enregistrée dans Henri.');
+}
 function openSessionEditor(index,source){
   sessionEditorSource=source||'sequence';
   activeSessionIndex=index;
