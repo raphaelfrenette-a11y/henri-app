@@ -161,6 +161,10 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .addSection{width:100%;border:1px dashed #bcc5c9;background:transparent;border-radius:15px;min-height:48px;color:var(--accent);font-weight:760;margin-top:10px}
 .quickResult{display:none;margin-top:14px}
 .quickResult.show{display:block}
+.quickScheduleBox{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px}
+.quickScheduleBox strong{display:block;font-size:14px;margin-bottom:4px}
+.quickScheduleBox p{margin:0 0 12px;color:var(--muted);font-size:12px;line-height:1.4}
+.quickScheduleSuccess{margin-top:10px;border-radius:12px;background:#eef4f1;color:#3f6756;padding:10px 11px;font-size:12px;font-weight:700}
 @media(max-width:600px){.planGrid{grid-template-columns:1fr}.planStats{grid-template-columns:repeat(3,1fr)}}
 .settingsIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5;max-width:650px}
 .setupStack{display:grid;gap:10px}
@@ -238,7 +242,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.3</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.4</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -583,6 +587,15 @@ function openCourseEntry(date,index){
   courseDetailCycle.textContent=schoolDays[date]||'';
   courseSessionTitle.textContent=entry.session||'Séance à planifier';
 
+  if(entry.planData){
+    const session=entry.planData;
+    const rows=[['Objectif',session.objective||'Objectif à préciser.']]
+      .concat((session.blocks||[]).map(b=>[b.type,b.title+(b.minutes?' · '+b.minutes+' min':'')]));
+    coursePlanContent.innerHTML=rows.map(([label,text])=>'<div style="padding:9px 0;border-top:1px solid #f0f1f1"><strong style="display:block;color:var(--ink);font-size:12px;margin-bottom:3px">'+label+'</strong>'+text+'</div>').join('');
+    go('courseDetail');
+    return;
+  }
+
   const plans={
     'Ultimate':[
       ['Objectif','Se démarquer pour offrir une option de passe.'],
@@ -658,6 +671,7 @@ const planCompetenceNames={C1:'Agir',C2:'Interagir',C3:'Mode de vie sain et acti
 let annualPlans=JSON.parse(localStorage.getItem('henriAnnualPlans')||'{}');
 let activeSequence=JSON.parse(localStorage.getItem('henriActiveSequence')||'null');
 let savedSequences=JSON.parse(localStorage.getItem('henriSequences')||'{}');
+let individualSessions=JSON.parse(localStorage.getItem('henriIndividualSessions')||'[]');
 let selectedAnnualBlockId=null;
 let selectedAnnualGroupId=null;
 let activeSessionIndex=0;
@@ -679,8 +693,12 @@ function getGroupCourseDates(groupId){
     .filter(date=>(scheduleEntries[date]||[]).some(e=>e.group===g.name))
     .sort();
 }
+function getGroupSequenceDates(groupId){
+  const blocked=new Set(individualSessions.filter(x=>x.groupId===groupId).map(x=>x.date));
+  return getGroupCourseDates(groupId).filter(date=>!blocked.has(date));
+}
 function getGroupCourseSlots(groupId){
-  return getGroupCourseDates(groupId).length;
+  return getGroupSequenceDates(groupId).length;
 }
 function formatPlanDate(date){
   if(!date) return '';
@@ -688,7 +706,7 @@ function formatPlanDate(date){
   return d.getDate()+' '+shortMonths[d.getMonth()];
 }
 function getAnnualRanges(groupId,blocks){
-  const dates=getGroupCourseDates(groupId);
+  const dates=getGroupSequenceDates(groupId);
   let cursor=0;
   return blocks.map(block=>{
     const need=Math.max(0,Number(block.courses)||0);
@@ -753,7 +771,7 @@ function addAnnualBlock(){
   ensureAnnualPlan(groupId);
   const courses=Math.max(1,Number(annualCourses.value)||1);
   annualPlans[groupId].push({id:'a'+Date.now(),comp:annualComp.value,sport:annualSport.value,courses});
-  saveAnnual();renderAnnualPlanner();
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function editAnnualBlock(id){
   const groupId=annualGroup.value, b=(annualPlans[groupId]||[]).find(x=>x.id===id);if(!b)return;
@@ -762,12 +780,12 @@ function editAnnualBlock(id){
   if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
   const n=prompt('Nombre de cours',b.courses);
   if(n!==null&&Number(n)>0)b.courses=Number(n);
-  saveAnnual();renderAnnualPlanner();
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function deleteAnnualBlock(id){
   const groupId=annualGroup.value;
   annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
-  saveAnnual();renderAnnualPlanner();
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 
 function moveAnnualBlock(id,delta){
@@ -844,6 +862,72 @@ function setupAnnualDrag(){
       handle.addEventListener('pointercancel',onUp);
     });
   });
+}
+
+function saveIndividualSessions(){
+  localStorage.setItem('henriIndividualSessions',JSON.stringify(individualSessions));
+}
+function rebuildPlanningAssignments(){
+  if(typeof groupsData==='undefined') return;
+
+  Object.values(scheduleEntries).flat().forEach(entry=>{
+    entry.annualPlan=null;
+    entry.sequence=null;
+    entry.session=null;
+    entry.annualBlockId=null;
+    entry.planData=null;
+    entry.isIndividual=false;
+  });
+
+  groupsData.forEach(group=>{
+    ensureAnnualPlan(group.id);
+    const queue=[];
+    (annualPlans[group.id]||[]).forEach(block=>{
+      const saved=savedSequences[block.id];
+      const count=Math.max(0,Number(block.courses)||0);
+      for(let i=0;i<count;i++){
+        const session=saved?.sessions?.[i]||null;
+        queue.push({
+          sport:block.sport,
+          annualBlockId:block.id,
+          sequence:saved?'Séquence planifiée':'Séquence à planifier',
+          session:'Séance '+(i+1)+'/'+count,
+          planData:session
+        });
+      }
+    });
+
+    let q=0;
+    getGroupCourseDates(group.id).forEach(date=>{
+      const entry=(scheduleEntries[date]||[]).find(e=>e.group===group.name);
+      if(!entry) return;
+      const individual=individualSessions.find(x=>x.groupId===group.id&&x.date===date);
+      if(individual){
+        entry.annualPlan=individual.sport;
+        entry.sequence='Séance individuelle';
+        entry.session='Séance individuelle';
+        entry.isIndividual=true;
+        entry.planData={
+          title:individual.title,
+          objective:individual.objective,
+          blocks:individual.blocks
+        };
+        return;
+      }
+      const planned=queue[q++];
+      if(!planned) return;
+      entry.annualPlan=planned.sport;
+      entry.sequence=planned.sequence;
+      entry.session=planned.session;
+      entry.annualBlockId=planned.annualBlockId;
+      entry.planData=planned.planData;
+    });
+  });
+
+  localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
+  rebuildCalendarEvents();
+  renderMonth();
+  renderWeek();
 }
 
 function openSequenceSetup(){
@@ -995,6 +1079,7 @@ function saveSequence(){
   if(activeSequence.annualBlockId){
     savedSequences[activeSequence.annualBlockId]=JSON.parse(JSON.stringify(activeSequence));
     localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
+    rebuildPlanningAssignments();
   }
   alert('Séquence enregistrée dans Henri.');
 }
@@ -1037,13 +1122,61 @@ function returnFromSessionEditor(){
 function openQuickSession(){fillPlanGroupSelects();go('quickSession')}
 function buildQuickSession(){
   const sport=quickSport.value;
-  quickSessionData={title:sport+' · séance individuelle',objective:quickObjective.value||'Objectif à préciser.',blocks:defaultBlockSet().map(b=>({...b}))};
+  const group=groupsData.find(g=>g.id===quickGroup.value);
+  quickSessionData={
+    title:sport+' · séance individuelle',
+    sport,
+    groupId:quickGroup.value,
+    groupName:group?.name||'',
+    duration:quickDuration.value,
+    objective:quickObjective.value||'Objectif à préciser.',
+    blocks:defaultBlockSet().map(b=>({...b}))
+  };
   renderQuickResult();
 }
-function renderQuickResult(){
+function getQuickDateOptions(){
+  if(!quickSessionData) return '';
+  return getGroupCourseDates(quickSessionData.groupId).map(date=>{
+    const entry=(scheduleEntries[date]||[]).find(e=>e.group===quickSessionData.groupName);
+    const current=entry?.annualPlan?(entry.annualPlan+(entry.session?' · '+entry.session:'')):'Libre';
+    const d=new Date(date+'T12:00:00');
+    const label=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()]+' · '+current;
+    return '<option value="'+date+'">'+label+'</option>';
+  }).join('');
+}
+function renderQuickResult(message=''){
   if(!quickSessionData){quickResult.classList.remove('show');quickResult.innerHTML='';return}
   quickResult.classList.add('show');
-  quickResult.innerHTML='<button class="planMenuCard" onclick="openSessionEditor(0,\'quick\')"><span class="planMenuIcon">1</span><span><strong>'+quickSessionData.title+'</strong><small>'+quickSessionData.blocks.length+' sections · modifiable immédiatement</small></span><span class="groupArrow">›</span></button>';
+  const options=getQuickDateOptions();
+  quickResult.innerHTML=
+    '<button class="planMenuCard" onclick="openSessionEditor(0,\'quick\')"><span class="planMenuIcon">1</span><span><strong>'+quickSessionData.title+'</strong><small>'+quickSessionData.blocks.length+' sections · modifiable immédiatement</small></span><span class="groupArrow">›</span></button>'+
+    '<div class="quickScheduleBox"><strong>Ajouter à l’horaire</strong><p>Choisis un cours de '+quickSessionData.groupName+'. Henri insère cette séance et décale automatiquement les séquences déjà prévues.</p>'+
+      '<select id="quickScheduleDate" class="planControl">'+options+'</select>'+
+      '<button class="planPrimary" onclick="scheduleQuickSession()">Insérer dans l’horaire</button>'+
+      (message?'<div class="quickScheduleSuccess">'+message+'</div>':'')+
+    '</div>';
+}
+function scheduleQuickSession(){
+  if(!quickSessionData||!quickScheduleDate?.value) return;
+  const date=quickScheduleDate.value;
+  individualSessions=individualSessions.filter(x=>!(x.groupId===quickSessionData.groupId&&x.date===date));
+  individualSessions.push({
+    id:'ind-'+Date.now(),
+    date,
+    groupId:quickSessionData.groupId,
+    groupName:quickSessionData.groupName,
+    sport:quickSessionData.sport,
+    title:quickSessionData.title,
+    duration:quickSessionData.duration,
+    objective:quickSessionData.objective,
+    blocks:quickSessionData.blocks.map(b=>({...b}))
+  });
+  individualSessions.sort((a,b)=>a.date.localeCompare(b.date));
+  saveIndividualSessions();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+  const d=new Date(date+'T12:00:00');
+  renderQuickResult('Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · les séances suivantes ont été décalées.');
 }
 
 const defaultGroups=[
@@ -1320,9 +1453,7 @@ const savedSchoolDays=JSON.parse(localStorage.getItem('henriSchoolDays')||'null'
 if(savedScheduleEntries) scheduleEntries=savedScheduleEntries;
 if(savedSchoolDays) schoolDays=savedSchoolDays;
 if(localStorage.getItem('henriDemoSchedule')==='1') scheduleEntries=enrichDemoPlanning(scheduleEntries);
-rebuildCalendarEvents();
-renderMonth();
-renderWeek();
+rebuildPlanningAssignments();
 renderGroups();
 </script>
 </body>
