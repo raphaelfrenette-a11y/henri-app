@@ -41,25 +41,18 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .week{display:grid;gap:8px}
 .weekDay{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.018)}
 .weekDay.today{border-color:#b8c6ce;box-shadow:0 8px 24px rgba(49,74,91,.07)}
-.dayHead{width:100%;border:0;background:#fff;padding:14px 15px;display:flex;align-items:center;justify-content:space-between;text-align:left}
-.dayHeadRight{display:flex;align-items:center;gap:10px}
+.dayHead{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f1ef}
 .dayName{font-weight:780}.dayDate{font-size:12px;color:var(--muted)}
 .today .dayName{color:var(--accent)}
 .todayBadge{display:inline-flex;align-items:center;gap:5px}
 .todayDot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.dayArrow{font-size:19px;color:#a5aaad;transition:.18s ease}
-.weekDay.open .dayArrow{transform:rotate(90deg)}
-.dayBody{display:none;border-top:1px solid #f1f1ef}
-.weekDay.open .dayBody{display:block}
-.cycleLine{padding:9px 14px 7px;color:var(--muted);font-size:11px;font-weight:680;background:#fbfbfa}
-.weekEvent{width:100%;border:0;background:#fff;padding:13px 14px;display:grid;grid-template-columns:58px 1fr auto;gap:9px;align-items:center;text-align:left}
+.weekEvent{width:100%;border:0;background:#fff;padding:11px 14px;display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;text-align:left}
 .weekEvent+.weekEvent{border-top:1px solid #f1f1ef}
-.time{font-size:12px;color:var(--muted);font-weight:680}
-.course{font-weight:730;letter-spacing:-.01em}
-.course small{display:block;color:var(--muted);font-weight:520;margin-top:3px}
-.lessonPlan{display:block;color:var(--accent);font-size:11px;font-weight:720;margin-top:5px}
-.chev{font-size:21px;color:#a5aaad}
-.empty{padding:13px 14px;color:#a0a5a8;font-size:13px}
+.time{font-size:11px;color:var(--muted);font-weight:680}
+.course{font-weight:700;letter-spacing:-.01em;font-size:13px}
+.quickSport{color:var(--accent);font-size:12px;font-weight:760;white-space:nowrap}
+.chev{font-size:18px;color:#b0b4b6}
+.empty{padding:11px 14px;color:#a0a5a8;font-size:12px}
 .monthCard{background:#fff;border:1px solid var(--line);border-radius:22px;padding:17px 14px 15px;box-shadow:var(--shadow)}
 .monthTop{display:flex;align-items:center;justify-content:space-between;margin:0 3px 16px}
 .monthTitle{font-size:17px;font-weight:780;letter-spacing:-.02em}
@@ -71,8 +64,21 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .dayCell.mutedDay{color:#c0c3c5}
 .dayNum{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:650}
 .dayCell.today .dayNum{background:var(--accent);color:#fff}
-.monthEvent{display:block;width:100%;margin-top:5px;border:0;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:9px;font-weight:700;padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
-.eventDot{display:none;width:5px;height:5px;border-radius:50%;background:var(--accent);margin:5px auto 0}
+.monthEvent{display:none}
+.eventDot{display:block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin:5px auto 0}
+.dayCell{cursor:pointer}
+.dayCell.selected{background:#f0f4f6}
+.monthDayButton{width:100%;height:100%;min-height:52px;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.monthDetails{display:none;margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.monthDetails.show{display:block}
+.monthDetailsHead{padding:13px 14px;border-bottom:1px solid #f1f1ef;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.monthDetailsHead strong{font-size:14px}
+.monthDetailsMeta{color:var(--muted);font-size:11px}
+.monthLesson{width:100%;border:0;background:#fff;padding:13px 14px;text-align:left;display:grid;grid-template-columns:52px 1fr auto;gap:9px;align-items:center}
+.monthLesson+.monthLesson{border-top:1px solid #f1f1ef}
+.monthLessonMain{font-size:13px;font-weight:730}
+.monthLessonMain small{display:block;color:var(--muted);font-weight:520;margin-top:3px}
+.monthLessonPlan{color:var(--accent);font-size:11px;font-weight:730;margin-top:4px;display:block}
 .placeholder{background:#fff;border:1px solid var(--line);border-radius:20px;padding:21px;box-shadow:0 3px 14px rgba(0,0,0,.02)}
 .settingsIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5;max-width:650px}
 .setupStack{display:grid;gap:10px}
@@ -150,7 +156,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.7</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.8</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -180,6 +186,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
         </div>
         <div class="weekLabels"><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
         <div id="monthGrid" class="monthGrid"></div>
+        <div id="monthDetails" class="monthDetails"></div>
       </div>
     </div>
   </div>
@@ -333,7 +340,6 @@ function rebuildCalendarEvents(){
 }
 const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const shortMonths=['janv.','févr.','mars','avr.','mai','juin','juill.','août','sept.','oct.','nov.','déc.'];
-let openWeekDay=null;
 function renderWeek(){
   if(!weekGrid) return;
   const start=new Date(2026,8,28);
@@ -344,37 +350,25 @@ function renderWeek(){
     const entries=scheduleEntries[key]||[];
     const cycle=schoolDays[key];
     const today=key==='2026-09-28';
-    const isOpen=openWeekDay===key;
-    out+='<div class="weekDay'+(today?' today':'')+(isOpen?' open':'')+'">'+
-      '<button class="dayHead" onclick="toggleWeekDay(\''+key+'\')">'+
-        '<span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span>'+
-        '<span class="dayHeadRight"><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span><span class="dayArrow">›</span></span>'+
-      '</button>'+
-      '<div class="dayBody">';
-    if(cycle) out+='<div class="cycleLine">'+cycle+'</div>';
+    out+='<div class="weekDay'+(today?' today':'')+'">'+
+      '<div class="dayHead"><span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span></div>';
     if(entries.length){
       entries.forEach((entry,idx)=>{
-        const plan=entry.annualPlan||entry.sequence||null;
-        const session=entry.session||null;
-        const planningLine=plan?(plan+(session?' · '+session:'')):(session||'Planification à venir');
+        const sport=entry.annualPlan||'À planifier';
         out+='<button class="weekEvent" onclick="openCourseEntry(\''+key+'\','+idx+')">'+
           '<span class="time">'+entry.time+'</span>'+
-          '<span class="course">'+entry.group+
-            '<small>'+entry.activity+'</small>'+
-            '<span class="lessonPlan">'+planningLine+'</span>'+
-          '</span><span class="chev">›</span></button>';
+          '<span class="course">'+entry.group+'</span>'+
+          '<span class="quickSport">'+sport+'</span>'+
+        '</button>';
       });
     }else{
       out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu')+'</div>';
     }
-    out+='</div></div>';
+    out+='</div>';
   }
   weekGrid.innerHTML=out;
 }
-function toggleWeekDay(key){
-  openWeekDay=openWeekDay===key?null:key;
-  renderWeek();
-}
+
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
@@ -391,6 +385,7 @@ function openCourseEntry(date,index){
 const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 let shownYear=2026,shownMonth=8;
 function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+let selectedMonthDay=null;
 function renderMonth(){
   monthTitle.textContent=monthNames[shownMonth]+' '+shownYear;
   const first=new Date(shownYear,shownMonth,1);
@@ -404,17 +399,56 @@ function renderMonth(){
     else if(i>=offset+days){d=i-(offset+days)+1;m++;muted=true;if(m>11){m=0;y++}}
     else d=i-offset+1;
     const key=dateKey(y,m,d);
-    const event=calendarEvents[key];
     const entries=scheduleEntries[key]||[];
     const schoolDay=schoolDays[key];
     const pedago=schoolDay==='Pédagogique'||schoolDay==='Congé';
     const today=key==='2026-09-28';
-    const eventHtml=event?(entries.length?'<button class="monthEvent" onclick="openCourseEntry(\''+key+'\',0)">'+event+'</button><span class="eventDot"></span>':'<div class="monthEvent">'+event+'</div>'):'';
-    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'"><span class="dayNum">'+d+'</span>'+(schoolDay?'<span class="schoolMeta">'+schoolDay+'</span>':'')+eventHtml+'</div>';
+    const hasSomething=entries.length||pedago;
+    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+(selectedMonthDay===key?' selected':'')+'">'+
+      '<button class="monthDayButton" onclick="selectMonthDay(\''+key+'\')">'+
+        '<span class="dayNum">'+d+'</span>'+
+        (hasSomething?'<span class="eventDot"></span>':'')+
+      '</button>'+
+    '</div>';
   }
   monthGrid.innerHTML=out;
+  renderMonthDetails();
 }
+function selectMonthDay(key){
+  selectedMonthDay=selectedMonthDay===key?null:key;
+  renderMonth();
+}
+function renderMonthDetails(){
+  if(!monthDetails) return;
+  if(!selectedMonthDay){
+    monthDetails.classList.remove('show');
+    monthDetails.innerHTML='';
+    return;
+  }
+  const entries=scheduleEntries[selectedMonthDay]||[];
+  const cycle=schoolDays[selectedMonthDay]||'';
+  const d=new Date(selectedMonthDay+'T12:00:00');
+  const title=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()];
+  let html='<div class="monthDetailsHead"><strong>'+title+'</strong><span class="monthDetailsMeta">'+cycle+'</span></div>';
+  if(entries.length){
+    entries.forEach((entry,idx)=>{
+      const plan=entry.annualPlan||'Planification à venir';
+      const session=entry.session||'';
+      html+='<button class="monthLesson" onclick="openCourseEntry(\''+selectedMonthDay+'\','+idx+')">'+
+        '<span class="time">'+entry.time+'</span>'+
+        '<span class="monthLessonMain">'+entry.group+'<small>'+entry.activity+'</small><span class="monthLessonPlan">'+plan+(session?' · '+session:'')+'</span></span>'+
+        '<span class="chev">›</span>'+
+      '</button>';
+    });
+  }else{
+    html+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu')+'</div>';
+  }
+  monthDetails.innerHTML=html;
+  monthDetails.classList.add('show');
+}
+
 function changeMonth(delta){
+  selectedMonthDay=null;
   shownMonth+=delta;
   if(shownMonth<0){shownMonth=11;shownYear--}
   if(shownMonth>11){shownMonth=0;shownYear++}
