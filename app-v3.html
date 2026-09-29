@@ -267,7 +267,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </section>
 
 <section id="courseDetail" class="screen">
-  <button class="back" onclick="go('home')">‹ Retour au calendrier</button>
+  <button class="back" onclick="go(previousScreen)">‹ Retour</button>
   <div class="muted" id="courseDetailMeta"></div>
   <h1 id="courseDetailTitle">Cours</h1>
   <div class="placeholder">
@@ -275,16 +275,8 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <p class="muted" id="courseDetailCycle"></p>
   </div>
   <div class="placeholder" style="margin-top:10px">
-    <strong>Planification annuelle</strong>
-    <p class="muted" id="courseAnnualPlan">À venir · ce cours pourra recevoir automatiquement le moyen d’action prévu dans la planification annuelle.</p>
-  </div>
-  <div class="placeholder" style="margin-top:10px">
-    <strong>Progression</strong>
-    <p class="muted" id="courseSequence">À venir · la séquence active pourra être liée automatiquement à ce cours.</p>
-  </div>
-  <div class="placeholder" style="margin-top:10px">
-    <strong>Planification prévue</strong>
-    <p class="muted" id="courseSession">À venir · la séance correspondante pourra ensuite être ouverte directement depuis le calendrier.</p>
+    <strong id="courseSessionTitle">Séance</strong>
+    <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
   </div>
 </section>
 
@@ -412,13 +404,45 @@ function openDayPlan(date){
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
-  courseDetailTitle.textContent=entry.annualPlan||entry.activity||'Cours';
+  previousScreen=document.querySelector('.screen.active')?.id||'home';
+  const sport=entry.annualPlan||entry.activity||'Cours';
+  courseDetailTitle.textContent=sport;
   courseDetailMeta.textContent=date+' · '+entry.time;
   courseDetailGroup.textContent=entry.group;
   courseDetailCycle.textContent=schoolDays[date]||'';
-  courseAnnualPlan.textContent=entry.annualPlan||'Sport à planifier';
-  courseSequence.textContent=entry.sequence||'Séquence à planifier';
-  courseSession.textContent=entry.session||'Séance à planifier';
+  courseSessionTitle.textContent=entry.session||'Séance à planifier';
+
+  const plans={
+    'Ultimate':[
+      ['Objectif','Se démarquer pour offrir une option de passe.'],
+      ['Échauffement','Passes en mouvement · 5 min'],
+      ['Éducatif 1','Démarquage et changement de direction · 10 min'],
+      ['Éducatif 2','3 c. 2 avec recherche d’espace libre · 12 min'],
+      ['Situation de partie','Match 4 c. 4 · 35 min']
+    ],
+    'Badminton':[
+      ['Objectif','Créer de la profondeur avec le dégagement.'],
+      ['Échauffement','Échanges contrôlés · 5 min'],
+      ['Éducatif 1','Dégagement fond de terrain · 10 min'],
+      ['Éducatif 2','Dégagement + replacement · 12 min'],
+      ['Situation de partie','Matchs avec bonus pour profondeur · 35 min']
+    ],
+    'Flag football':[
+      ['Objectif','Créer et exploiter un espace libre.'],
+      ['Échauffement','Courses et passes courtes · 5 min'],
+      ['Éducatif 1','Tracés simples en duo · 10 min'],
+      ['Éducatif 2','2 c. 1 vers zone libre · 12 min'],
+      ['Situation de partie','Matchs réduits · 35 min']
+    ]
+  };
+  const plan=plans[sport]||[
+    ['Objectif','Objectif de séance à définir.'],
+    ['Échauffement','À planifier'],
+    ['Éducatif 1','À planifier'],
+    ['Éducatif 2','À planifier'],
+    ['Situation de partie','À planifier']
+  ];
+  coursePlanContent.innerHTML=plan.map(([label,text])=>'<div style="padding:9px 0;border-top:1px solid #f0f1f1"><strong style="display:block;color:var(--ink);font-size:12px;margin-bottom:3px">'+label+'</strong>'+text+'</div>').join('');
   go('courseDetail');
 }
 
