@@ -150,7 +150,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.4</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v3.5</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -222,31 +222,31 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <p class="settingsIntro">Importe tes documents une seule fois. Henri s’en sert pour construire ton horaire, placer les jours-cycle et pédagogiques, puis associer automatiquement tes groupes et tes élèves.</p>
 
   <div class="setupStack">
-    <label class="importCard" id="teacherScheduleCard">
+    <label class="importCard ready" id="teacherScheduleCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M4 9h16"/></svg></span>
-      <span class="importText"><strong>Horaire d’enseignant</strong><span>PDF ou image · périodes, heures et groupes</span></span>
-      <span class="importState" id="teacherScheduleState">Importer</span>
+      <span class="importText"><strong>Horaire d’enseignant</strong><span>Démo · cycle de 9 jours · 4 périodes de 75 min</span></span>
+      <span class="importState" id="teacherScheduleState">Démo chargée</span>
       <input class="fileInput" id="teacherScheduleFile" type="file" accept=".pdf,image/*" onchange="handleSetupFile('teacherSchedule',this)">
     </label>
 
-    <label class="importCard" id="schoolCalendarCard">
+    <label class="importCard ready" id="schoolCalendarCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
-      <span class="importText"><strong>Calendrier scolaire</strong><span>PDF ou image · jours-cycle, congés et journées pédagogiques</span></span>
-      <span class="importState" id="schoolCalendarState">Importer</span>
+      <span class="importText"><strong>Calendrier scolaire</strong><span>Démo · Académie Dunton 2026–2027 · jours-cycle et pédagogiques</span></span>
+      <span class="importState" id="schoolCalendarState">Démo chargée</span>
       <input class="fileInput" id="schoolCalendarFile" type="file" accept=".pdf,image/*" onchange="handleSetupFile('schoolCalendar',this)">
     </label>
 
-    <label class="importCard" id="groupSheetsCard">
+    <label class="importCard ready" id="groupSheetsCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
-      <span class="importText"><strong>Listes de groupes</strong><span>PDF, CSV ou image · groupes et noms des élèves</span></span>
-      <span class="importState" id="groupSheetsState">Importer</span>
+      <span class="importText"><strong>Listes de groupes</strong><span>Démo · 3 groupes fictifs avec profils élèves</span></span>
+      <span class="importState" id="groupSheetsState">Démo chargée</span>
       <input class="fileInput" id="groupSheetsFile" type="file" accept=".pdf,.csv,image/*" multiple onchange="handleSetupFile('groupSheets',this)">
     </label>
   </div>
 
   <div class="generateBox">
-    <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()" disabled>Générer mon horaire</button>
-    <p class="generateHint">Les trois sources doivent être importées. Tu pourras ensuite modifier manuellement ce qu’Henri a reconnu.</p>
+    <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()">Générer mon horaire</button>
+    <p class="generateHint">Mode démo actif. Les trois sources sont déjà chargées pour tester le fonctionnement. Un vrai import remplacera simplement la démo correspondante.</p>
     <div id="setupSuccess" class="setupSuccess">Horaire généré. Ton calendrier Henri est maintenant prêt.</div>
   </div>
 
@@ -336,7 +336,7 @@ function renderMonth(){
     const key=dateKey(y,m,d);
     const event=calendarEvents[key];
     const schoolDay=schoolDays[key];
-    const pedago=schoolDay==='Pédagogique';
+    const pedago=schoolDay==='Pédagogique'||schoolDay==='Congé';
     const today=key==='2026-09-28';
     out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'"><span class="dayNum">'+d+'</span>'+(schoolDay?'<span class="schoolMeta">'+schoolDay+'</span>':'')+(event?'<div class="monthEvent">'+event+'</div><span class="eventDot"></span>':'')+'</div>';
   }
@@ -500,7 +500,59 @@ function removeRelation(id,type,targetId){
   saveGroups();renderStudents();
 }
 
-const setupFiles={teacherSchedule:false,schoolCalendar:false,groupSheets:false};
+const demoSchoolDays={
+  '2026-09-01':'Jour 4','2026-09-02':'Jour 5','2026-09-03':'Jour 6','2026-09-04':'Jour 7',
+  '2026-09-07':'Congé','2026-09-08':'Jour 8','2026-09-09':'Jour 9','2026-09-10':'Jour 1','2026-09-11':'Jour 2',
+  '2026-09-14':'Jour 3','2026-09-15':'Jour 4','2026-09-16':'Jour 5','2026-09-17':'Jour 6','2026-09-18':'Pédagogique',
+  '2026-09-21':'Jour 7','2026-09-22':'Jour 8','2026-09-23':'Jour 9','2026-09-24':'Jour 1','2026-09-25':'Jour 2',
+  '2026-09-28':'Jour 3','2026-09-29':'Jour 4','2026-09-30':'Jour 5',
+  '2026-10-01':'Jour 6','2026-10-02':'Jour 7','2026-10-05':'Pédagogique','2026-10-06':'Jour 8',
+  '2026-10-07':'Jour 9','2026-10-08':'Jour 1','2026-10-09':'Jour 2','2026-10-12':'Congé',
+  '2026-10-13':'Jour 3','2026-10-14':'Jour 4','2026-10-15':'Jour 5','2026-10-16':'Jour 6',
+  '2026-10-19':'Jour 7','2026-10-20':'Jour 8','2026-10-21':'Jour 9','2026-10-22':'Jour 1','2026-10-23':'Jour 2',
+  '2026-10-26':'Jour 3','2026-10-27':'Jour 4','2026-10-28':'Jour 5','2026-10-29':'Jour 6','2026-10-30':'Jour 7'
+};
+
+const demoTeacherSchedule={
+  'Jour 1':[
+    {time:'8 h 15',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'}
+  ],
+  'Jour 2':[
+    {time:'9 h 45',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 3':[
+    {time:'8 h 15',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 4':[
+    {time:'9 h 45',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'}
+  ],
+  'Jour 5':[
+    {time:'8 h 15',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 6':[
+    {time:'9 h 45',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 7':[
+    {time:'8 h 15',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'}
+  ],
+  'Jour 8':[
+    {time:'9 h 45',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 9':[
+    {time:'8 h 15',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'}
+  ]
+};
+
+const setupFiles={teacherSchedule:true,schoolCalendar:true,groupSheets:true};
 function handleSetupFile(type,input){
   const hasFile=input.files&&input.files.length>0;
   setupFiles[type]=hasFile;
@@ -522,24 +574,25 @@ function updateGenerateState(){
 }
 function generateMySchedule(){
   if(!Object.values(setupFiles).every(Boolean)) return;
-  calendarEvents={
-    '2026-09-28':'Sec. 2 · Flag',
-    '2026-09-29':'Sec. 3 · Ultimate',
-    '2026-09-30':'Sec. 4 · Taekwondo',
-    '2026-10-01':'Sec. 2 · Cond.',
-    '2026-10-05':'Sec. 3 · Ultimate',
-    '2026-10-06':'Sec. 2 · Flag'
-  };
-  schoolDays={
-    '2026-09-28':'Jour 2',
-    '2026-09-29':'Jour 3',
-    '2026-09-30':'Jour 4',
-    '2026-10-01':'Jour 5',
-    '2026-10-02':'Pédagogique',
-    '2026-10-05':'Jour 6',
-    '2026-10-06':'Jour 7'
-  };
+
+  schoolDays={...demoSchoolDays};
+  calendarEvents={};
+
+  Object.entries(schoolDays).forEach(([date,cycle])=>{
+    const lessons=demoTeacherSchedule[cycle]||[];
+    if(lessons.length){
+      const first=lessons[0];
+      calendarEvents[date]=first.time+' · '+first.group+(lessons.length>1?' · +'+(lessons.length-1):'');
+    }else if(cycle==='Pédagogique'){
+      calendarEvents[date]='Journée pédagogique';
+    }else if(cycle==='Congé'){
+      calendarEvents[date]='Congé';
+    }
+  });
+
   localStorage.setItem('henriSetupComplete','1');
+  localStorage.setItem('henriDemoSchedule','1');
+  setupSuccess.textContent='Horaire démo généré à partir du calendrier scolaire et du cycle de 9 jours.';
   setupSuccess.classList.add('show');
   renderMonth();
   setTimeout(()=>{go('home');setCalendarView('month')},450);
