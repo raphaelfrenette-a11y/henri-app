@@ -165,6 +165,19 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .quickScheduleBox strong{display:block;font-size:14px;margin-bottom:4px}
 .quickScheduleBox p{margin:0 0 12px;color:var(--muted);font-size:12px;line-height:1.4}
 .quickScheduleSuccess{margin-top:10px;border-radius:12px;background:#eef4f1;color:#3f6756;padding:10px 11px;font-size:12px;font-weight:700}
+.scheduleConflict{margin-top:10px;border:1px solid #ead8b8;background:#fffaf0;border-radius:16px;padding:14px}
+.scheduleConflict strong{display:block;color:#755b31;font-size:14px}
+.scheduleConflict p{margin:5px 0 12px;color:#7d6b4e;font-size:12px;line-height:1.45}
+.conflictSeqList{display:grid;gap:7px}
+.conflictSeq{display:grid;grid-template-columns:1fr 76px auto;gap:8px;align-items:center;background:#fff;border:1px solid #eadfca;border-radius:12px;padding:9px 10px}
+.conflictSeq span{min-width:0}
+.conflictSeq b{display:block;font-size:12px;color:var(--ink)}
+.conflictSeq small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.conflictSeq input{width:76px;height:38px;border:1px solid var(--line);border-radius:10px;padding:0 8px;font:inherit}
+.conflictApply{border:0;background:var(--accent);color:#fff;border-radius:10px;min-height:38px;padding:0 10px;font-size:11px;font-weight:760}
+.conflictIgnore{width:100%;border:0;background:transparent;color:#7d6b4e;font-weight:720;font-size:11px;padding:10px 4px 0}
+.conflictIgnored{margin-top:10px;border-radius:12px;background:#f3f3f1;color:var(--muted);padding:10px 11px;font-size:11px}
+@media(max-width:480px){.conflictSeq{grid-template-columns:1fr 68px}.conflictApply{grid-column:1/-1}.conflictSeq input{width:68px}}
 @media(max-width:600px){.planGrid{grid-template-columns:1fr}.planStats{grid-template-columns:repeat(3,1fr)}}
 .settingsIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5;max-width:650px}
 .setupStack{display:grid;gap:10px}
@@ -242,7 +255,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.4</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.5</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -672,6 +685,7 @@ let annualPlans=JSON.parse(localStorage.getItem('henriAnnualPlans')||'{}');
 let activeSequence=JSON.parse(localStorage.getItem('henriActiveSequence')||'null');
 let savedSequences=JSON.parse(localStorage.getItem('henriSequences')||'{}');
 let individualSessions=JSON.parse(localStorage.getItem('henriIndividualSessions')||'[]');
+let scheduleConflictIgnores=JSON.parse(localStorage.getItem('henriScheduleConflictIgnores')||'{}');
 let selectedAnnualBlockId=null;
 let selectedAnnualGroupId=null;
 let activeSessionIndex=0;
@@ -765,7 +779,13 @@ function renderAnnualPlanner(){
   }).join('');
   setupAnnualDrag();
 }
-function saveAnnual(){localStorage.setItem('henriAnnualPlans',JSON.stringify(annualPlans))}
+function saveAnnual(){
+  localStorage.setItem('henriAnnualPlans',JSON.stringify(annualPlans));
+  if(annualGroup?.value){
+    delete scheduleConflictIgnores[annualGroup.value];
+    saveConflictIgnores();
+  }
+}
 function addAnnualBlock(){
   const groupId=annualGroup.value;
   ensureAnnualPlan(groupId);
@@ -1119,6 +1139,62 @@ function addSessionSection(){
 function returnFromSessionEditor(){
   if(sessionEditorSource==='quick'){renderQuickResult();go('quickSession')}else{renderSequenceEditor();go('sequenceEditor')}
 }
+function getScheduleConflict(groupId){
+  ensureAnnualPlan(groupId);
+  const blocks=annualPlans[groupId]||[];
+  const capacity=getGroupSequenceDates(groupId).length;
+  const planned=blocks.reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
+  const overflow=Math.max(0,planned-capacity);
+  return {groupId,capacity,planned,overflow,blocks};
+}
+function conflictFingerprint(conflict){
+  return [conflict.capacity,conflict.planned,conflict.overflow,individualSessions.filter(x=>x.groupId===conflict.groupId).length].join(':');
+}
+function saveConflictIgnores(){
+  localStorage.setItem('henriScheduleConflictIgnores',JSON.stringify(scheduleConflictIgnores));
+}
+function renderScheduleConflict(groupId){
+  const conflict=getScheduleConflict(groupId);
+  if(!conflict.overflow) return '';
+  const fp=conflictFingerprint(conflict);
+  if(scheduleConflictIgnores[groupId]===fp){
+    return '<div class="conflictIgnored">Avis ignoré · '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' demeure'+(conflict.overflow>1?'nt':'')+' sans date à la fin de l’année.</div>';
+  }
+  const rows=conflict.blocks.map(b=>
+    '<div class="conflictSeq"><span><b>'+b.sport+'</b><small>'+b.comp+' · actuellement '+b.courses+' cours</small></span>'+
+    '<input id="conflict-'+b.id+'" type="number" min="1" max="20" value="'+b.courses+'" aria-label="Nombre de cours pour '+b.sport+'">'+
+    '<button class="conflictApply" onclick="applyConflictSequenceCount(\''+groupId+'\',\''+b.id+'\')">Appliquer</button></div>'
+  ).join('');
+  return '<div class="scheduleConflict"><strong>Conflit d’horaire · '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' sans période</strong>'+
+    '<p>Le déplacement dépasse les périodes disponibles avant la fin de l’année. Réduis le nombre de séances d’une séquence au choix, ou ignore l’avis.</p>'+
+    '<div class="conflictSeqList">'+rows+'</div>'+
+    '<button class="conflictIgnore" onclick="ignoreScheduleConflict(\''+groupId+'\')">Ignorer l’avis et conserver le dépassement</button></div>';
+}
+function applyConflictSequenceCount(groupId,blockId){
+  const input=document.getElementById('conflict-'+blockId);
+  const value=Math.max(1,Number(input?.value)||1);
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===blockId);
+  if(!block)return;
+  block.courses=value;
+  delete scheduleConflictIgnores[groupId];
+  saveConflictIgnores();
+  saveAnnual();
+  rebuildPlanningAssignments();
+  if(annualGroup?.value===groupId) renderAnnualPlanner();
+  const conflict=getScheduleConflict(groupId);
+  const msg=conflict.overflow
+    ? 'Ajustement appliqué · il reste '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' sans période.'
+    : 'Horaire ajusté · toutes les séances ont maintenant une date.';
+  renderQuickResult(msg);
+}
+function ignoreScheduleConflict(groupId){
+  const conflict=getScheduleConflict(groupId);
+  if(!conflict.overflow)return;
+  scheduleConflictIgnores[groupId]=conflictFingerprint(conflict);
+  saveConflictIgnores();
+  renderQuickResult('Avis ignoré. Henri conserve le dépassement demandé.');
+}
+
 function openQuickSession(){fillPlanGroupSelects();go('quickSession')}
 function buildQuickSession(){
   const sport=quickSport.value;
@@ -1154,6 +1230,7 @@ function renderQuickResult(message=''){
       '<select id="quickScheduleDate" class="planControl">'+options+'</select>'+
       '<button class="planPrimary" onclick="scheduleQuickSession()">Insérer dans l’horaire</button>'+
       (message?'<div class="quickScheduleSuccess">'+message+'</div>':'')+
+      renderScheduleConflict(quickSessionData.groupId)+
     '</div>';
 }
 function scheduleQuickSession(){
@@ -1172,11 +1249,17 @@ function scheduleQuickSession(){
     blocks:quickSessionData.blocks.map(b=>({...b}))
   });
   individualSessions.sort((a,b)=>a.date.localeCompare(b.date));
+  delete scheduleConflictIgnores[quickSessionData.groupId];
+  saveConflictIgnores();
   saveIndividualSessions();
   rebuildPlanningAssignments();
-  renderAnnualPlanner();
+  if(annualGroup?.value===quickSessionData.groupId) renderAnnualPlanner();
   const d=new Date(date+'T12:00:00');
-  renderQuickResult('Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · les séances suivantes ont été décalées.');
+  const conflict=getScheduleConflict(quickSessionData.groupId);
+  const message=conflict.overflow
+    ? 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · déplacement effectué, mais '+conflict.overflow+' séance'+(conflict.overflow>1?'s dépassent':' dépasse')+' la fin de l’année.'
+    : 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · les séances suivantes ont été décalées.';
+  renderQuickResult(message);
 }
 
 const defaultGroups=[
