@@ -313,8 +313,8 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <button class="back" onclick="returnFromSessionEditor()">‹ Retour</button>
   <div class="muted" id="editSessionMeta"></div>
   <h1 id="editSessionTitle">Séance</h1>
-  <div class="sessionObjective"><small>Objectif du cours</small><p id="editSessionObjective"></p></div>
-  <button class="planSecondary" onclick="editSessionObjective()">Modifier l’objectif</button>
+  <div class="sessionObjective"><small>Objectif du cours</small><p id="editSessionObjectiveText"></p></div>
+  <button class="planSecondary" onclick="changeSessionObjective()">Modifier l’objectif</button>
   <div id="editBlocks" class="editBlocks" style="margin-top:12px"></div>
   <button class="addSection" onclick="addSessionSection()">+ Ajouter une section</button>
 </section>
@@ -627,13 +627,16 @@ function getGroupCourseSlots(groupId){
   const g=groupsData.find(x=>x.id===groupId);
   if(!g) return 0;
   const exact=Object.values(scheduleEntries).flat().filter(e=>e.group===g.name).length;
-  return exact||18;
+  const demoMode=localStorage.getItem('henriDemoSchedule')==='1';
+  return demoMode&&exact<20?28:(exact||28);
 }
 function ensureAnnualPlan(groupId){
   if(!annualPlans[groupId]) annualPlans[groupId]=[
     {id:'a1',comp:'C2',sport:'Ultimate',courses:5},
     {id:'a2',comp:'C1',sport:'Conditionnement physique',courses:4},
-    {id:'a3',comp:'C2',sport:'Badminton',courses:5}
+    {id:'a3',comp:'C2',sport:'Badminton',courses:5},
+    {id:'a4',comp:'C2',sport:'Volleyball',courses:5},
+    {id:'a5',comp:'C3',sport:'Musculation',courses:5}
   ];
 }
 function renderAnnualPlanner(){
@@ -660,8 +663,12 @@ function addAnnualBlock(){
 }
 function editAnnualBlock(id){
   const groupId=annualGroup.value, b=(annualPlans[groupId]||[]).find(x=>x.id===id);if(!b)return;
-  const n=prompt('Nombre de cours pour '+b.sport,b.courses);
-  if(n!==null&&Number(n)>0){b.courses=Number(n);saveAnnual();renderAnnualPlanner()}
+  const sport=prompt('Sport / moyen d’action',b.sport);if(sport!==null&&sport.trim())b.sport=sport.trim();
+  const comp=prompt('Compétence : C1, C2 ou C3',b.comp);
+  if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
+  const n=prompt('Nombre de cours',b.courses);
+  if(n!==null&&Number(n)>0)b.courses=Number(n);
+  saveAnnual();renderAnnualPlanner();
 }
 function deleteAnnualBlock(id){
   const groupId=annualGroup.value;
@@ -712,7 +719,7 @@ function openSessionEditor(index,source){
   if(!session)return;
   editSessionMeta.textContent=sessionEditorSource==='quick'?'Séance individuelle':'Séance '+(index+1)+' sur '+activeSequence.sessions.length;
   editSessionTitle.textContent=session.title;
-  editSessionObjective.textContent=session.objective;
+  editSessionObjectiveText.textContent=session.objective;
   renderSessionBlocks(session);
   go('sessionEditor');
 }
@@ -720,7 +727,7 @@ function renderSessionBlocks(session){
   editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+b.type+'</div><div class="editBlockTitle">'+b.title+'</div></div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
 }
 function currentEditableSession(){return sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[activeSessionIndex]}
-function editSessionObjective(){const s=currentEditableSession();if(!s)return;const v=prompt('Objectif du cours',s.objective);if(v!==null){s.objective=v;editSessionObjective.textContent=v}}
+function changeSessionObjective(){const s=currentEditableSession();if(!s)return;const v=prompt('Objectif du cours',s.objective);if(v!==null){s.objective=v;editSessionObjectiveText.textContent=v}}
 function editSessionBlock(i){
   const s=currentEditableSession(),b=s?.blocks[i];if(!b)return;
   const title=prompt('Titre de la section',b.title);if(title!==null&&title.trim())b.title=title.trim();
