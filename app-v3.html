@@ -148,47 +148,11 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <div id="monthView" class="calendarView">
       <div class="monthCard">
         <div class="monthTop">
-          <span class="monthTitle">Septembre 2026</span>
-          <div class="monthNav"><button aria-label="Mois précédent">‹</button><button aria-label="Mois suivant">›</button></div>
+          <span id="monthTitle" class="monthTitle"></span>
+          <div class="monthNav"><button aria-label="Mois précédent" onclick="changeMonth(-1)">‹</button><button aria-label="Mois suivant" onclick="changeMonth(1)">›</button></div>
         </div>
         <div class="weekLabels"><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
-        <div class="monthGrid">
-          <div class="dayCell mutedDay"><span class="dayNum">31</span></div>
-          <div class="dayCell"><span class="dayNum">1</span></div>
-          <div class="dayCell"><span class="dayNum">2</span></div>
-          <div class="dayCell"><span class="dayNum">3</span></div>
-          <div class="dayCell"><span class="dayNum">4</span></div>
-          <div class="dayCell"><span class="dayNum">5</span></div>
-          <div class="dayCell"><span class="dayNum">6</span></div>
-          <div class="dayCell"><span class="dayNum">7</span></div>
-          <div class="dayCell"><span class="dayNum">8</span></div>
-          <div class="dayCell"><span class="dayNum">9</span></div>
-          <div class="dayCell"><span class="dayNum">10</span></div>
-          <div class="dayCell"><span class="dayNum">11</span></div>
-          <div class="dayCell"><span class="dayNum">12</span></div>
-          <div class="dayCell"><span class="dayNum">13</span></div>
-          <div class="dayCell"><span class="dayNum">14</span></div>
-          <div class="dayCell"><span class="dayNum">15</span></div>
-          <div class="dayCell"><span class="dayNum">16</span></div>
-          <div class="dayCell"><span class="dayNum">17</span></div>
-          <div class="dayCell"><span class="dayNum">18</span></div>
-          <div class="dayCell"><span class="dayNum">19</span></div>
-          <div class="dayCell"><span class="dayNum">20</span></div>
-          <div class="dayCell"><span class="dayNum">21</span></div>
-          <div class="dayCell"><span class="dayNum">22</span></div>
-          <div class="dayCell"><span class="dayNum">23</span></div>
-          <div class="dayCell"><span class="dayNum">24</span></div>
-          <div class="dayCell"><span class="dayNum">25</span></div>
-          <div class="dayCell"><span class="dayNum">26</span></div>
-          <div class="dayCell"><span class="dayNum">27</span></div>
-          <div class="dayCell today"><span class="dayNum">28</span><div class="monthEvent">Sec. 2 · Flag</div><span class="eventDot"></span></div>
-          <div class="dayCell"><span class="dayNum">29</span><div class="monthEvent">Sec. 3 · Ultimate</div><span class="eventDot"></span></div>
-          <div class="dayCell"><span class="dayNum">30</span><div class="monthEvent">Sec. 4 · Taekwondo</div><span class="eventDot"></span></div>
-          <div class="dayCell mutedDay"><span class="dayNum">1</span><div class="monthEvent">Sec. 2 · Cond.</div><span class="eventDot"></span></div>
-          <div class="dayCell mutedDay"><span class="dayNum">2</span></div>
-          <div class="dayCell mutedDay"><span class="dayNum">3</span></div>
-          <div class="dayCell mutedDay"><span class="dayNum">4</span></div>
-        </div>
+        <div id="monthGrid" class="monthGrid"></div>
       </div>
     </div>
   </div>
@@ -246,6 +210,41 @@ function setCalendarView(view){
   weekBtn.classList.toggle('on',isWeek);
   monthBtn.classList.toggle('on',!isWeek);
 }
+const calendarEvents={
+  '2026-09-28':'Sec. 2 · Flag',
+  '2026-09-29':'Sec. 3 · Ultimate',
+  '2026-09-30':'Sec. 4 · Taekwondo',
+  '2026-10-01':'Sec. 2 · Cond.'
+};
+const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+let shownYear=2026,shownMonth=8;
+function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function renderMonth(){
+  monthTitle.textContent=monthNames[shownMonth]+' '+shownYear;
+  const first=new Date(shownYear,shownMonth,1);
+  const offset=(first.getDay()+6)%7;
+  const days=new Date(shownYear,shownMonth+1,0).getDate();
+  const prevDays=new Date(shownYear,shownMonth,0).getDate();
+  let out='';
+  for(let i=0;i<42;i++){
+    let y=shownYear,m=shownMonth,d,muted=false;
+    if(i<offset){d=prevDays-offset+i+1;m--;muted=true;if(m<0){m=11;y--}}
+    else if(i>=offset+days){d=i-(offset+days)+1;m++;muted=true;if(m>11){m=0;y++}}
+    else d=i-offset+1;
+    const key=dateKey(y,m,d);
+    const event=calendarEvents[key];
+    const today=key==='2026-09-28';
+    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+'"><span class="dayNum">'+d+'</span>'+(event?'<div class="monthEvent">'+event+'</div><span class="eventDot"></span>':'')+'</div>';
+  }
+  monthGrid.innerHTML=out;
+}
+function changeMonth(delta){
+  shownMonth+=delta;
+  if(shownMonth<0){shownMonth=11;shownYear--}
+  if(shownMonth>11){shownMonth=0;shownYear++}
+  renderMonth();
+}
+renderMonth();
 </script>
 </body>
 </html>
