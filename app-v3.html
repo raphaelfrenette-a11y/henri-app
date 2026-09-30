@@ -350,11 +350,34 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 @media(min-width:720px){
   .dayCell{min-height:82px;padding:8px}
 }
+
+/* v5.25 — accueil plus chaleureux, sans décor de fond */
+#home{--g1:#3b82f6;--g2:#34a853;--g3:#f59e0b;--g4:#8b5cf6}
+#home .calendarPanel{margin-top:24px}
+#home .week{gap:12px}
+#home .weekDay{border-color:#e7e5e0;border-radius:22px;box-shadow:0 5px 18px rgba(32,38,42,.035)}
+#home .weekDay.today{border-color:#c8d9e5;background:#fbfdff;box-shadow:0 8px 24px rgba(49,74,91,.065)}
+#home .dayHead{padding:14px 16px;background:rgba(255,255,255,.92)}
+#home .weekEvent{grid-template-columns:64px 5px minmax(0,1fr) auto;padding:12px 16px;gap:11px;background:rgba(255,255,255,.94)}
+#home .groupBar{width:4px;height:31px;border-radius:999px;background:var(--groupColor)}
+#home .course{font-size:13px;min-width:0}
+#home .quickSport{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:var(--sportBg);color:var(--sportFg);font-size:11px}
+#home .sportIcon{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+#home .dayDate{font-size:12px}
+#home .today .dayHead{background:#f8fbfd}
+#home .today .weekEvent{background:#fbfdff}
+body{background:#f8f7f4}
+.top{background:rgba(248,247,244,.92)}
+@media(max-width:520px){
+  #home .weekEvent{grid-template-columns:55px 4px minmax(0,1fr) auto;padding:12px 14px;gap:9px}
+  #home .quickSport{padding:6px 8px}
+  #home .sportIcon{width:15px;height:15px;font-size:12px}
+}
 </style>
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.24</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.25</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -692,10 +715,22 @@ function renderWeek(){
     if(entries.length){
       entries.forEach((entry,idx)=>{
         const sport=entry.annualPlan||'À planifier';
-        out+='<button class="weekEvent" onclick="openCourseEntry(\''+key+'\','+idx+')">'+
+        const groupColors=['#3b82f6','#34a853','#f59e0b','#8b5cf6'];
+        const groupIndex=Math.max(0,defaultGroups.findIndex(g=>g.name===entry.group));
+        const groupColor=groupColors[groupIndex%groupColors.length];
+        const sportLower=sport.toLowerCase();
+        let sportIcon='●',sportBg='#eef1f2',sportFg='#53606a';
+        if(sportLower.includes('badminton')){sportIcon='◈';sportBg='#eaf3ff';sportFg='#2468b4'}
+        else if(sportLower.includes('volley')){sportIcon='◉';sportBg='#f1eaff';sportFg='#7544bd'}
+        else if(sportLower.includes('flag')||sportLower.includes('ultimate')){sportIcon='↗';sportBg='#eaf7ee';sportFg='#287a45'}
+        else if(sportLower.includes('condition')||sportLower.includes('musculation')){sportIcon='◆';sportBg='#fff0e3';sportFg='#b85a12'}
+        else if(sportLower.includes('choisir')){sportIcon='◇';sportBg='#edf7ef';sportFg='#2e7544'}
+        else if(sportLower.includes('planifier')){sportIcon='＋';sportBg='#fff2e6';sportFg='#b85a12'}
+        out+='<button class="weekEvent" style="--groupColor:'+groupColor+';--sportBg:'+sportBg+';--sportFg:'+sportFg+'" onclick="openCourseEntry(\''+key+'\','+idx+')">'+
           '<span class="time">'+entry.time+'</span>'+
+          '<span class="groupBar" aria-hidden="true"></span>'+
           '<span class="course">'+entry.group+'</span>'+
-          '<span class="quickSport">'+sport+'</span>'+
+          '<span class="quickSport"><span class="sportIcon" aria-hidden="true">'+sportIcon+'</span>'+sport+'</span>'+
         '</button>';
       });
     }else{
