@@ -337,7 +337,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.2</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.3</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -395,7 +395,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <h2>Combien de séquences?</h2>
     <p class="annualSetupText" id="annualSetupText">Henri calcule une structure de départ selon les périodes réellement disponibles. Tu pourras ensuite tout modifier.</p>
     <div class="annualSetupGrid">
-      <div class="planField"><label>Durée cible d’une séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      <div class="planField"><label>Nombre de cours cible par séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
       <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
     </div>
     <div id="annualRecommendation" class="annualRecommendation"></div>
@@ -979,7 +979,10 @@ function updateAnnualRecommendation(forceCount=false){
   annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.profile.level.label+' · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+'</strong>'+
     '<span>Durée cible : environ '+rec.target+' cours. Avec '+chosen+' séquence'+(chosen>1?'s':'')+', les '+rec.possible+' périodes sont utilisées (moyenne '+avg.toFixed(1).replace('.',',')+').</span>'+
     '<span class="annualRecBreakdown"><span class="annualRecChip">C1 · '+chosenCounts.C1+'</span><span class="annualRecChip">C2 · '+chosenCounts.C2+'</span><span class="annualRecChip">C3 · '+chosenCounts.C3+'</span></span>'+note;
-  if(annualBuildBtn) annualBuildBtn.textContent=(annualPlans[groupId]||[]).length?'Recréer selon mon choix':'Créer selon mon choix';
+  if(annualBuildBtn){
+    const hasPlan=(annualPlans[groupId]||[]).length>0;
+    annualBuildBtn.textContent=(hasPlan?'Recréer':'Créer')+' avec '+chosen+' séquence'+(chosen>1?'s':'');
+  }
 }
 function useAnnualRecommendation(){
   if(!annualGroup)return;
@@ -992,6 +995,12 @@ function useAnnualRecommendation(){
 function applyAnnualStructure(useRecommended=false){
   const groupId=annualGroup?.value;
   if(!groupId)return;
+  const existingBlocks=annualPlans[groupId]||[];
+  if(existingBlocks.length&&!useRecommended){
+    const requested=Math.max(1,Number(annualSequenceCount.value)||1);
+    const ok=confirm('Recréer l’année avec '+requested+' séquence'+(requested>1?'s':'')+' ?\n\nLes blocs actuels de la planification annuelle seront remplacés.');
+    if(!ok)return;
+  }
   ensureAnnualPlan(groupId);
   const existing=annualPlans[groupId]||[];
   if(existing.length&&!confirm('Répartir l’année à nouveau? La structure actuelle de ce groupe sera remplacée.'))return;
