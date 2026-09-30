@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.17</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.18</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -1199,8 +1199,7 @@ function renderAnnualPlanner(){
   }
   if(annualConflict) annualConflict.innerHTML=renderScheduleConflict(groupId);
   if(annualSaveWrap){
-    const ready=blocks.length>0&&balance===0&&blocks.every(b=>b.sport&&b.sport!=='À choisir');
-    annualSaveWrap.style.display=ready?'block':'none';
+    annualSaveWrap.style.display=blocks.length>0?'block':'none';
   }
   annualList.innerHTML=blocks.map((b,i)=>{
     const r=ranges[i];
