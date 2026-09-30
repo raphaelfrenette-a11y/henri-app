@@ -166,15 +166,38 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .choiceIcon{width:40px;height:40px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820}
 .choiceCard strong{display:block;font-size:15px}
 .choiceCard small{display:block;color:var(--muted);font-size:12px;line-height:1.4;margin-top:3px}
-.seqHeader{background:var(--accent);color:#fff;border-radius:22px;padding:20px;margin:12px 0 14px}
+.seqHeader{background:linear-gradient(140deg,#314a5b,#263c4b);color:#fff;border-radius:24px;padding:20px;margin:12px 0 12px;box-shadow:0 12px 28px rgba(49,74,91,.12)}
 .seqHeader small{opacity:.72;font-weight:720}
-.seqHeader h2{margin:6px 0 4px;font-size:24px;letter-spacing:-.03em}
+.seqHeader h2{margin:6px 0 4px;font-size:25px;letter-spacing:-.035em}
 .seqHeader p{margin:0;opacity:.82;line-height:1.4}
-.seqList{display:grid;gap:9px}
-.seqLesson{width:100%;border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;display:grid;grid-template-columns:36px 1fr auto;gap:11px;align-items:center;text-align:left}
-.seqNum{width:36px;height:36px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820}
-.seqLesson strong{display:block}
-.seqLesson small{display:block;color:var(--muted);margin-top:3px}
+.seqOverview{background:#fff;border:1px solid var(--line);border-radius:18px;padding:13px 14px;margin-bottom:12px;box-shadow:0 3px 12px rgba(0,0,0,.018)}
+.seqOverviewTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seqOverviewTop strong{font-size:12px}
+.seqOverviewTop span{font-size:11px;color:var(--muted);font-weight:700}
+.seqProgressTrack{height:6px;border-radius:999px;background:#edf0f1;overflow:hidden;margin-top:10px}
+.seqProgressTrack span{display:block;height:100%;background:var(--accent);border-radius:inherit}
+.seqOverviewFoot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;color:var(--muted);font-size:10px;line-height:1.35}
+.seqOverviewFoot button{border:0;background:var(--accent-soft);color:var(--accent);border-radius:9px;padding:7px 9px;font-size:10px;font-weight:780;white-space:nowrap}
+.seqList{display:grid;gap:9px;position:relative;padding-left:21px}
+.seqList::before{content:"";position:absolute;left:7px;top:20px;bottom:20px;width:2px;background:#e0e6e9;border-radius:999px}
+.seqLesson{position:relative;width:100%;border:1px solid var(--line);background:#fff;border-radius:19px;padding:14px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:11px;align-items:start;text-align:left;box-shadow:0 3px 12px rgba(0,0,0,.018)}
+.seqLesson::before{content:"";position:absolute;left:-18px;top:23px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
+.seqLesson.unscheduled::before{background:#a97838}
+.seqNum{width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820}
+.seqLessonBody{min-width:0}
+.seqLessonTop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.seqLessonDate{display:inline-flex;border-radius:999px;background:#f2f4f4;color:#6f777b;padding:5px 8px;font-size:10px;font-weight:760}
+.seqLessonDate.unscheduled{background:#faf2e6;color:#8a642f}
+.seqLesson strong{display:block;font-size:14px;line-height:1.25;margin-top:5px}
+.seqLessonObjective{display:block;color:var(--muted);font-size:11px;line-height:1.4;margin-top:4px}
+.seqLessonStructure{display:block;color:#92989b;font-size:10px;line-height:1.35;margin-top:7px}
+.seqLessonActions{display:flex;flex-direction:column;gap:5px}
+.seqMiniBtn{width:31px;height:31px;border:1px solid var(--line);background:#fff;border-radius:9px;color:var(--accent);font-size:12px;font-weight:800;display:grid;place-items:center}
+.seqMiniBtn.danger{color:#925048}
+.seqAddRow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
+.seqSaveBar{position:sticky;bottom:78px;z-index:5;background:rgba(245,245,243,.88);backdrop-filter:blur(16px);padding:9px 0 2px}
+@media(max-width:520px){.seqLesson{grid-template-columns:36px minmax(0,1fr) auto}.seqLessonActions{gap:4px}.seqMiniBtn{width:29px;height:29px}}
+
 .sessionObjective{background:var(--accent-soft);border-radius:16px;padding:14px;margin:12px 0}
 .sessionObjective small{display:block;color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
 .sessionObjective p{margin:5px 0 0;line-height:1.4}
@@ -281,7 +304,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.7</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.8</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -398,9 +421,13 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 <section id="sequenceEditor" class="screen">
   <button class="back" onclick="returnFromSequenceEditor()">‹ Retour</button>
   <div id="sequenceHeader" class="seqHeader"></div>
+  <div id="sequenceOverview" class="seqOverview"></div>
   <div id="sequenceLessons" class="seqList"></div>
-  <button class="addSection" onclick="addSequenceLesson()">+ Ajouter un cours</button>
-  <button class="planPrimary" onclick="saveSequence()">Enregistrer la séquence</button>
+  <div class="seqAddRow">
+    <button class="addSection" style="margin-top:0" onclick="addSequenceLesson()">+ Ajouter un cours</button>
+    <button class="itemBtn" onclick="openSequenceCalendar()">Calendrier</button>
+  </div>
+  <div class="seqSaveBar"><button class="planPrimary" style="margin-top:0" onclick="saveSequence()">Enregistrer la séquence</button></div>
 </section>
 
 <section id="sessionEditor" class="screen">
@@ -1164,21 +1191,76 @@ function buildStandaloneSequence(useHenri){
   });
   renderSequenceEditor();go('sequenceEditor');
 }
+function getSequenceDates(sequence){
+  if(!sequence?.annualBlockId) return [];
+  const blocks=annualPlans[sequence.groupId]||[];
+  const index=blocks.findIndex(b=>b.id===sequence.annualBlockId);
+  if(index<0) return [];
+  const dates=getGroupSequenceDates(sequence.groupId);
+  const offset=blocks.slice(0,index).reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
+  return dates.slice(offset,offset+sequence.sessions.length);
+}
+function formatSequenceDate(date){
+  if(!date) return 'Sans date';
+  const d=new Date(date+'T12:00:00');
+  return dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()];
+}
+function openSequenceCalendar(){
+  if(!activeSequence) return;
+  const dates=getSequenceDates(activeSequence);
+  openCalendarAtDate(dates[0]||null);
+}
 function renderSequenceEditor(){
   if(!activeSequence)return;
-  let macroDates='';
-  if(activeSequence.annualBlockId){
-    const blocks=annualPlans[activeSequence.groupId]||[];
-    const i=blocks.findIndex(b=>b.id===activeSequence.annualBlockId);
-    const r=getAnnualRanges(activeSequence.groupId,blocks)[i];
-    if(r?.start&&r?.end) macroDates=' · '+(r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end));
-  }
-  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+activeSequence.sessions.length+' cours · '+activeSequence.duration+macroDates+'</p>';
-  sequenceLessons.innerHTML=activeSequence.sessions.map((s,i)=>'<button class="seqLesson" onclick="openSessionEditor('+i+',\'sequence\')"><span class="seqNum">'+(i+1)+'</span><span><strong>'+s.title+'</strong><small>'+s.blocks.map(b=>b.type).join(' · ')+'</small></span><span class="groupArrow">›</span></button>').join('');
+  const dates=getSequenceDates(activeSequence);
+  const placed=Math.min(dates.length,activeSequence.sessions.length);
+  const total=activeSequence.sessions.length;
+  const pct=total?Math.round((placed/total)*100):0;
+  const first=dates[0]||null;
+  const last=dates[Math.min(dates.length,total)-1]||null;
+  const rangeText=first&&last?(first===last?formatPlanDate(first):formatPlanDate(first)+' au '+formatPlanDate(last)):'Hors calendrier';
+  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+total+' cours · '+activeSequence.duration+' · '+rangeText+'</p>';
+  sequenceOverview.innerHTML=
+    '<div class="seqOverviewTop"><strong>Progression de la séquence</strong><span>'+placed+' / '+total+' cours placés</span></div>'+
+    '<div class="seqProgressTrack"><span style="width:'+pct+'%"></span></div>'+
+    '<div class="seqOverviewFoot"><span>'+(activeSequence.annualBlockId?(placed===total?'Toutes les séances ont une date dans le calendrier.':(total-placed)+' séance'+(total-placed>1?'s':'')+' sans date.'):'Séquence indépendante · aucune date imposée.')+'</span>'+
+    (activeSequence.annualBlockId?'<button onclick="openSequenceCalendar()">Voir dans le calendrier</button>':'')+'</div>';
+  sequenceLessons.innerHTML=activeSequence.sessions.map((session,i)=>{
+    const date=dates[i]||null;
+    const objective=session.objective||'Objectif à préciser.';
+    const structure=(session.blocks||[]).map(b=>b.type).join(' · ');
+    return '<div class="seqLesson'+(!date&&activeSequence.annualBlockId?' unscheduled':'')+'">'+
+      '<button class="seqNum" onclick="openSessionEditor('+i+',\'sequence\')" aria-label="Ouvrir le cours '+(i+1)+'">'+(i+1)+'</button>'+
+      '<button class="seqLessonBody" style="border:0;background:transparent;padding:0;text-align:left" onclick="openSessionEditor('+i+',\'sequence\')">'+
+        '<span class="seqLessonTop"><span class="seqLessonDate'+(!date&&activeSequence.annualBlockId?' unscheduled':'')+'">'+formatSequenceDate(date)+'</span></span>'+
+        '<strong>'+session.title+'</strong>'+
+        '<span class="seqLessonObjective">'+objective+'</span>'+
+        '<span class="seqLessonStructure">'+structure+'</span>'+
+      '</button>'+
+      '<span class="seqLessonActions">'+
+        '<button class="seqMiniBtn" onclick="moveSequenceLesson('+i+',-1)" aria-label="Monter ce cours">↑</button>'+
+        '<button class="seqMiniBtn" onclick="moveSequenceLesson('+i+',1)" aria-label="Descendre ce cours">↓</button>'+
+        '<button class="seqMiniBtn danger" onclick="deleteSequenceLesson('+i+')" aria-label="Supprimer ce cours">×</button>'+
+      '</span>'+
+    '</div>';
+  }).join('');
 }
 function addSequenceLesson(){
   if(!activeSequence)return;
   activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:'Objectif à préciser.',blocks:defaultBlockSet().map(b=>({...b}))});
+  renderSequenceEditor();
+}
+function moveSequenceLesson(index,delta){
+  if(!activeSequence)return;
+  const next=index+delta;
+  if(next<0||next>=activeSequence.sessions.length)return;
+  [activeSequence.sessions[index],activeSequence.sessions[next]]=[activeSequence.sessions[next],activeSequence.sessions[index]];
+  renderSequenceEditor();
+}
+function deleteSequenceLesson(index){
+  if(!activeSequence||activeSequence.sessions.length<=1)return;
+  if(!confirm('Supprimer ce cours de la séquence?'))return;
+  activeSequence.sessions.splice(index,1);
   renderSequenceEditor();
 }
 function saveSequence(){
