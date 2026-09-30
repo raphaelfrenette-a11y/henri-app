@@ -177,7 +177,12 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .orderBtn{width:32px;height:32px;border:1px solid var(--line);background:#fff;border-radius:10px;color:var(--accent);font-weight:800}
 @media(hover:hover) and (pointer:fine){.dragHandle:hover{background:#e9edef}}
 .compBadge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800}
+.compBadge.editable{border:0;cursor:pointer}
+.inlineCompSelect{min-height:32px;border:1px solid #cdd9df;background:#fff;color:var(--accent);border-radius:999px;padding:0 9px;font-size:10px;font-weight:800}
 .annualSport{font-size:18px;font-weight:800;margin-top:8px;letter-spacing:-.025em}
+.annualSport.editable{width:100%;border:0;background:transparent;text-align:left;padding:0;color:var(--ink);cursor:pointer}
+.annualSport.editable::after{content:"  ›";color:#9aa0a3;font-size:15px}
+.annualSportSelect.editing{margin-top:8px}
 .annualSportSelect{width:100%;min-height:42px;border:1px solid #dfe4e6;background:#f8f9f9;border-radius:11px;padding:0 10px;margin-top:8px;color:var(--accent);font:inherit;font-size:12px;font-weight:760}
 .annualMeta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px;margin-top:9px}
 .annualMiniProgress{height:4px;background:#eff1f1;border-radius:999px;overflow:hidden;margin-top:7px}
@@ -348,7 +353,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.6</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.7</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -1092,6 +1097,32 @@ function getAnnualSportOptions(comp){
   const values=suggestions[comp]||[];
   return '<option value="">Choisir un moyen d’action…</option>'+values.map(v=>'<option value="'+v+'">'+v+'</option>').join('')+'<option value="__other__">Autre…</option>';
 }
+function setAnnualBlockComp(id,value){
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!block||!['C1','C2','C3'].includes(value))return;
+  block.comp=value;
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+}
+function editAnnualCompInline(id){
+  const el=document.getElementById('annual-comp-'+id);
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!el||!block)return;
+  el.outerHTML='<select id="annual-comp-'+id+'" class="inlineCompSelect" onchange="setAnnualBlockComp(\''+id+'\',this.value)" onblur="renderAnnualPlanner()">'+
+    ['C1','C2','C3'].map(c=>'<option value="'+c+'"'+(c===block.comp?' selected':'')+'>'+c+' · '+planCompetenceNames[c]+'</option>').join('')+'</select>';
+  document.getElementById('annual-comp-'+id)?.focus();
+}
+function editAnnualSportInline(id){
+  const el=document.getElementById('annual-sport-'+id);
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!el||!block)return;
+  el.outerHTML='<select id="annual-sport-'+id+'" class="annualSportSelect editing" onchange="setAnnualBlockSport(\''+id+'\',this.value)" onblur="renderAnnualPlanner()">'+getAnnualSportOptions(block.comp)+'</select>';
+  document.getElementById('annual-sport-'+id)?.focus();
+}
 function setAnnualBlockSport(id,value){
   if(!value)return;
   const groupId=annualGroup.value;
@@ -1164,9 +1195,9 @@ function renderAnnualPlanner(){
       '<div class="annualTop">'+
         '<button class="dragHandle" type="button" aria-label="Glisser '+b.sport+'" data-drag-id="'+b.id+'">≡</button>'+
         '<div class="annualMain">'+
-          '<div class="annualHeaderLine"><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
+          '<div class="annualHeaderLine"><button id="annual-comp-'+b.id+'" class="compBadge editable" onclick="editAnnualCompInline(\''+b.id+'\')" aria-label="Modifier la compétence">'+b.comp+' · '+planCompetenceNames[b.comp]+'</button><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
           '<div class="annualSequenceLabel">Séquence '+(i+1)+'</div>'+
-          (needsChoice?'<select class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<div class="annualSport">'+b.sport+'</div>')+
+          (needsChoice?'<select id="annual-sport-'+b.id+'" class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<button id="annual-sport-'+b.id+'" class="annualSport editable" onclick="editAnnualSportInline(\''+b.id+'\')" aria-label="Modifier le moyen d’action">'+b.sport+'</button>')+
           '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+
           '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours'+(!b.lockedCourses?'<small class="annualAutoNote"> auto</small>':'')+'</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
           '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
