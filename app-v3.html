@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.15</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.16</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -450,7 +450,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   </div>
   <div id="annualConflict"></div>
   <div id="annualList" class="annualList"></div>
-  <div class="planForm" style="margin-top:12px">
+  <div id="annualAddForm" class="planForm" style="margin-top:12px;display:none">
     <div class="planGrid">
       <div class="planField"><label>Compétence</label><select id="annualComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
       <div class="planField"><label>Sport / moyen d’action</label><select id="annualSport" class="planControl"><option>À choisir</option><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Conditionnement physique</option><option>Course</option><option>Musculation</option></select></div>
@@ -1162,6 +1162,10 @@ function renderAnnualPlanner(){
   const balance=possible-planned;
   const remaining=Math.max(0,balance);
   const overflow=Math.max(0,-balance);
+  if(annualAddForm){
+    annualAddForm.style.display=remaining>0?'block':'none';
+    if(remaining>0&&annualCourses) annualCourses.value=Math.min(12,remaining);
+  }
   const placed=Math.min(planned,possible);
   const coverage=possible?Math.min(100,Math.round((placed/possible)*100)):0;
   annualPossible.textContent=possible;
