@@ -159,6 +159,7 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 @media(hover:hover) and (pointer:fine){.dragHandle:hover{background:#e9edef}}
 .compBadge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800}
 .annualSport{font-size:18px;font-weight:800;margin-top:8px;letter-spacing:-.025em}
+.annualSportSelect{width:100%;min-height:42px;border:1px solid #dfe4e6;background:#f8f9f9;border-radius:11px;padding:0 10px;margin-top:8px;color:var(--accent);font:inherit;font-size:12px;font-weight:760}
 .annualMeta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px;margin-top:9px}
 .annualMiniProgress{height:4px;background:#eff1f1;border-radius:999px;overflow:hidden;margin-top:7px}
 .annualMiniProgress span{display:block;height:100%;background:#7f949f;border-radius:inherit}
@@ -1011,6 +1012,29 @@ function applyAnnualStructure(useRecommended=false){
   rebuildPlanningAssignments();
   renderAnnualPlanner();
 }
+function getAnnualSportOptions(comp){
+  const suggestions={
+    C1:['Athlétisme','Gymnastique','Course','Badminton','Patinage','Natation'],
+    C2:['Ultimate','Basketball','Volleyball','Handball','Flag football','Soccer','Badminton','Pickleball','Kin-Ball'],
+    C3:['Conditionnement physique','Course / endurance','Musculation','Plein air']
+  };
+  const values=suggestions[comp]||[];
+  return '<option value="">Choisir un moyen d’action…</option>'+values.map(v=>'<option value="'+v+'">'+v+'</option>').join('')+'<option value="__other__">Autre…</option>';
+}
+function setAnnualBlockSport(id,value){
+  if(!value)return;
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!block)return;
+  if(value==='__other__'){
+    const custom=prompt('Sport / moyen d’action','');
+    if(!custom||!custom.trim()){renderAnnualPlanner();return}
+    block.sport=custom.trim();
+  }else block.sport=value;
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+}
 function renderAnnualPlanner(){
   if(!annualGroup) return;
   const groupId=annualGroup.value||groupsData[0]?.id;
@@ -1057,7 +1081,7 @@ function renderAnnualPlanner(){
         '<div class="annualMain">'+
           '<div class="annualHeaderLine"><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
           '<div class="annualSequenceLabel">Séquence '+(i+1)+'</div>'+
-          '<div class="annualSport">'+b.sport+'</div>'+
+          (needsChoice?'<select class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<div class="annualSport">'+b.sport+'</div>')+
           '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+
           '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours'+(!b.lockedCourses?'<small class="annualAutoNote"> auto</small>':'')+'</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
           '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
@@ -1065,7 +1089,7 @@ function renderAnnualPlanner(){
         '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
       '</div>'+
       '<div class="itemActions">'+
-        '<button class="itemBtn primary" onclick="'+(needsChoice?'editAnnualBlock(\''+b.id+'\')':'openMacroSequence(\''+groupId+'\',\''+b.id+'\')')+'">'+(needsChoice?'Choisir le sport':saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>'+
+        (needsChoice?'':'<button class="itemBtn primary" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+(saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>')+
         '<button class="annualItemCalendar" onclick="openAnnualBlockCalendar(\''+groupId+'\',\''+b.id+'\')">Calendrier</button>'+
         '<button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button>'+
         '<button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button>'+
