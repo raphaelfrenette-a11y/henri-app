@@ -854,7 +854,9 @@ function updateAnnualRecommendation(forceCount=false){
   if(!groupId)return;
   const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
   if(forceCount||annualSequenceCount.dataset.manual!=='1') annualSequenceCount.value=rec.recommended;
-  const chosen=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
+  const requested=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
+  const chosen=Math.min(requested,Math.max(1,rec.possible));
+  if(requested!==chosen) annualSequenceCount.value=chosen;
   const distribution=distributeAnnualCourses(rec.possible,chosen);
   const avg=chosen?(rec.possible/chosen):0;
   annualSetupText.textContent='Ce groupe a '+rec.possible+' période'+(rec.possible>1?'s':'')+' disponible'+(rec.possible>1?'s':'')+' dans l’année. Henri utilise ce total réel pour bâtir une première structure.';
@@ -875,7 +877,9 @@ function applyAnnualStructure(){
   const existing=annualPlans[groupId]||[];
   if(existing.length&&!confirm('Répartir l’année à nouveau? La structure actuelle de ce groupe sera remplacée.'))return;
   const possible=getGroupCourseSlots(groupId);
-  const count=Math.max(1,Number(annualSequenceCount.value)||1);
+  if(possible<=0){alert('Aucune période disponible pour ce groupe. Vérifie d’abord l’horaire et le calendrier scolaire.');return}
+  const count=Math.min(possible,Math.max(1,Number(annualSequenceCount.value)||1));
+  annualSequenceCount.value=count;
   const distribution=distributeAnnualCourses(possible,count);
   annualPlans[groupId]=distribution.map((courses,i)=>({
     id:'a'+Date.now()+'-'+i,
