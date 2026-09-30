@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.18</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.19</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -450,7 +450,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   </div>
   <div id="annualConflict"></div>
   <div id="annualList" class="annualList"></div>
-  <div id="annualSaveWrap" style="display:none;margin-top:16px">
+  <div id="annualSaveWrap" style="margin-top:16px">
     <button class="planPrimary" onclick="saveAnnualAndPlanSequences()">Enregistrer ma planification annuelle</button>
     <p class="planHint">Les séquences seront automatiquement créées dans Planifier une séquence avec leur groupe, compétence, moyen d’action, nombre de cours et dates.</p>
   </div>
@@ -1198,9 +1198,6 @@ function renderAnnualPlanner(){
         : 'Toute l’année disponible est placée. Déplace un bloc et toutes les dates suivantes se recalculent.';
   }
   if(annualConflict) annualConflict.innerHTML=renderScheduleConflict(groupId);
-  if(annualSaveWrap){
-    annualSaveWrap.style.display=blocks.length>0?'block':'none';
-  }
   annualList.innerHTML=blocks.map((b,i)=>{
     const r=ranges[i];
     const saved=getSavedSequence(groupId,b.id);
