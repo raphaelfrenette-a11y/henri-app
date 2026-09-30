@@ -378,7 +378,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.27</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.28</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -721,23 +721,23 @@ function renderWeek(){
         const groupIndex=Math.max(0,defaultGroups.findIndex(g=>g.name===entry.group));
         const groupColor=groupColors[groupIndex%groupColors.length];
         const sportLower=sport.toLowerCase();
-        let sportIcon='●',sportBg='#eef1f2',sportFg='#53606a';
-        if(sportLower.includes('badminton')){sportIcon='🏸';sportBg='#eaf3ff';sportFg='#2468b4'}
-        else if(sportLower.includes('volley')){sportIcon='🏐';sportBg='#f1eaff';sportFg='#7544bd'}
-        else if(sportLower.includes('basket')){sportIcon='🏀';sportBg='#fff0e3';sportFg='#b85a12'}
-        else if(sportLower.includes('soccer')||sportLower.includes('futsal')){sportIcon='⚽';sportBg='#eaf7ee';sportFg='#287a45'}
-        else if(sportLower.includes('hockey')){sportIcon='🏒';sportBg='#eaf3ff';sportFg='#2468b4'}
-        else if(sportLower.includes('flag')){sportIcon='🏈';sportBg='#fff0e3';sportFg='#9a531b'}
-        else if(sportLower.includes('ultimate')){sportIcon='◯';sportBg='#eaf7ee';sportFg='#287a45'}
-        else if(sportLower.includes('condition')||sportLower.includes('musculation')){sportIcon='🏋';sportBg='#fff0e3';sportFg='#b85a12'}
-        else if(sportLower.includes('course')||sportLower.includes('athl')){sportIcon='🏃';sportBg='#eaf7ee';sportFg='#287a45'}
-        else if(sportLower.includes('tennis')){sportIcon='🎾';sportBg='#f3f8df';sportFg='#667b22'}
-        else if(sportLower.includes('planifier')){sportIcon='＋';sportBg='#fff2e6';sportFg='#b85a12'}
-        out+='<button class="weekEvent" style="--groupColor:'+groupColor+';--sportBg:'+sportBg+';--sportFg:'+sportFg+'" onclick="openCourseEntry(\''+key+'\','+idx+')">'+
+        let sportIcon='●';
+        if(sportLower.includes('badminton')){sportIcon='🏸'}
+        else if(sportLower.includes('volley')){sportIcon='🏐'}
+        else if(sportLower.includes('basket')){sportIcon='🏀'}
+        else if(sportLower.includes('soccer')||sportLower.includes('futsal')){sportIcon='⚽'}
+        else if(sportLower.includes('hockey')){sportIcon='🏒'}
+        else if(sportLower.includes('flag')){sportIcon='🏈'}
+        else if(sportLower.includes('ultimate')){sportIcon='◯'}
+        else if(sportLower.includes('condition')||sportLower.includes('musculation')){sportIcon='🏋'}
+        else if(sportLower.includes('course')||sportLower.includes('athl')){sportIcon='🏃'}
+        else if(sportLower.includes('tennis')){sportIcon='🎾'}
+        else if(sportLower.includes('planifier')){sportIcon='＋'}
+        out+='<button class="weekEvent" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+idx+')">'+
           '<span class="time">'+entry.time+'</span>'+
           '<span class="groupBar" aria-hidden="true"></span>'+
           '<span class="course">'+entry.group+'</span>'+
-          '<span class="quickSport"><span class="sportIcon" aria-hidden="true">'+sportIcon+'</span>'+sport+'</span>'+
+          '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'"><span class="sportIcon" aria-hidden="true">'+sportIcon+'</span>'+sport+'</span>'+
         '</button>';
       });
     }else{
