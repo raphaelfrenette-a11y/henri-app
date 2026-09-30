@@ -183,7 +183,7 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .seqLesson{position:relative;width:100%;border:1px solid var(--line);background:#fff;border-radius:19px;padding:14px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:11px;align-items:start;text-align:left;box-shadow:0 3px 12px rgba(0,0,0,.018)}
 .seqLesson::before{content:"";position:absolute;left:-18px;top:23px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
 .seqLesson.unscheduled::before{background:#a97838}
-.seqNum{width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820}
+.seqNum{width:38px;height:38px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:820;padding:0}
 .seqLessonBody{min-width:0}
 .seqLessonTop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .seqLessonDate{display:inline-flex;border-radius:999px;background:#f2f4f4;color:#6f777b;padding:5px 8px;font-size:10px;font-weight:760}
@@ -425,7 +425,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <div id="sequenceLessons" class="seqList"></div>
   <div class="seqAddRow">
     <button class="addSection" style="margin-top:0" onclick="addSequenceLesson()">+ Ajouter un cours</button>
-    <button class="itemBtn" onclick="openSequenceCalendar()">Calendrier</button>
+    <button id="sequenceCalendarBtn" class="itemBtn" onclick="openSequenceCalendar()">Calendrier</button>
   </div>
   <div class="seqSaveBar"><button class="planPrimary" style="margin-top:0" onclick="saveSequence()">Enregistrer la séquence</button></div>
 </section>
@@ -1213,7 +1213,8 @@ function openSequenceCalendar(){
 function renderSequenceEditor(){
   if(!activeSequence)return;
   const dates=getSequenceDates(activeSequence);
-  const placed=Math.min(dates.length,activeSequence.sessions.length);
+  const isScheduled=Boolean(activeSequence.annualBlockId);
+  const placed=isScheduled?Math.min(dates.length,activeSequence.sessions.length):activeSequence.sessions.length;
   const total=activeSequence.sessions.length;
   const pct=total?Math.round((placed/total)*100):0;
   const first=dates[0]||null;
@@ -1221,10 +1222,11 @@ function renderSequenceEditor(){
   const rangeText=first&&last?(first===last?formatPlanDate(first):formatPlanDate(first)+' au '+formatPlanDate(last)):'Hors calendrier';
   sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+total+' cours · '+activeSequence.duration+' · '+rangeText+'</p>';
   sequenceOverview.innerHTML=
-    '<div class="seqOverviewTop"><strong>Progression de la séquence</strong><span>'+placed+' / '+total+' cours placés</span></div>'+
+    '<div class="seqOverviewTop"><strong>Progression de la séquence</strong><span>'+(isScheduled?placed+' / '+total+' cours placés':total+' cours')+'</span></div>'+
     '<div class="seqProgressTrack"><span style="width:'+pct+'%"></span></div>'+
-    '<div class="seqOverviewFoot"><span>'+(activeSequence.annualBlockId?(placed===total?'Toutes les séances ont une date dans le calendrier.':(total-placed)+' séance'+(total-placed>1?'s':'')+' sans date.'):'Séquence indépendante · aucune date imposée.')+'</span>'+
-    (activeSequence.annualBlockId?'<button onclick="openSequenceCalendar()">Voir dans le calendrier</button>':'')+'</div>';
+    '<div class="seqOverviewFoot"><span>'+(isScheduled?(placed===total?'Toutes les séances ont une date dans le calendrier.':(total-placed)+' séance'+(total-placed>1?'s':'')+' sans date.'):'Séquence indépendante · les dates seront attribuées lorsqu’elle sera intégrée à l’année.')+'</span>'+
+    (isScheduled?'<button onclick="openSequenceCalendar()">Voir dans le calendrier</button>':'')+'</div>';
+  if(sequenceCalendarBtn) sequenceCalendarBtn.style.display=isScheduled?'':'none';
   sequenceLessons.innerHTML=activeSequence.sessions.map((session,i)=>{
     const date=dates[i]||null;
     const objective=session.objective||'Objectif à préciser.';
@@ -1245,9 +1247,16 @@ function renderSequenceEditor(){
     '</div>';
   }).join('');
 }
+function normalizeGenericSequenceTitles(){
+  if(!activeSequence)return;
+  activeSequence.sessions.forEach((session,i)=>{
+    if(/^Cours \d+ · /.test(session.title||'')) session.title='Cours '+(i+1)+' · '+activeSequence.sport;
+  });
+}
 function addSequenceLesson(){
   if(!activeSequence)return;
   activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:'Objectif à préciser.',blocks:defaultBlockSet().map(b=>({...b}))});
+  normalizeGenericSequenceTitles();
   renderSequenceEditor();
 }
 function moveSequenceLesson(index,delta){
@@ -1255,12 +1264,14 @@ function moveSequenceLesson(index,delta){
   const next=index+delta;
   if(next<0||next>=activeSequence.sessions.length)return;
   [activeSequence.sessions[index],activeSequence.sessions[next]]=[activeSequence.sessions[next],activeSequence.sessions[index]];
+  normalizeGenericSequenceTitles();
   renderSequenceEditor();
 }
 function deleteSequenceLesson(index){
   if(!activeSequence||activeSequence.sessions.length<=1)return;
   if(!confirm('Supprimer ce cours de la séquence?'))return;
   activeSequence.sessions.splice(index,1);
+  normalizeGenericSequenceTitles();
   renderSequenceEditor();
 }
 function saveSequence(){
