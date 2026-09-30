@@ -1059,7 +1059,7 @@ function renderAnnualPlanner(){
           '<div class="annualSequenceLabel">Séquence '+(i+1)+'</div>'+
           '<div class="annualSport">'+b.sport+'</div>'+
           '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+
-          '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
+          '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours'+(!b.lockedCourses?'<small class="annualAutoNote"> auto</small>':'')+'</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
           '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
         '</div>'+
         '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
