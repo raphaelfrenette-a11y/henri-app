@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.16</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.17</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -450,6 +450,10 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   </div>
   <div id="annualConflict"></div>
   <div id="annualList" class="annualList"></div>
+  <div id="annualSaveWrap" style="display:none;margin-top:16px">
+    <button class="planPrimary" onclick="saveAnnualAndPlanSequences()">Enregistrer ma planification annuelle</button>
+    <p class="planHint">Les séquences seront automatiquement créées dans Planifier une séquence avec leur groupe, compétence, moyen d’action, nombre de cours et dates.</p>
+  </div>
   <div id="annualAddForm" class="planForm" style="margin-top:12px;display:none">
     <div class="planGrid">
       <div class="planField"><label>Compétence</label><select id="annualComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
@@ -478,7 +482,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <div id="sequenceChoiceHero" class="choiceHero"></div>
   <div id="existingSequenceAction"></div>
   <div class="choiceCards">
-    <button class="choiceCard" onclick="createSequenceFromMacro(false)"><span class="choiceIcon">G</span><span><strong>Partir du gabarit</strong><small>Crée les cours avec Échauffement, Éducatif 1, Éducatif 2 et Situation de partie. Tu remplis et modifies tout librement.</small></span><span class="groupArrow">›</span></button>
+    <button class="choiceCard" onclick="createSequenceFromMacro(false)"><span class="choiceIcon">M</span><span><strong>Construire ma séquence</strong><small>Henri crée les cours et leur structure de base selon la compétence. Tu remplis et modifies ensuite chaque bloc librement.</small></span><span class="groupArrow">›</span></button>
     <button class="choiceCard" onclick="createSequenceFromMacro(true)"><span class="choiceIcon">H</span><span><strong>Utiliser la planification Henri</strong><small>Henri propose une progression complète adaptée au sport et au nombre de cours. Tout demeure modifiable.</small></span><span class="groupArrow">›</span></button>
   </div>
 </section>
@@ -1194,6 +1198,10 @@ function renderAnnualPlanner(){
         : 'Toute l’année disponible est placée. Déplace un bloc et toutes les dates suivantes se recalculent.';
   }
   if(annualConflict) annualConflict.innerHTML=renderScheduleConflict(groupId);
+  if(annualSaveWrap){
+    const ready=blocks.length>0&&balance===0&&blocks.every(b=>b.sport&&b.sport!=='À choisir');
+    annualSaveWrap.style.display=ready?'block':'none';
+  }
   annualList.innerHTML=blocks.map((b,i)=>{
     const r=ranges[i];
     const saved=getSavedSequence(groupId,b.id);
@@ -1480,6 +1488,22 @@ function rebuildPlanningAssignments(){
   renderWeek();
 }
 
+function saveAnnualAndPlanSequences(){
+  const groupId=annualGroup?.value;
+  if(!groupId)return;
+  const blocks=annualPlans[groupId]||[];
+  if(!blocks.length)return;
+  if(blocks.some(b=>!b.sport||b.sport==='À choisir')){
+    alert('Choisis un moyen d’action pour chaque séquence avant d’enregistrer la planification annuelle.');
+    return;
+  }
+  saveAnnual();
+  rebuildPlanningAssignments();
+  fillPlanGroupSelects();
+  if(seqGroup) seqGroup.value=groupId;
+  renderMacroSequences();
+  go('sequenceSetup');
+}
 function openSequenceSetup(){
   fillPlanGroupSelects();
   renderMacroSequences();
@@ -1548,12 +1572,24 @@ function createSequenceFromMacro(useHenri){
 }
 function openStandaloneSequence(){fillPlanGroupSelects();go('standaloneSequence')}
 function returnFromSequenceEditor(){go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
-function defaultBlockSet(){
+function defaultBlockSet(comp){
+  if(comp==='C1') return [
+    {type:'Échauffement',title:'Activation liée au thème',minutes:7},
+    {type:'Éducatif 1',title:'À planifier',minutes:12},
+    {type:'Éducatif 2',title:'À planifier',minutes:15},
+    {type:'Prestation / enchaînement moteur',title:'À planifier',minutes:30}
+  ];
+  if(comp==='C2') return [
+    {type:'Échauffement',title:'Activation liée au thème',minutes:7},
+    {type:'Éducatif 1',title:'À planifier',minutes:10},
+    {type:'Éducatif 2',title:'À planifier',minutes:15},
+    {type:'Situation de partie',title:'À planifier',minutes:32}
+  ];
   return [
     {type:'Échauffement',title:'Activation liée au thème',minutes:7},
-    {type:'Éducatif 1',title:'Découvrir le principe ciblé',minutes:10},
-    {type:'Éducatif 2',title:'Réinvestir avec opposition progressive',minutes:15},
-    {type:'Situation de partie',title:'Réinvestissement en contexte de jeu',minutes:32}
+    {type:'Éducatif 1',title:'À planifier',minutes:12},
+    {type:'Éducatif 2',title:'À planifier',minutes:15},
+    {type:'Situation d’intégration',title:'À planifier',minutes:30}
   ];
 }
 function henriSequencePlan(sport,count){
@@ -1592,7 +1628,7 @@ function makeSequence({comp,sport,groupId,groupName,count,duration,annualBlockId
     Array.from({length:count},(_,i)=>({
       title:useHenri?suggested[i][0]:'Cours '+(i+1)+' · '+sport,
       objective:useHenri?suggested[i][1]:'Objectif à préciser pour '+sport+'.',
-      blocks:defaultBlockSet().map(b=>({...b}))
+      blocks:defaultBlockSet(comp).map(b=>({...b}))
     }))
   };
 }
