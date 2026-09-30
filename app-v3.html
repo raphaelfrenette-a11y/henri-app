@@ -114,7 +114,16 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .annualOverview.over-budget{border-color:#ead8b8;background:#fffaf2}
 .annualProgressTrack.over-budget{background:#f3e6d4}
 .annualProgressTrack.over-budget .annualProgressFill{background:#a97838}
-.annualSetup{background:linear-gradient(145deg,#fff,#f8fafb);border:1px solid #dfe5e8;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 7px 24px rgba(36,49,57,.045)}
+.annualModeChoices{display:grid;gap:10px;margin:14px 0}
+.annualModeCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:20px;padding:17px 18px;text-align:left;display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;box-shadow:0 3px 14px rgba(0,0,0,.02)}
+.annualModeCard.primary{border-color:#cbd7dd;background:linear-gradient(145deg,#fff,#f7fafb)}
+.annualModeIcon{width:42px;height:42px;border-radius:13px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:840}
+.annualModeCard strong{display:block;font-size:15px;letter-spacing:-.015em}
+.annualModeCard small{display:block;color:var(--muted);font-size:11px;line-height:1.4;margin-top:4px}
+.annualModeCard.primary small{color:#667984}
+.annualManualWrap{display:none}
+.annualManualWrap.show{display:block}
+.annualSetup{background:linear-gradient(145deg,#fff,#f8fafb);border:1px solid #dfe5e8;border-radius:22px;padding:18px;margin:10px 0 14px;box-shadow:0 7px 24px rgba(36,49,57,.045)}
 .annualSetupEyebrow{color:var(--accent);font-size:10px;font-weight:820;text-transform:uppercase;letter-spacing:.08em}
 .annualSetup h2{font-size:22px;letter-spacing:-.035em;margin:5px 0 6px}
 .annualSetupText{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
@@ -337,7 +346,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.3</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.4</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -390,19 +399,33 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <div class="planForm">
     <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="annualSequenceCount.dataset.manual='0';renderAnnualPlanner()"></select></div>
   </div>
-  <div class="annualSetup">
-    <div class="annualSetupEyebrow">Étape 0 · Structure de l’année</div>
-    <h2>Combien de séquences?</h2>
-    <p class="annualSetupText" id="annualSetupText">Henri calcule une structure de départ selon les périodes réellement disponibles. Tu pourras ensuite tout modifier.</p>
-    <div class="annualSetupGrid">
-      <div class="planField"><label>Nombre de cours cible par séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
-      <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
-    </div>
-    <div id="annualRecommendation" class="annualRecommendation"></div>
-    <div id="annualDataWarning"></div>
-    <div class="annualSetupActions">
-      <button id="annualSuggestBtn" class="annualSuggestBtn" onclick="useAnnualRecommendation()">Utiliser la recommandation Henri</button>
-      <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Créer selon mon choix</button>
+  <div class="annualModeChoices">
+    <button id="annualHenriModeBtn" class="annualModeCard primary" onclick="organizeAnnualWithHenri()">
+      <span class="annualModeIcon">H</span>
+      <span><strong>Organiser mon année avec la recommandation Henri</strong><small>Recommandation pédagogique alignée sur le PFEQ et la Progression des apprentissages (PDA).</small></span>
+      <span class="groupArrow">›</span>
+    </button>
+    <button class="annualModeCard" onclick="toggleAnnualManualSetup()">
+      <span class="annualModeIcon">M</span>
+      <span><strong>Organiser moi-même la répartition de mon année</strong><small>Choisir le nombre de séquences et le nombre de cours cible, puis modifier librement C1, C2, C3 et les moyens d’action.</small></span>
+      <span class="groupArrow">›</span>
+    </button>
+  </div>
+  <div id="annualManualWrap" class="annualManualWrap">
+    <div class="annualSetup">
+      <div class="annualSetupEyebrow">Organisation manuelle</div>
+      <h2>Construire ma structure</h2>
+      <p class="annualSetupText" id="annualSetupText">Le niveau est déterminé automatiquement à partir du groupe sélectionné. Choisis seulement la structure de départ que tu souhaites.</p>
+      <div class="annualSetupGrid">
+        <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
+        <div class="planField"><label>Nombre de cours cible par séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      </div>
+      <div id="annualRecommendation" class="annualRecommendation"></div>
+      <div id="annualDataWarning"></div>
+      <div class="annualSetupActions">
+        <button id="annualSuggestBtn" class="annualSuggestBtn" onclick="organizeAnnualWithHenri()">Utiliser plutôt la recommandation Henri</button>
+        <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Créer selon mon choix</button>
+      </div>
     </div>
   </div>
   <div class="planStats">
@@ -816,6 +839,29 @@ function fillPlanGroupSelects(){
   if(quickGroup) quickGroup.innerHTML=opts;
 }
 function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('annualPlanner')}
+function toggleAnnualManualSetup(force){
+  if(!annualManualWrap)return;
+  const show=typeof force==='boolean'?force:!annualManualWrap.classList.contains('show');
+  annualManualWrap.classList.toggle('show',show);
+  if(show) updateAnnualRecommendation(false);
+}
+function organizeAnnualWithHenri(){
+  if(!annualGroup)return;
+  const groupId=annualGroup.value||groupsData[0]?.id;
+  if(!groupId)return;
+  const coverage=getAnnualCoverageStatus(groupId);
+  if(!coverage.complete){
+    toggleAnnualManualSetup(true);
+    updateAnnualRecommendation(false);
+    return;
+  }
+  const rec=getAnnualRecommendation(groupId,5);
+  annualTargetLength.value=5;
+  annualSequenceCount.value=rec.recommended;
+  annualSequenceCount.dataset.manual='0';
+  useAnnualRecommendation();
+  toggleAnnualManualSetup(false);
+}
 function getGroupCourseDates(groupId){
   const g=groupsData.find(x=>x.id===groupId);
   if(!g) return [];
@@ -996,14 +1042,12 @@ function applyAnnualStructure(useRecommended=false){
   const groupId=annualGroup?.value;
   if(!groupId)return;
   const existingBlocks=annualPlans[groupId]||[];
-  if(existingBlocks.length&&!useRecommended){
-    const requested=Math.max(1,Number(annualSequenceCount.value)||1);
-    const ok=confirm('Recréer l’année avec '+requested+' séquence'+(requested>1?'s':'')+' ?\n\nLes blocs actuels de la planification annuelle seront remplacés.');
+  if(existingBlocks.length){
+    const requested=useRecommended?'la recommandation Henri':Math.max(1,Number(annualSequenceCount.value)||1)+' séquence'+(Number(annualSequenceCount.value)>1?'s':'');
+    const ok=confirm('Recréer la planification annuelle avec '+requested+' ?\n\nLes blocs actuels de ce groupe seront remplacés.');
     if(!ok)return;
   }
   ensureAnnualPlan(groupId);
-  const existing=annualPlans[groupId]||[];
-  if(existing.length&&!confirm('Répartir l’année à nouveau? La structure actuelle de ce groupe sera remplacée.'))return;
   const coverage=getAnnualCoverageStatus(groupId);
   if(!coverage.complete){go('settings');return}
   const possible=getGroupCourseSlots(groupId);
