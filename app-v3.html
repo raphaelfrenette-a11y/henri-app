@@ -1742,18 +1742,26 @@ function removeRelation(id,type,targetId){
   saveGroups();renderStudents();
 }
 
-const demoSchoolDays={
-  '2026-09-01':'Jour 4','2026-09-02':'Jour 5','2026-09-03':'Jour 6','2026-09-04':'Jour 7',
-  '2026-09-07':'Congé','2026-09-08':'Jour 8','2026-09-09':'Jour 9','2026-09-10':'Jour 1','2026-09-11':'Jour 2',
-  '2026-09-14':'Jour 3','2026-09-15':'Jour 4','2026-09-16':'Jour 5','2026-09-17':'Jour 6','2026-09-18':'Pédagogique',
-  '2026-09-21':'Jour 7','2026-09-22':'Jour 8','2026-09-23':'Jour 9','2026-09-24':'Jour 1','2026-09-25':'Jour 2',
-  '2026-09-28':'Jour 3','2026-09-29':'Jour 4','2026-09-30':'Jour 5',
-  '2026-10-01':'Jour 6','2026-10-02':'Jour 7','2026-10-05':'Pédagogique','2026-10-06':'Jour 8',
-  '2026-10-07':'Jour 9','2026-10-08':'Jour 1','2026-10-09':'Jour 2','2026-10-12':'Congé',
-  '2026-10-13':'Jour 3','2026-10-14':'Jour 4','2026-10-15':'Jour 5','2026-10-16':'Jour 6',
-  '2026-10-19':'Jour 7','2026-10-20':'Jour 8','2026-10-21':'Jour 9','2026-10-22':'Jour 1','2026-10-23':'Jour 2',
-  '2026-10-26':'Jour 3','2026-10-27':'Jour 4','2026-10-28':'Jour 5','2026-10-29':'Jour 6','2026-10-30':'Jour 7'
-};
+function makeFullDemoSchoolDays(){
+  const days={};
+  const start=new Date(2026,8,1,12);
+  const end=new Date(2027,5,23,12);
+  let cycle=4;
+  const pedagogical=new Set(['2026-09-18','2026-10-05','2026-11-13','2027-01-29','2027-04-23']);
+  const holidays=new Set(['2026-09-07','2026-10-12','2027-04-02','2027-04-05','2027-05-24']);
+  const inBreak=d=>(d>='2026-12-21'&&d<='2027-01-01')||(d>='2027-03-01'&&d<='2027-03-05');
+  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+    const dow=d.getDay();
+    if(dow===0||dow===6) continue;
+    const key=dateKey(d.getFullYear(),d.getMonth(),d.getDate());
+    if(inBreak(key)||holidays.has(key)){days[key]='Congé';continue}
+    if(pedagogical.has(key)){days[key]='Pédagogique';continue}
+    days[key]='Jour '+cycle;
+    cycle=cycle===9?1:cycle+1;
+  }
+  return days;
+}
+const demoSchoolDays=makeFullDemoSchoolDays();
 
 const demoTeacherSchedule={
   'Jour 1':[
@@ -1832,7 +1840,7 @@ function updateGenerateState(){
 function generateMySchedule(){
   if(!Object.values(setupFiles).every(Boolean)) return;
 
-  schoolDays={...demoSchoolDays};
+  schoolDays=makeFullDemoSchoolDays();
   scheduleEntries={};
 
   Object.entries(schoolDays).forEach(([date,cycle])=>{
@@ -1860,7 +1868,21 @@ const savedScheduleEntries=JSON.parse(localStorage.getItem('henriScheduleEntries
 const savedSchoolDays=JSON.parse(localStorage.getItem('henriSchoolDays')||'null');
 if(savedScheduleEntries) scheduleEntries=savedScheduleEntries;
 if(savedSchoolDays) schoolDays=savedSchoolDays;
-if(localStorage.getItem('henriDemoSchedule')==='1') scheduleEntries=enrichDemoPlanning(scheduleEntries);
+if(localStorage.getItem('henriDemoSchedule')==='1'){
+  const demoKeys=Object.keys(schoolDays||{}).sort();
+  const demoSpan=demoKeys.length>1?Math.round((new Date(demoKeys[demoKeys.length-1]+'T12:00:00')-new Date(demoKeys[0]+'T12:00:00'))/86400000):0;
+  if(demoSpan<180){
+    schoolDays=makeFullDemoSchoolDays();
+    scheduleEntries={};
+    Object.entries(schoolDays).forEach(([date,cycle])=>{
+      const lessons=demoTeacherSchedule[cycle]||[];
+      if(lessons.length) scheduleEntries[date]=lessons.map(lesson=>({...lesson,...(demoPlanningByGroup[lesson.group]||{annualPlan:null,sequence:null,session:null})}));
+    });
+    localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
+    localStorage.setItem('henriSchoolDays',JSON.stringify(schoolDays));
+  }
+  scheduleEntries=enrichDemoPlanning(scheduleEntries);
+}
 rebuildPlanningAssignments();
 renderGroups();
 </script>
