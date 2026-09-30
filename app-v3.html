@@ -106,6 +106,22 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .planStat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
 .planStat small{display:block;color:var(--muted);font-size:10px;font-weight:720}
 .planStat strong{display:block;font-size:22px;margin-top:3px;letter-spacing:-.03em}
+.annualSetup{background:linear-gradient(145deg,#fff,#f8fafb);border:1px solid #dfe5e8;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 7px 24px rgba(36,49,57,.045)}
+.annualSetupEyebrow{color:var(--accent);font-size:10px;font-weight:820;text-transform:uppercase;letter-spacing:.08em}
+.annualSetup h2{font-size:22px;letter-spacing:-.035em;margin:5px 0 6px}
+.annualSetupText{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+.annualSetupGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+.annualRecommendation{margin-top:11px;background:var(--accent-soft);border-radius:14px;padding:11px 12px;color:var(--accent)}
+.annualRecommendation strong{display:block;font-size:12px}
+.annualRecommendation span{display:block;font-size:10px;line-height:1.4;margin-top:3px;opacity:.82}
+.annualSetupActions{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:10px}
+.annualSuggestBtn{border:1px solid #cdd9df;background:#fff;color:var(--accent);border-radius:12px;padding:10px 12px;font-size:11px;font-weight:780}
+.annualBuildBtn{border:0;background:var(--accent);color:#fff;border-radius:12px;padding:10px 12px;font-size:11px;font-weight:780}
+.annualSequenceLabel{color:#9aa0a3;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.065em;margin-top:8px}
+.annualCourseAdjust{display:inline-flex;align-items:center;gap:5px;background:#f5f6f5;border-radius:10px;padding:3px}
+.annualCourseAdjust button{width:27px;height:27px;border:0;background:#fff;border-radius:8px;color:var(--accent);font-size:16px;font-weight:760;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.annualCourseAdjust span{min-width:52px;text-align:center;font-size:10px;font-weight:760;color:#6f777b}
+@media(max-width:520px){.annualSetupGrid{grid-template-columns:1fr}.annualSetupActions{grid-template-columns:1fr}}
 .annualOverview{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 15px;margin:0 0 12px;box-shadow:0 3px 14px rgba(0,0,0,.018)}
 .annualOverviewTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .annualOverviewTop strong{font-size:13px;letter-spacing:-.01em}
@@ -304,7 +320,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.8</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.9</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -357,6 +373,20 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <div class="planForm">
     <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="renderAnnualPlanner()"></select></div>
   </div>
+  <div class="annualSetup">
+    <div class="annualSetupEyebrow">Étape 0 · Structure de l’année</div>
+    <h2>Combien de séquences?</h2>
+    <p class="annualSetupText" id="annualSetupText">Henri calcule une structure de départ selon les périodes réellement disponibles. Tu pourras ensuite tout modifier.</p>
+    <div class="annualSetupGrid">
+      <div class="planField"><label>Durée cible d’une séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
+    </div>
+    <div id="annualRecommendation" class="annualRecommendation"></div>
+    <div class="annualSetupActions">
+      <button class="annualSuggestBtn" onclick="useAnnualRecommendation()">Utiliser la recommandation</button>
+      <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure()">Créer cette structure</button>
+    </div>
+  </div>
   <div class="planStats">
     <div class="planStat"><small>Cours possibles</small><strong id="annualPossible">0</strong></div>
     <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
@@ -372,7 +402,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <div class="planForm" style="margin-top:12px">
     <div class="planGrid">
       <div class="planField"><label>Compétence</label><select id="annualComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
-      <div class="planField"><label>Sport / moyen d’action</label><select id="annualSport" class="planControl"><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Conditionnement physique</option><option>Course</option><option>Musculation</option></select></div>
+      <div class="planField"><label>Sport / moyen d’action</label><select id="annualSport" class="planControl"><option>À choisir</option><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Conditionnement physique</option><option>Course</option><option>Musculation</option></select></div>
       <div class="planField"><label>Nombre de cours</label><input id="annualCourses" class="planControl" type="number" min="1" max="12" value="4"></div>
     </div>
     <button class="planPrimary" onclick="addAnnualBlock()">Ajouter à l’année</button>
@@ -803,19 +833,68 @@ function getAnnualRanges(groupId,blocks){
   });
 }
 function ensureAnnualPlan(groupId){
-  if(!annualPlans[groupId]) annualPlans[groupId]=[
-    {id:'a1',comp:'C2',sport:'Ultimate',courses:5},
-    {id:'a2',comp:'C1',sport:'Conditionnement physique',courses:4},
-    {id:'a3',comp:'C2',sport:'Badminton',courses:5},
-    {id:'a4',comp:'C2',sport:'Volleyball',courses:5},
-    {id:'a5',comp:'C3',sport:'Musculation',courses:5}
-  ];
+  if(!Array.isArray(annualPlans[groupId])) annualPlans[groupId]=[];
+}
+function getAnnualRecommendation(groupId,targetLength){
+  const possible=getGroupCourseSlots(groupId);
+  const target=Math.max(1,Number(targetLength)||5);
+  const recommended=Math.max(1,Math.round(possible/target)||1);
+  return {possible,target,recommended};
+}
+function distributeAnnualCourses(total,count){
+  count=Math.max(1,Number(count)||1);
+  total=Math.max(0,Number(total)||0);
+  const base=Math.floor(total/count);
+  const extra=total%count;
+  return Array.from({length:count},(_,i)=>Math.max(1,base+(i<extra?1:0)));
+}
+function updateAnnualRecommendation(forceCount=false){
+  if(!annualGroup||!annualTargetLength||!annualSequenceCount||!annualRecommendation)return;
+  const groupId=annualGroup.value||groupsData[0]?.id;
+  if(!groupId)return;
+  const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
+  if(forceCount||annualSequenceCount.dataset.manual!=='1') annualSequenceCount.value=rec.recommended;
+  const chosen=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
+  const distribution=distributeAnnualCourses(rec.possible,chosen);
+  const avg=chosen?(rec.possible/chosen):0;
+  annualSetupText.textContent='Ce groupe a '+rec.possible+' période'+(rec.possible>1?'s':'')+' disponible'+(rec.possible>1?'s':'')+' dans l’année. Henri utilise ce total réel pour bâtir une première structure.';
+  annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+' autour de '+rec.target+' cours</strong><span>Avec '+chosen+' séquence'+(chosen>1?'s':'')+', la répartition proposée couvre l’année : '+distribution.join(' · ')+' cours (moyenne '+avg.toFixed(1).replace('.',',')+').</span>';
+  if(annualBuildBtn) annualBuildBtn.textContent=(annualPlans[groupId]||[]).length?'Répartir à nouveau':'Créer cette structure';
+}
+function useAnnualRecommendation(){
+  if(!annualGroup)return;
+  const rec=getAnnualRecommendation(annualGroup.value,annualTargetLength.value);
+  annualSequenceCount.value=rec.recommended;
+  annualSequenceCount.dataset.manual='0';
+  updateAnnualRecommendation(false);
+}
+function applyAnnualStructure(){
+  const groupId=annualGroup?.value;
+  if(!groupId)return;
+  ensureAnnualPlan(groupId);
+  const existing=annualPlans[groupId]||[];
+  if(existing.length&&!confirm('Répartir l’année à nouveau? La structure actuelle de ce groupe sera remplacée.'))return;
+  const possible=getGroupCourseSlots(groupId);
+  const count=Math.max(1,Number(annualSequenceCount.value)||1);
+  const distribution=distributeAnnualCourses(possible,count);
+  annualPlans[groupId]=distribution.map((courses,i)=>({
+    id:'a'+Date.now()+'-'+i,
+    comp:'C2',
+    sport:'À choisir',
+    courses
+  }));
+  delete scheduleConflictIgnores[groupId];
+  saveConflictIgnores();
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
 }
 function renderAnnualPlanner(){
   if(!annualGroup) return;
   const groupId=annualGroup.value||groupsData[0]?.id;
   if(!groupId) return;
   ensureAnnualPlan(groupId);
+  updateAnnualRecommendation(false);
   const possible=getGroupCourseSlots(groupId);
   const blocks=annualPlans[groupId];
   const ranges=getAnnualRanges(groupId,blocks);
@@ -847,22 +926,24 @@ function renderAnnualPlanner(){
       datesText=r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end);
       if(isOverflow) datesText+=' · '+(r.needed-r.allocated)+' sans date';
     }
-    const status=isOverflow?'Sans date':saved?'Séquence prête':'À planifier';
+    const needsChoice=b.sport==='À choisir';
+    const status=isOverflow?'Sans date':needsChoice?'À compléter':saved?'Séquence prête':'À planifier';
     const statusClass=isOverflow?' warn':saved?' ready':'';
     return '<div class="annualItem'+(isOverflow?' overflow':'')+'" draggable="true" data-id="'+b.id+'">'+
       '<div class="annualTop">'+
         '<button class="dragHandle" type="button" aria-label="Glisser '+b.sport+'" data-drag-id="'+b.id+'">≡</button>'+
         '<div class="annualMain">'+
           '<div class="annualHeaderLine"><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
+          '<div class="annualSequenceLabel">Séquence '+(i+1)+'</div>'+
           '<div class="annualSport">'+b.sport+'</div>'+
           '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+
-          '<div class="annualMeta"><span>'+b.courses+' cours</span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
+          '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
           '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
         '</div>'+
         '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
       '</div>'+
       '<div class="itemActions">'+
-        '<button class="itemBtn primary" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+(saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>'+
+        '<button class="itemBtn primary" onclick="'+(needsChoice?'editAnnualBlock(\''+b.id+'\')':'openMacroSequence(\''+groupId+'\',\''+b.id+'\')')+'">'+(needsChoice?'Choisir le sport':saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>'+
         '<button class="annualItemCalendar" onclick="openAnnualBlockCalendar(\''+groupId+'\',\''+b.id+'\')">Calendrier</button>'+
         '<button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button>'+
         '<button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button>'+
@@ -885,9 +966,20 @@ function addAnnualBlock(){
   annualPlans[groupId].push({id:'a'+Date.now(),comp:annualComp.value,sport:annualSport.value,courses});
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
+function adjustAnnualCourses(id,delta){
+  const groupId=annualGroup.value;
+  const b=(annualPlans[groupId]||[]).find(x=>x.id===id);
+  if(!b)return;
+  b.courses=Math.max(1,Math.min(20,Number(b.courses||1)+delta));
+  delete scheduleConflictIgnores[groupId];
+  saveConflictIgnores();
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+}
 function editAnnualBlock(id){
   const groupId=annualGroup.value, b=(annualPlans[groupId]||[]).find(x=>x.id===id);if(!b)return;
-  const sport=prompt('Sport / moyen d’action',b.sport);if(sport!==null&&sport.trim())b.sport=sport.trim();
+  const sport=prompt('Sport / moyen d’action',b.sport==='À choisir'?'':b.sport);if(sport!==null&&sport.trim())b.sport=sport.trim();
   const comp=prompt('Compétence : C1, C2 ou C3',b.comp);
   if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
   const n=prompt('Nombre de cours',b.courses);
