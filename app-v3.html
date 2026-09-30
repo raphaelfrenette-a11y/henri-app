@@ -1149,7 +1149,9 @@ function editAnnualBlock(id){
   const comp=prompt('Compétence : C1, C2 ou C3',b.comp);
   if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
   const n=prompt('Nombre de cours',b.courses);
-  if(n!==null&&Number(n)>0)b.courses=Number(n);
+  if(n!==null&&Number(n)>0){
+    if(!rebalanceAnnualDurations(groupId,id,Number(n))) return;
+  }
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function deleteAnnualBlock(id){
