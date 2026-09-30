@@ -106,6 +106,14 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .planStat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
 .planStat small{display:block;color:var(--muted);font-size:10px;font-weight:720}
 .planStat strong{display:block;font-size:22px;margin-top:3px;letter-spacing:-.03em}
+.planStat.balance-positive{border-color:#d9e4dd;background:#f8fbf9}
+.planStat.balance-positive strong{color:#3f6756}
+.planStat.balance-negative{border-color:#ead8b8;background:#fffaf2}
+.planStat.balance-negative strong{color:#9a6530}
+.planStat.balance-zero{border-color:#dbe2e5}
+.annualOverview.over-budget{border-color:#ead8b8;background:#fffaf2}
+.annualProgressTrack.over-budget{background:#f3e6d4}
+.annualProgressTrack.over-budget .annualProgressFill{background:#a97838}
 .annualSetup{background:linear-gradient(145deg,#fff,#f8fafb);border:1px solid #dfe5e8;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 7px 24px rgba(36,49,57,.045)}
 .annualSetupEyebrow{color:var(--accent);font-size:10px;font-weight:820;text-transform:uppercase;letter-spacing:.08em}
 .annualSetup h2{font-size:22px;letter-spacing:-.035em;margin:5px 0 6px}
@@ -329,7 +337,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.1</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.2</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -1045,15 +1053,29 @@ function renderAnnualPlanner(){
   const blocks=annualPlans[groupId];
   const ranges=getAnnualRanges(groupId,blocks);
   const planned=blocks.reduce((n,b)=>n+Number(b.courses||0),0);
-  const remaining=Math.max(0,possible-planned);
-  const overflow=Math.max(0,planned-possible);
+  const balance=possible-planned;
+  const remaining=Math.max(0,balance);
+  const overflow=Math.max(0,-balance);
   const placed=Math.min(planned,possible);
   const coverage=possible?Math.min(100,Math.round((placed/possible)*100)):0;
   annualPossible.textContent=possible;
   annualPlanned.textContent=planned;
-  annualRemaining.textContent=remaining;
-  if(annualCoverageText) annualCoverageText.textContent=overflow?overflow+' cours à ajuster':placed+' / '+possible+' cours placés';
+  annualRemaining.textContent=balance>0?'+'+balance:String(balance);
+  const remainingCard=annualRemaining.closest('.planStat');
+  if(remainingCard){
+    remainingCard.classList.remove('balance-positive','balance-negative','balance-zero');
+    remainingCard.classList.add(balance>0?'balance-positive':balance<0?'balance-negative':'balance-zero');
+  }
+  if(annualCoverageText) annualCoverageText.textContent=overflow
+    ? planned+' / '+possible+' planifiés · '+overflow+' période'+(overflow>1?'s':'')+' de trop'
+    : balance>0
+      ? planned+' / '+possible+' planifiés · '+balance+' période'+(balance>1?'s':'')+' à attribuer'
+      : planned+' / '+possible+' planifiés · année complète';
   if(annualProgressFill) annualProgressFill.style.width=coverage+'%';
+  const overview=annualCoverageText?.closest('.annualOverview');
+  const track=annualProgressFill?.closest('.annualProgressTrack');
+  if(overview) overview.classList.toggle('over-budget',overflow>0);
+  if(track) track.classList.toggle('over-budget',overflow>0);
   if(annualSyncText){
     annualSyncText.textContent=overflow
       ? 'La planification dépasse de '+overflow+' cours les périodes disponibles. Henri conserve l’ordre et te montre quoi ajuster.'
@@ -1111,10 +1133,6 @@ function addAnnualBlock(){
   const courses=Math.max(1,Number(annualCourses.value)||1);
   const id='a'+Date.now();
   annualPlans[groupId].push({id,comp:annualComp.value,sport:annualSport.value,courses,lockedCourses:true});
-  if(!rebalanceAnnualDurations(groupId,id,courses)){
-    annualPlans[groupId]=annualPlans[groupId].filter(b=>b.id!==id);
-    return;
-  }
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function rebalanceAnnualDurations(groupId,changedId=null,requestedCourses=null){
@@ -1161,11 +1179,8 @@ function adjustAnnualCourses(id,delta){
   const groupId=annualGroup.value;
   const b=(annualPlans[groupId]||[]).find(x=>x.id===id);
   if(!b)return;
-  const requested=Number(b.courses||1)+delta;
-  if(!rebalanceAnnualDurations(groupId,id,requested)){
-    alert('Impossible de modifier cette durée tout en gardant au moins 1 cours dans chaque autre séquence.');
-    return;
-  }
+  b.courses=Math.max(1,Math.min(20,Number(b.courses||1)+delta));
+  b.lockedCourses=true;
   delete scheduleConflictIgnores[groupId];
   saveConflictIgnores();
   saveAnnual();
@@ -1179,14 +1194,14 @@ function editAnnualBlock(id){
   if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
   const n=prompt('Nombre de cours',b.courses);
   if(n!==null&&Number(n)>0){
-    if(!rebalanceAnnualDurations(groupId,id,Number(n))) return;
+    b.courses=Math.max(1,Math.min(20,Number(n)));
+    b.lockedCourses=true;
   }
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function deleteAnnualBlock(id){
   const groupId=annualGroup.value;
   annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
-  if((annualPlans[groupId]||[]).length) rebalanceAnnualDurations(groupId);
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 
