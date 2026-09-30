@@ -353,7 +353,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.7</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.8</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -427,11 +427,11 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
         <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
         <div class="planField"><label>Nombre de cours cible par séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
       </div>
-      <div id="annualRecommendation" class="annualRecommendation"></div>
+      <div id="annualRecommendation" class="annualRecommendation" style="display:none"></div>
       <div id="annualDataWarning"></div>
-      <div class="annualSetupActions">
-        <button id="annualSuggestBtn" class="annualSuggestBtn" onclick="organizeAnnualWithHenri()">Utiliser plutôt la recommandation Henri</button>
-        <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Créer selon mon choix</button>
+      <div class="annualSetupActions" style="grid-template-columns:1fr">
+        <button id="annualSuggestBtn" class="annualSuggestBtn" style="display:none" onclick="organizeAnnualWithHenri()">Utiliser plutôt la recommandation Henri</button>
+        <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Organiser mes séquences</button>
       </div>
     </div>
   </div>
@@ -1040,8 +1040,7 @@ function updateAnnualRecommendation(forceCount=false){
     '<span>Durée cible : environ '+rec.target+' cours. Avec '+chosen+' séquence'+(chosen>1?'s':'')+', les '+rec.possible+' périodes sont utilisées (moyenne '+avg.toFixed(1).replace('.',',')+').</span>'+
     '<span class="annualRecBreakdown"><span class="annualRecChip">C1 · '+chosenCounts.C1+'</span><span class="annualRecChip">C2 · '+chosenCounts.C2+'</span><span class="annualRecChip">C3 · '+chosenCounts.C3+'</span></span>'+note;
   if(annualBuildBtn){
-    const hasPlan=(annualPlans[groupId]||[]).length>0;
-    annualBuildBtn.textContent=(hasPlan?'Recréer':'Créer')+' avec '+chosen+' séquence'+(chosen>1?'s':'');
+    annualBuildBtn.textContent='Organiser mes séquences';
   }
 }
 function useAnnualRecommendation(){
