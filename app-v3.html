@@ -123,6 +123,7 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .annualModeCard.primary small{color:#667984}
 .annualManualWrap{display:none}
 .annualManualWrap.show{display:block}
+.annualChangeMethod{border:0;background:transparent;padding:0;margin:0 0 14px;color:var(--accent);font-size:13px;font-weight:750;cursor:pointer}
 .annualWorkspace{display:none}
 .annualWorkspace.show{display:block}
 .annualSetup{background:linear-gradient(145deg,#fff,#f8fafb);border:1px solid #dfe5e8;border-radius:22px;padding:18px;margin:10px 0 14px;box-shadow:0 7px 24px rgba(36,49,57,.045)}
@@ -353,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.8</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.9</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -420,6 +421,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   </div>
   <div id="annualManualWrap" class="annualManualWrap">
     <div class="annualSetup">
+      <button type="button" class="annualChangeMethod" onclick="returnToAnnualMethodChoice()">‹ Changer de méthode</button>
       <div class="annualSetupEyebrow">Organisation manuelle</div>
       <h2>Construire ma structure</h2>
       <p class="annualSetupText" id="annualSetupText">Le niveau est déterminé automatiquement à partir du groupe sélectionné. Choisis seulement la structure de départ que tu souhaites.</p>
@@ -430,7 +432,6 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
       <div id="annualRecommendation" class="annualRecommendation" style="display:none"></div>
       <div id="annualDataWarning"></div>
       <div class="annualSetupActions" style="grid-template-columns:1fr">
-        <button id="annualSuggestBtn" class="annualSuggestBtn" style="display:none" onclick="organizeAnnualWithHenri()">Utiliser plutôt la recommandation Henri</button>
         <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Organiser mes séquences</button>
       </div>
     </div>
@@ -850,6 +851,11 @@ function fillPlanGroupSelects(){
 function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('annualPlanner')}
 function setAnnualWorkspaceVisible(show){
   if(annualWorkspace) annualWorkspace.classList.toggle('show',!!show);
+}
+function returnToAnnualMethodChoice(){
+  annualManualWrap?.classList.remove('show');
+  setAnnualWorkspaceVisible(false);
+  document.querySelector('.annualModeChoices')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function toggleAnnualManualSetup(force){
   if(!annualManualWrap)return;
