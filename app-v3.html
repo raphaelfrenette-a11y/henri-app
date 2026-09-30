@@ -978,9 +978,9 @@ function useAnnualRecommendation(){
   if(!rec.coverage.complete)return;
   annualSequenceCount.value=rec.recommended;
   annualSequenceCount.dataset.manual='0';
-  updateAnnualRecommendation(false);
+  applyAnnualStructure(true);
 }
-function applyAnnualStructure(){
+function applyAnnualStructure(useRecommended=false){
   const groupId=annualGroup?.value;
   if(!groupId)return;
   ensureAnnualPlan(groupId);
@@ -990,14 +990,20 @@ function applyAnnualStructure(){
   if(!coverage.complete){go('settings');return}
   const possible=getGroupCourseSlots(groupId);
   if(possible<=0){alert('Aucune période disponible pour ce groupe. Vérifie d’abord l’horaire et le calendrier scolaire.');return}
-  const count=Math.min(possible,Math.max(1,Number(annualSequenceCount.value)||1));
+  const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
+  const count=Math.min(possible,Math.max(1,useRecommended?rec.recommended:(Number(annualSequenceCount.value)||1)));
   annualSequenceCount.value=count;
   const distribution=distributeAnnualCourses(possible,count);
+  const profile=getHenriCompetenceProfile(groupId);
+  const counts=allocateCompetenceCounts(count,profile.weights);
+  const competenceOrder=buildCompetenceOrder(counts);
   annualPlans[groupId]=distribution.map((courses,i)=>({
     id:'a'+Date.now()+'-'+i,
-    comp:'C2',
+    comp:competenceOrder[i]||'C2',
     sport:'À choisir',
-    courses
+    courses,
+    lockedCourses:false,
+    henriRecommended:true
   }));
   delete scheduleConflictIgnores[groupId];
   saveConflictIgnores();
