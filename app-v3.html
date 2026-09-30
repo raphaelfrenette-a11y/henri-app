@@ -854,12 +854,72 @@ function getAnnualCoverageStatus(groupId){
   const complete=courseDates.length>=10&&spanDays>=180;
   return {complete,courseDates,first,last,spanDays};
 }
+function inferGroupSchoolLevel(groupId){
+  const group=groupsData.find(g=>g.id===groupId);
+  const raw=(group?.name||'').toLowerCase();
+  let m=raw.match(/secondaire\s*([1-5])/);
+  if(m) return {key:'S'+m[1],label:'Secondaire '+m[1],type:'secondary',grade:Number(m[1])};
+  m=raw.match(/primaire\s*([1-6])/);
+  if(m) return {key:'P'+m[1],label:'Primaire '+m[1],type:'primary',grade:Number(m[1])};
+  m=raw.match(/([1-6])(?:re|er|e)?\s*ann[ée]e/);
+  if(m&&!raw.includes('secondaire')) return {key:'P'+m[1],label:'Primaire '+m[1],type:'primary',grade:Number(m[1])};
+  if(/maternelle|préscolaire|prescolaire|4\s*ans|5\s*ans/.test(raw)) return {key:'K',label:'Préscolaire',type:'preschool',grade:0};
+  return {key:'GEN',label:'Niveau à préciser',type:'generic',grade:null};
+}
+function getHenriCompetenceProfile(groupId){
+  const level=inferGroupSchoolLevel(groupId);
+  const profiles={
+    K:{C1:.80,C2:.15,C3:.05},
+    P1:{C1:.70,C2:.20,C3:.10},
+    P2:{C1:.60,C2:.30,C3:.10},
+    P3:{C1:.50,C2:.40,C3:.10},
+    P4:{C1:.40,C2:.50,C3:.10},
+    P5:{C1:.30,C2:.60,C3:.10},
+    P6:{C1:.25,C2:.65,C3:.10},
+    S1:{C1:.20,C2:.70,C3:.10},
+    S2:{C1:.15,C2:.75,C3:.10},
+    S3:{C1:.10,C2:.80,C3:.10},
+    S4:{C1:.10,C2:.80,C3:.10},
+    S5:{C1:.10,C2:.80,C3:.10},
+    GEN:{C1:.30,C2:.60,C3:.10}
+  };
+  return {level,weights:profiles[level.key]||profiles.GEN};
+}
+function allocateCompetenceCounts(total,weights){
+  total=Math.max(1,Number(total)||1);
+  const keys=['C1','C2','C3'];
+  const rows=keys.map(key=>({key,raw:weights[key]*total}));
+  const counts={C1:0,C2:0,C3:0};
+  rows.forEach(x=>counts[x.key]=Math.floor(x.raw));
+  let used=keys.reduce((sum,k)=>sum+counts[k],0);
+  rows.slice().sort((a,b)=>(b.raw-Math.floor(b.raw))-(a.raw-Math.floor(a.raw))).forEach(x=>{
+    if(used<total){counts[x.key]++;used++}
+  });
+  if(total>=3){
+    keys.forEach(k=>{
+      if(counts[k]===0){
+        const donor=keys.slice().sort((a,b)=>counts[b]-counts[a]).find(x=>counts[x]>1);
+        if(donor){counts[donor]--;counts[k]++}
+      }
+    });
+  }
+  return counts;
+}
+function buildCompetenceOrder(counts){
+  return [
+    ...Array(counts.C1).fill('C1'),
+    ...Array(counts.C2).fill('C2'),
+    ...Array(counts.C3).fill('C3')
+  ];
+}
 function getAnnualRecommendation(groupId,targetLength){
   const coverage=getAnnualCoverageStatus(groupId);
   const possible=getGroupCourseSlots(groupId);
   const target=Math.max(1,Number(targetLength)||5);
   const recommended=Math.max(1,Math.round(possible/target)||1);
-  return {possible,target,recommended,coverage};
+  const profile=getHenriCompetenceProfile(groupId);
+  const competenceCounts=allocateCompetenceCounts(recommended,profile.weights);
+  return {possible,target,recommended,coverage,profile,competenceCounts};
 }
 function distributeAnnualCourses(total,count){
   count=Math.max(1,Number(count)||1);
