@@ -1085,7 +1085,12 @@ function addAnnualBlock(){
   const groupId=annualGroup.value;
   ensureAnnualPlan(groupId);
   const courses=Math.max(1,Number(annualCourses.value)||1);
-  annualPlans[groupId].push({id:'a'+Date.now(),comp:annualComp.value,sport:annualSport.value,courses});
+  const id='a'+Date.now();
+  annualPlans[groupId].push({id,comp:annualComp.value,sport:annualSport.value,courses,lockedCourses:true});
+  if(!rebalanceAnnualDurations(groupId,id,courses)){
+    annualPlans[groupId]=annualPlans[groupId].filter(b=>b.id!==id);
+    return;
+  }
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function rebalanceAnnualDurations(groupId,changedId=null,requestedCourses=null){
