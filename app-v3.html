@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.14</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.15</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -2020,9 +2020,9 @@ function removeRelation(id,type,targetId){
 
 function makeFullDemoSchoolDays(){
   const days={};
-  const start=new Date(2026,8,1,12);
+  const start=new Date(2026,7,28,12);
   const end=new Date(2027,5,23,12);
-  let cycle=4;
+  let cycle=1;
   const pedagogical=new Set(['2026-09-18','2026-10-05','2026-11-13','2027-01-29','2027-04-23']);
   const holidays=new Set(['2026-09-07','2026-10-12','2027-04-02','2027-04-05','2027-05-24']);
   const inBreak=d=>(d>='2026-12-21'&&d<='2027-01-01')||(d>='2027-03-01'&&d<='2027-03-05');
@@ -2038,6 +2038,7 @@ function makeFullDemoSchoolDays(){
   return days;
 }
 const demoSchoolDays=makeFullDemoSchoolDays();
+const DEMO_DATA_VERSION='demo-2026-27-v1';
 
 const demoTeacherSchedule={
   'Jour 1':[
@@ -2139,6 +2140,18 @@ function generateMySchedule(){
   renderMonth();
   renderWeek();
   setTimeout(()=>{go('home');setCalendarView('month')},450);
+}
+if(localStorage.getItem('henriDemoDataVersion')!==DEMO_DATA_VERSION){
+  schoolDays=makeFullDemoSchoolDays();
+  scheduleEntries={};
+  Object.entries(schoolDays).forEach(([date,cycleName])=>{
+    const lessons=demoTeacherSchedule[cycleName]||[];
+    if(lessons.length) scheduleEntries[date]=lessons.map(lesson=>Object.assign({},lesson,demoPlanningByGroup[lesson.group]||{annualPlan:null,sequence:null,session:null}));
+  });
+  localStorage.setItem('henriDemoSchedule','1');
+  localStorage.setItem('henriDemoDataVersion',DEMO_DATA_VERSION);
+  localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
+  localStorage.setItem('henriSchoolDays',JSON.stringify(schoolDays));
 }
 const savedScheduleEntries=JSON.parse(localStorage.getItem('henriScheduleEntries')||'null');
 const savedSchoolDays=JSON.parse(localStorage.getItem('henriSchoolDays')||'null');
