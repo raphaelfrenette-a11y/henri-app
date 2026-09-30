@@ -371,7 +371,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   <h1>Planification annuelle</h1>
   <p class="planIntro">Construis l’année par blocs. Henri utilise l’horaire et le calendrier scolaire pour attribuer les vraies dates, puis recalcule tout dès que tu déplaces un bloc.</p>
   <div class="planForm">
-    <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="renderAnnualPlanner()"></select></div>
+    <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="annualSequenceCount.dataset.manual='0';renderAnnualPlanner()"></select></div>
   </div>
   <div class="annualSetup">
     <div class="annualSetupEyebrow">Étape 0 · Structure de l’année</div>
