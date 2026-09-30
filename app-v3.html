@@ -377,7 +377,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.25</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.26</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -714,17 +714,23 @@ function renderWeek(){
       '<button class="dayHead" onclick="openDayPlan(\''+key+'\')"><span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span></button>';
     if(entries.length){
       entries.forEach((entry,idx)=>{
-        const sport=entry.annualPlan||'À planifier';
+        let sport=entry.annualPlan||'À planifier';
+        if(sport==='À choisir') sport='À planifier';
         const groupColors=['#3b82f6','#34a853','#f59e0b','#8b5cf6'];
         const groupIndex=Math.max(0,defaultGroups.findIndex(g=>g.name===entry.group));
         const groupColor=groupColors[groupIndex%groupColors.length];
         const sportLower=sport.toLowerCase();
         let sportIcon='●',sportBg='#eef1f2',sportFg='#53606a';
-        if(sportLower.includes('badminton')){sportIcon='◈';sportBg='#eaf3ff';sportFg='#2468b4'}
-        else if(sportLower.includes('volley')){sportIcon='◉';sportBg='#f1eaff';sportFg='#7544bd'}
-        else if(sportLower.includes('flag')||sportLower.includes('ultimate')){sportIcon='↗';sportBg='#eaf7ee';sportFg='#287a45'}
-        else if(sportLower.includes('condition')||sportLower.includes('musculation')){sportIcon='◆';sportBg='#fff0e3';sportFg='#b85a12'}
-        else if(sportLower.includes('choisir')){sportIcon='◇';sportBg='#edf7ef';sportFg='#2e7544'}
+        if(sportLower.includes('badminton')){sportIcon='🏸';sportBg='#eaf3ff';sportFg='#2468b4'}
+        else if(sportLower.includes('volley')){sportIcon='🏐';sportBg='#f1eaff';sportFg='#7544bd'}
+        else if(sportLower.includes('basket')){sportIcon='🏀';sportBg='#fff0e3';sportFg='#b85a12'}
+        else if(sportLower.includes('soccer')||sportLower.includes('futsal')){sportIcon='⚽';sportBg='#eaf7ee';sportFg='#287a45'}
+        else if(sportLower.includes('hockey')){sportIcon='🏒';sportBg='#eaf3ff';sportFg='#2468b4'}
+        else if(sportLower.includes('flag')){sportIcon='🏈';sportBg='#fff0e3';sportFg='#9a531b'}
+        else if(sportLower.includes('ultimate')){sportIcon='◯';sportBg='#eaf7ee';sportFg='#287a45'}
+        else if(sportLower.includes('condition')||sportLower.includes('musculation')){sportIcon='🏋';sportBg='#fff0e3';sportFg='#b85a12'}
+        else if(sportLower.includes('course')||sportLower.includes('athl')){sportIcon='🏃';sportBg='#eaf7ee';sportFg='#287a45'}
+        else if(sportLower.includes('tennis')){sportIcon='🎾';sportBg='#f3f8df';sportFg='#667b22'}
         else if(sportLower.includes('planifier')){sportIcon='＋';sportBg='#fff2e6';sportFg='#b85a12'}
         out+='<button class="weekEvent" style="--groupColor:'+groupColor+';--sportBg:'+sportBg+';--sportFg:'+sportFg+'" onclick="openCourseEntry(\''+key+'\','+idx+')">'+
           '<span class="time">'+entry.time+'</span>'+
