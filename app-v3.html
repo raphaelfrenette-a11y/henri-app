@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.19</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.20</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -1226,7 +1226,6 @@ function renderAnnualPlanner(){
       '</div>'+
       '<div class="itemActions">'+
         (needsChoice?'':'<button class="itemBtn primary" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+(saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>')+
-        '<button class="annualItemCalendar" onclick="openAnnualBlockCalendar(\''+groupId+'\',\''+b.id+'\')">Calendrier</button>'+
         '<button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button>'+
         '<button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button>'+
       '</div>'+
@@ -1315,8 +1314,20 @@ function editAnnualBlock(id){
 }
 function deleteAnnualBlock(id){
   const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(x=>x.id===id);
+  if(!block)return;
+  if(!confirm('Supprimer cette séquence de la planification annuelle?'))return;
   annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
-  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
+  delete savedSequences[sequenceStorageKey(groupId,id)];
+  if(savedSequences[id]?.groupId===groupId) delete savedSequences[id];
+  localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
+  if(activeSequence?.annualBlockId===id&&activeSequence?.groupId===groupId){
+    activeSequence=null;
+    localStorage.removeItem('henriActiveSequence');
+  }
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
 }
 
 function moveAnnualBlock(id,delta){
