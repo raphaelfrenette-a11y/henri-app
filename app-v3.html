@@ -1058,14 +1058,14 @@ function applyAnnualStructure(useRecommended=false){
   const distribution=distributeAnnualCourses(possible,count);
   const profile=getHenriCompetenceProfile(groupId);
   const counts=allocateCompetenceCounts(count,profile.weights);
-  const competenceOrder=buildCompetenceOrder(counts);
+  const competenceOrder=useRecommended?buildCompetenceOrder(counts):Array(count).fill('C2');
   annualPlans[groupId]=distribution.map((courses,i)=>({
     id:'a'+Date.now()+'-'+i,
     comp:competenceOrder[i]||'C2',
     sport:'À choisir',
     courses,
     lockedCourses:false,
-    henriRecommended:true
+    henriRecommended:useRecommended
   }));
   delete scheduleConflictIgnores[groupId];
   saveConflictIgnores();
