@@ -361,7 +361,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 #home .weekEvent{grid-template-columns:64px 5px minmax(0,1fr) auto;padding:12px 16px;gap:11px;background:rgba(255,255,255,.94)}
 #home .groupBar{width:4px;height:31px;border-radius:999px;background:var(--groupColor)}
 #home .course{font-size:13px;min-width:0}
-#home .quickSport{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:var(--sportBg);color:var(--sportFg);font-size:11px}
+#home .quickSport{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:#f3f3f1;color:#4f565b;font-size:11px}
 #home .sportIcon{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
 #home .dayDate{font-size:12px}
 #home .today .dayHead{background:#f8fbfd}
@@ -373,11 +373,12 @@ body{background:#f8f7f4}
   #home .quickSport{padding:6px 8px}
   #home .sportIcon{width:15px;height:15px;font-size:12px}
 }
+#home .quickSport.planningSport{background:#fff2e6;color:#b85a12}
 </style>
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.26</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.27</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
