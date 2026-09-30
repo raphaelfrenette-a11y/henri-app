@@ -117,6 +117,10 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .annualSetupActions{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:10px}
 .annualSuggestBtn{border:1px solid #cdd9df;background:#fff;color:var(--accent);border-radius:12px;padding:10px 12px;font-size:11px;font-weight:780}
 .annualBuildBtn{border:0;background:var(--accent);color:#fff;border-radius:12px;padding:10px 12px;font-size:11px;font-weight:780}
+.annualSuggestBtn:disabled,.annualBuildBtn:disabled{opacity:.45;cursor:not-allowed}
+.annualRecommendation.warning{background:#fff7ea;color:#825f2d}
+.annualDataWarning{display:flex;align-items:flex-start;gap:9px;margin-top:10px;border:1px solid #ead8b8;background:#fffaf0;border-radius:14px;padding:11px 12px;color:#755b31;font-size:11px;line-height:1.45}
+.annualDataWarningDot{width:8px;height:8px;border-radius:50%;background:#a97838;flex:0 0 auto;margin-top:4px}
 .annualSequenceLabel{color:#9aa0a3;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.065em;margin-top:8px}
 .annualCourseAdjust{display:inline-flex;align-items:center;gap:5px;background:#f5f6f5;border-radius:10px;padding:3px}
 .annualCourseAdjust button{width:27px;height:27px;border:0;background:#fff;border-radius:8px;color:var(--accent);font-size:16px;font-weight:760;box-shadow:0 1px 3px rgba(0,0,0,.04)}
@@ -320,7 +324,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.9</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.0</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -382,13 +386,14 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
       <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
     </div>
     <div id="annualRecommendation" class="annualRecommendation"></div>
+    <div id="annualDataWarning"></div>
     <div class="annualSetupActions">
-      <button class="annualSuggestBtn" onclick="useAnnualRecommendation()">Utiliser la recommandation</button>
+      <button id="annualSuggestBtn" class="annualSuggestBtn" onclick="useAnnualRecommendation()">Utiliser la recommandation</button>
       <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure()">Créer cette structure</button>
     </div>
   </div>
   <div class="planStats">
-    <div class="planStat"><small>Cours possibles</small><strong id="annualPossible">0</strong></div>
+    <div class="planStat"><small id="annualPossibleLabel">Cours possibles</small><strong id="annualPossible">0</strong></div>
     <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
     <div class="planStat"><small>Restants</small><strong id="annualRemaining">0</strong></div>
   </div>
@@ -835,11 +840,22 @@ function getAnnualRanges(groupId,blocks){
 function ensureAnnualPlan(groupId){
   if(!Array.isArray(annualPlans[groupId])) annualPlans[groupId]=[];
 }
+function getAnnualCoverageStatus(groupId){
+  const courseDates=getGroupCourseDates(groupId);
+  const calendarDates=Object.keys(schoolDays||{}).sort();
+  const first=calendarDates[0]||courseDates[0]||null;
+  const last=calendarDates[calendarDates.length-1]||courseDates[courseDates.length-1]||null;
+  let spanDays=0;
+  if(first&&last) spanDays=Math.round((new Date(last+'T12:00:00')-new Date(first+'T12:00:00'))/86400000);
+  const complete=courseDates.length>=10&&spanDays>=180;
+  return {complete,courseDates,first,last,spanDays};
+}
 function getAnnualRecommendation(groupId,targetLength){
+  const coverage=getAnnualCoverageStatus(groupId);
   const possible=getGroupCourseSlots(groupId);
   const target=Math.max(1,Number(targetLength)||5);
   const recommended=Math.max(1,Math.round(possible/target)||1);
-  return {possible,target,recommended};
+  return {possible,target,recommended,coverage};
 }
 function distributeAnnualCourses(total,count){
   count=Math.max(1,Number(count)||1);
@@ -853,6 +869,29 @@ function updateAnnualRecommendation(forceCount=false){
   const groupId=annualGroup.value||groupsData[0]?.id;
   if(!groupId)return;
   const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
+  const coverage=rec.coverage;
+  const loaded=rec.possible;
+  if(!coverage.complete){
+    annualPossible.textContent=loaded;
+    if(annualPossibleLabel) annualPossibleLabel.textContent='Périodes chargées';
+    annualSetupText.textContent='Les données chargées ne couvrent pas encore une année scolaire complète pour ce groupe.';
+    const range=coverage.first&&coverage.last?(formatPlanDate(coverage.first)+' au '+formatPlanDate(coverage.last)):'aucune plage annuelle complète';
+    annualRecommendation.classList.add('warning');
+    annualRecommendation.innerHTML='<strong>Calendrier annuel incomplet</strong><span>Henri voit actuellement '+loaded+' période'+(loaded>1?'s':'')+' pour ce groupe ('+range+'). Il ne fera pas de recommandation annuelle à partir de données partielles.</span>';
+    if(annualDataWarning) annualDataWarning.innerHTML='<div class="annualDataWarning"><span class="annualDataWarningDot"></span><span>Complète le calendrier scolaire et l’horaire maître dans Paramètres. Dès que l’année complète est chargée, Henri calculera automatiquement le nombre de séquences recommandé.</span></div>';
+    if(annualSuggestBtn){annualSuggestBtn.disabled=true;annualSuggestBtn.style.display='none'}
+    if(annualBuildBtn){
+      annualBuildBtn.disabled=false;
+      annualBuildBtn.textContent='Compléter dans Paramètres';
+      annualBuildBtn.onclick=()=>go('settings');
+    }
+    return;
+  }
+  annualRecommendation.classList.remove('warning');
+  if(annualDataWarning) annualDataWarning.innerHTML='';
+  if(annualPossibleLabel) annualPossibleLabel.textContent='Cours possibles';
+  if(annualSuggestBtn){annualSuggestBtn.disabled=false;annualSuggestBtn.style.display='';annualSuggestBtn.onclick=useAnnualRecommendation}
+  if(annualBuildBtn){annualBuildBtn.disabled=false;annualBuildBtn.onclick=applyAnnualStructure}
   if(forceCount||annualSequenceCount.dataset.manual!=='1') annualSequenceCount.value=rec.recommended;
   const requested=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
   const chosen=Math.min(requested,Math.max(1,rec.possible));
@@ -866,6 +905,7 @@ function updateAnnualRecommendation(forceCount=false){
 function useAnnualRecommendation(){
   if(!annualGroup)return;
   const rec=getAnnualRecommendation(annualGroup.value,annualTargetLength.value);
+  if(!rec.coverage.complete)return;
   annualSequenceCount.value=rec.recommended;
   annualSequenceCount.dataset.manual='0';
   updateAnnualRecommendation(false);
@@ -876,6 +916,8 @@ function applyAnnualStructure(){
   ensureAnnualPlan(groupId);
   const existing=annualPlans[groupId]||[];
   if(existing.length&&!confirm('Répartir l’année à nouveau? La structure actuelle de ce groupe sera remplacée.'))return;
+  const coverage=getAnnualCoverageStatus(groupId);
+  if(!coverage.complete){go('settings');return}
   const possible=getGroupCourseSlots(groupId);
   if(possible<=0){alert('Aucune période disponible pour ce groupe. Vérifie d’abord l’horaire et le calendrier scolaire.');return}
   const count=Math.min(possible,Math.max(1,Number(annualSequenceCount.value)||1));
