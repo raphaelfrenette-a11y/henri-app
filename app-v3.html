@@ -1546,7 +1546,10 @@ function saveSequence(){
   if(activeSequence.annualBlockId){
     const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
     if(block&&Number(block.courses)!==activeSequence.sessions.length){
-      block.courses=activeSequence.sessions.length;
+      if(!rebalanceAnnualDurations(activeSequence.groupId,block.id,activeSequence.sessions.length)){
+        alert('Cette séquence est trop longue pour les périodes restantes de l’année.');
+        return;
+      }
       saveAnnual();
     }
     setSavedSequence(activeSequence.groupId,activeSequence.annualBlockId,activeSequence);
