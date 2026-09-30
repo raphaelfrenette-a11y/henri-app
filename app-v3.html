@@ -955,7 +955,7 @@ function updateAnnualRecommendation(forceCount=false){
   if(annualDataWarning) annualDataWarning.innerHTML='';
   if(annualPossibleLabel) annualPossibleLabel.textContent='Cours possibles';
   if(annualSuggestBtn){annualSuggestBtn.disabled=false;annualSuggestBtn.style.display='';annualSuggestBtn.onclick=useAnnualRecommendation}
-  if(annualBuildBtn){annualBuildBtn.disabled=false;annualBuildBtn.onclick=applyAnnualStructure}
+  if(annualBuildBtn){annualBuildBtn.disabled=false;annualBuildBtn.onclick=()=>applyAnnualStructure(false)}
   if(forceCount||annualSequenceCount.dataset.manual!=='1') annualSequenceCount.value=rec.recommended;
   const requested=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
   const chosen=Math.min(requested,Math.max(1,rec.possible));
@@ -1630,7 +1630,7 @@ function applyConflictSequenceCount(groupId,blockId){
   const value=Math.max(1,Number(input?.value)||1);
   const block=(annualPlans[groupId]||[]).find(b=>b.id===blockId);
   if(!block)return;
-  block.courses=value;
+  if(!rebalanceAnnualDurations(groupId,blockId,value))return;
   delete scheduleConflictIgnores[groupId];
   saveConflictIgnores();
   saveAnnual();
