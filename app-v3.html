@@ -1088,11 +1088,55 @@ function addAnnualBlock(){
   annualPlans[groupId].push({id:'a'+Date.now(),comp:annualComp.value,sport:annualSport.value,courses});
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
+function rebalanceAnnualDurations(groupId,changedId=null,requestedCourses=null){
+  const blocks=annualPlans[groupId]||[];
+  const total=getGroupCourseSlots(groupId);
+  if(!blocks.length||total<=0)return false;
+
+  const snapshot=blocks.map(b=>({courses:b.courses,lockedCourses:b.lockedCourses}));
+  const changed=changedId?blocks.find(b=>b.id===changedId):null;
+  if(changed&&requestedCourses!==null){
+    changed.courses=Math.max(1,Math.min(20,Number(requestedCourses)||1));
+    changed.lockedCourses=true;
+  }
+
+  let locked=blocks.filter(b=>b.lockedCourses);
+  let unlocked=blocks.filter(b=>!b.lockedCourses);
+
+  if(!unlocked.length&&blocks.length>1){
+    const fallback=blocks.slice().reverse().find(b=>b.id!==changedId)||blocks[0];
+    fallback.lockedCourses=false;
+    locked=blocks.filter(b=>b.lockedCourses);
+    unlocked=blocks.filter(b=>!b.lockedCourses);
+  }
+
+  const lockedTotal=locked.reduce((sum,b)=>sum+Number(b.courses||0),0);
+  const remaining=total-lockedTotal;
+  if(remaining<unlocked.length||remaining<0){
+    blocks.forEach((b,i)=>{
+      b.courses=snapshot[i].courses;
+      b.lockedCourses=snapshot[i].lockedCourses;
+    });
+    return false;
+  }
+
+  if(unlocked.length){
+    const distribution=distributeAnnualCourses(remaining,unlocked.length);
+    unlocked.forEach((b,i)=>b.courses=distribution[i]);
+  }else if(blocks.length===1){
+    blocks[0].courses=total;
+  }
+  return true;
+}
 function adjustAnnualCourses(id,delta){
   const groupId=annualGroup.value;
   const b=(annualPlans[groupId]||[]).find(x=>x.id===id);
   if(!b)return;
-  b.courses=Math.max(1,Math.min(20,Number(b.courses||1)+delta));
+  const requested=Number(b.courses||1)+delta;
+  if(!rebalanceAnnualDurations(groupId,id,requested)){
+    alert('Impossible de modifier cette durée tout en gardant au moins 1 cours dans chaque autre séquence.');
+    return;
+  }
   delete scheduleConflictIgnores[groupId];
   saveConflictIgnores();
   saveAnnual();
