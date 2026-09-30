@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.12</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.13</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -849,7 +849,15 @@ function fillPlanGroupSelects(){
   if(standaloneSeqGroup) standaloneSeqGroup.innerHTML=opts;
   if(quickGroup) quickGroup.innerHTML=opts;
 }
-function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('annualPlanner')}
+function openAnnualPlanner(){
+  fillPlanGroupSelects();
+  go('annualPlanner');
+  try{renderAnnualPlanner()}catch(err){
+    console.error('Annual planner render error',err);
+    if(annualManualWrap) annualManualWrap.classList.remove('show');
+    setAnnualWorkspaceVisible(false);
+  }
+}
 function setAnnualWorkspaceVisible(show){
   if(annualWorkspace) annualWorkspace.classList.toggle('show',!!show);
 }
