@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.11</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.12</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -421,7 +421,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
   </div>
   <div id="annualManualWrap" class="annualManualWrap">
     <div class="annualSetup">
-      <button type="button" class="annualChangeMethod" onclick="returnToAnnualMethodChoice()">‹ Changer de méthode</button>
+      <button type="button" class="annualChangeMethod" onclick="toggleAnnualManualSetup(false)">‹ Changer de méthode</button>
       <div class="annualSetupEyebrow">Organisation manuelle</div>
       <h2>Construire ma structure</h2>
       <p class="annualSetupText" id="annualSetupText">Le niveau est déterminé automatiquement à partir du groupe sélectionné. Choisis seulement la structure de départ que tu souhaites.</p>
@@ -432,6 +432,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
       <div id="annualRecommendation" class="annualRecommendation" style="display:none"></div>
       <div id="annualDataWarning"></div>
       <div class="annualSetupActions" style="grid-template-columns:1fr">
+        <button id="annualSuggestBtn" class="annualSuggestBtn" style="display:none!important" tabindex="-1" aria-hidden="true" onclick="organizeAnnualWithHenri()">Utiliser plutôt la recommandation Henri</button>
         <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Organiser mes séquences</button>
       </div>
     </div>
@@ -852,11 +853,6 @@ function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('an
 function setAnnualWorkspaceVisible(show){
   if(annualWorkspace) annualWorkspace.classList.toggle('show',!!show);
 }
-function returnToAnnualMethodChoice(){
-  annualManualWrap?.classList.remove('show');
-  setAnnualWorkspaceVisible(false);
-  document.querySelector('.annualModeChoices')?.scrollIntoView({behavior:'smooth',block:'start'});
-}
 function toggleAnnualManualSetup(force){
   if(!annualManualWrap)return;
   const show=typeof force==='boolean'?force:!annualManualWrap.classList.contains('show');
@@ -1004,7 +1000,7 @@ function distributeAnnualCourses(total,count){
   return Array.from({length:count},(_,i)=>Math.max(1,base+(i<extra?1:0)));
 }
 function updateAnnualRecommendation(forceCount=false){
-  if(!annualGroup||!annualTargetLength||!annualSequenceCount)return;
+  if(!annualGroup||!annualTargetLength||!annualSequenceCount||!annualRecommendation)return;
   const groupId=annualGroup.value||groupsData[0]?.id;
   if(!groupId)return;
   const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
@@ -1015,10 +1011,8 @@ function updateAnnualRecommendation(forceCount=false){
     if(annualPossibleLabel) annualPossibleLabel.textContent='Périodes chargées';
     annualSetupText.textContent='Les données chargées ne couvrent pas encore une année scolaire complète pour ce groupe.';
     const range=coverage.first&&coverage.last?(formatPlanDate(coverage.first)+' au '+formatPlanDate(coverage.last)):'aucune plage annuelle complète';
-    if(annualRecommendation){
-      annualRecommendation.classList.add('warning');
-      annualRecommendation.innerHTML='<strong>Calendrier annuel incomplet</strong><span>Henri voit actuellement '+loaded+' période'+(loaded>1?'s':'')+' pour ce groupe ('+range+'). Il ne fera pas de recommandation annuelle à partir de données partielles.</span>';
-    }
+    annualRecommendation.classList.add('warning');
+    annualRecommendation.innerHTML='<strong>Calendrier annuel incomplet</strong><span>Henri voit actuellement '+loaded+' période'+(loaded>1?'s':'')+' pour ce groupe ('+range+'). Il ne fera pas de recommandation annuelle à partir de données partielles.</span>';
     if(annualDataWarning) annualDataWarning.innerHTML='<div class="annualDataWarning"><span class="annualDataWarningDot"></span><span>Complète le calendrier scolaire et l’horaire maître dans Paramètres. Dès que l’année complète est chargée, Henri calculera automatiquement le nombre de séquences recommandé.</span></div>';
     if(annualSuggestBtn){annualSuggestBtn.disabled=true;annualSuggestBtn.style.display='none'}
     if(annualBuildBtn){
@@ -1028,7 +1022,7 @@ function updateAnnualRecommendation(forceCount=false){
     }
     return;
   }
-  if(annualRecommendation) annualRecommendation.classList.remove('warning');
+  annualRecommendation.classList.remove('warning');
   if(annualDataWarning) annualDataWarning.innerHTML='';
   if(annualPossibleLabel) annualPossibleLabel.textContent='Cours possibles';
   if(annualSuggestBtn){annualSuggestBtn.disabled=false;annualSuggestBtn.style.display='none';annualSuggestBtn.onclick=useAnnualRecommendation}
@@ -1044,7 +1038,7 @@ function updateAnnualRecommendation(forceCount=false){
     ? '<span class="annualRecNote">Au préscolaire, C1/C2/C3 servent ici de repères Henri pour structurer les activités motrices; ce ne sont pas les compétences officielles du programme-cycle.</span>'
     : '<span class="annualRecNote">Répartition pédagogique Henri alignée au PFEQ/PDA. Le Ministère ne fixe pas un nombre officiel de séquences par compétence.</span>';
   annualSetupText.textContent='Ce groupe a '+rec.possible+' période'+(rec.possible>1?'s':'')+' disponible'+(rec.possible>1?'s':'')+' dans l’année. Henri propose une structure adaptée à '+rec.profile.level.label+'.';
-  if(annualRecommendation) annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.profile.level.label+' · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+'</strong>'+
+  annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.profile.level.label+' · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+'</strong>'+
     '<span>Durée cible : environ '+rec.target+' cours. Avec '+chosen+' séquence'+(chosen>1?'s':'')+', les '+rec.possible+' périodes sont utilisées (moyenne '+avg.toFixed(1).replace('.',',')+').</span>'+
     '<span class="annualRecBreakdown"><span class="annualRecChip">C1 · '+chosenCounts.C1+'</span><span class="annualRecChip">C2 · '+chosenCounts.C2+'</span><span class="annualRecChip">C3 · '+chosenCounts.C3+'</span></span>'+note;
   if(annualBuildBtn){
