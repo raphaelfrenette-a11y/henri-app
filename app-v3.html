@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.13</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.14</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -851,12 +851,10 @@ function fillPlanGroupSelects(){
 }
 function openAnnualPlanner(){
   fillPlanGroupSelects();
+  if(annualManualWrap) annualManualWrap.classList.remove('show');
+  setAnnualWorkspaceVisible(false);
   go('annualPlanner');
-  try{renderAnnualPlanner()}catch(err){
-    console.error('Annual planner render error',err);
-    if(annualManualWrap) annualManualWrap.classList.remove('show');
-    setAnnualWorkspaceVisible(false);
-  }
+  updateAnnualRecommendation(false);
 }
 function setAnnualWorkspaceVisible(show){
   if(annualWorkspace) annualWorkspace.classList.toggle('show',!!show);
@@ -866,7 +864,11 @@ function toggleAnnualManualSetup(force){
   const show=typeof force==='boolean'?force:!annualManualWrap.classList.contains('show');
   annualManualWrap.classList.toggle('show',show);
   setAnnualWorkspaceVisible(false);
-  if(show) updateAnnualRecommendation(false);
+  if(show){
+    annualSequenceCount.dataset.manual='0';
+    updateAnnualRecommendation(false);
+    annualManualWrap.scrollIntoView({behavior:'smooth',block:'start'});
+  }
 }
 function organizeAnnualWithHenri(){
   if(!annualGroup)return;
@@ -1094,6 +1096,7 @@ function applyAnnualStructure(useRecommended=false){
   saveConflictIgnores();
   saveAnnual();
   rebuildPlanningAssignments();
+  if(annualManualWrap) annualManualWrap.classList.remove('show');
   setAnnualWorkspaceVisible(true);
   renderAnnualPlanner();
 }
@@ -1205,7 +1208,7 @@ function renderAnnualPlanner(){
         '<button class="dragHandle" type="button" aria-label="Glisser '+b.sport+'" data-drag-id="'+b.id+'">≡</button>'+
         '<div class="annualMain">'+
           '<div class="annualHeaderLine"><button id="annual-comp-'+b.id+'" class="compBadge editable" onclick="editAnnualCompInline(\''+b.id+'\')" aria-label="Modifier la compétence">'+b.comp+' · '+planCompetenceNames[b.comp]+'</button><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
-          '<div class="annualSequenceLabel">Séquence '+(i+1)+'</div>'+
+          '<div class="annualSequenceLabel">'+(groupsData.find(g=>g.id===groupId)?.name||'Groupe')+' · Séquence '+(i+1)+'</div>'+
           (needsChoice?'<select id="annual-sport-'+b.id+'" class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<button id="annual-sport-'+b.id+'" class="annualSport editable" onclick="editAnnualSportInline(\''+b.id+'\')" aria-label="Modifier le moyen d’action">'+b.sport+'</button>')+
           '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+
           '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours'+(!b.lockedCourses?'<small class="annualAutoNote"> auto</small>':'')+'</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
