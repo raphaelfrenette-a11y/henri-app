@@ -1705,13 +1705,15 @@ function scheduleQuickSession(){
   delete scheduleConflictIgnores[quickSessionData.groupId];
   saveConflictIgnores();
   saveIndividualSessions();
+  const balanced=rebalanceAnnualDurations(quickSessionData.groupId);
+  if(balanced) saveAnnual();
   rebuildPlanningAssignments();
   if(annualGroup?.value===quickSessionData.groupId) renderAnnualPlanner();
   const d=new Date(date+'T12:00:00');
   const conflict=getScheduleConflict(quickSessionData.groupId);
   const message=conflict.overflow
-    ? 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · déplacement effectué, mais '+conflict.overflow+' séance'+(conflict.overflow>1?'s dépassent':' dépasse')+' la fin de l’année.'
-    : 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · les séances suivantes ont été décalées.';
+    ? 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · il reste '+conflict.overflow+' séance'+(conflict.overflow>1?'s sans période.':' sans période.')
+    : 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · les séquences restantes ont été rééquilibrées automatiquement.';
   renderQuickResult(message);
 }
 
