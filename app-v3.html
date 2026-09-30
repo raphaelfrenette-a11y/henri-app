@@ -123,6 +123,8 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .annualModeCard.primary small{color:#667984}
 .annualManualWrap{display:none}
 .annualManualWrap.show{display:block}
+.annualWorkspace{display:none}
+.annualWorkspace.show{display:block}
 .annualSetup{background:linear-gradient(145deg,#fff,#f8fafb);border:1px solid #dfe5e8;border-radius:22px;padding:18px;margin:10px 0 14px;box-shadow:0 7px 24px rgba(36,49,57,.045)}
 .annualSetupEyebrow{color:var(--accent);font-size:10px;font-weight:820;text-transform:uppercase;letter-spacing:.08em}
 .annualSetup h2{font-size:22px;letter-spacing:-.035em;margin:5px 0 6px}
@@ -346,7 +348,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.4</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.5</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -428,6 +430,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
       </div>
     </div>
   </div>
+  <div id="annualWorkspace" class="annualWorkspace">
   <div class="planStats">
     <div class="planStat"><small id="annualPossibleLabel">Cours possibles</small><strong id="annualPossible">0</strong></div>
     <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
@@ -448,6 +451,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     </div>
     <button class="planPrimary" onclick="addAnnualBlock()">Ajouter à l’année</button>
     <p class="planHint">Exemple : s’il reste 4 cours possibles, Henri te le montre immédiatement pour t’aider à terminer l’année avec une séquence de 4 cours.</p>
+  </div>
   </div>
 </section>
 
@@ -839,10 +843,14 @@ function fillPlanGroupSelects(){
   if(quickGroup) quickGroup.innerHTML=opts;
 }
 function openAnnualPlanner(){fillPlanGroupSelects();renderAnnualPlanner();go('annualPlanner')}
+function setAnnualWorkspaceVisible(show){
+  if(annualWorkspace) annualWorkspace.classList.toggle('show',!!show);
+}
 function toggleAnnualManualSetup(force){
   if(!annualManualWrap)return;
   const show=typeof force==='boolean'?force:!annualManualWrap.classList.contains('show');
   annualManualWrap.classList.toggle('show',show);
+  setAnnualWorkspaceVisible(false);
   if(show) updateAnnualRecommendation(false);
 }
 function organizeAnnualWithHenri(){
@@ -860,7 +868,8 @@ function organizeAnnualWithHenri(){
   annualSequenceCount.value=rec.recommended;
   annualSequenceCount.dataset.manual='0';
   useAnnualRecommendation();
-  toggleAnnualManualSetup(false);
+  if(annualManualWrap) annualManualWrap.classList.remove('show');
+  setAnnualWorkspaceVisible(true);
 }
 function getGroupCourseDates(groupId){
   const g=groupsData.find(x=>x.id===groupId);
@@ -1071,6 +1080,7 @@ function applyAnnualStructure(useRecommended=false){
   saveConflictIgnores();
   saveAnnual();
   rebuildPlanningAssignments();
+  setAnnualWorkspaceVisible(true);
   renderAnnualPlanner();
 }
 function getAnnualSportOptions(comp){
