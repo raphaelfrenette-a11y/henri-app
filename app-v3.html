@@ -1162,6 +1162,7 @@ function editAnnualBlock(id){
 function deleteAnnualBlock(id){
   const groupId=annualGroup.value;
   annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
+  if((annualPlans[groupId]||[]).length) rebalanceAnnualDurations(groupId);
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 
