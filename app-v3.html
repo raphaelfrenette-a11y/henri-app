@@ -962,9 +962,15 @@ function updateAnnualRecommendation(forceCount=false){
   if(requested!==chosen) annualSequenceCount.value=chosen;
   const distribution=distributeAnnualCourses(rec.possible,chosen);
   const avg=chosen?(rec.possible/chosen):0;
-  annualSetupText.textContent='Ce groupe a '+rec.possible+' période'+(rec.possible>1?'s':'')+' disponible'+(rec.possible>1?'s':'')+' dans l’année. Henri utilise ce total réel pour bâtir une première structure.';
-  annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+' autour de '+rec.target+' cours</strong><span>Avec '+chosen+' séquence'+(chosen>1?'s':'')+', la répartition proposée couvre l’année : '+distribution.join(' · ')+' cours (moyenne '+avg.toFixed(1).replace('.',',')+').</span>';
-  if(annualBuildBtn) annualBuildBtn.textContent=(annualPlans[groupId]||[]).length?'Répartir à nouveau':'Créer cette structure';
+  const chosenCounts=allocateCompetenceCounts(chosen,rec.profile.weights);
+  const note=rec.profile.level.type==='preschool'
+    ? '<span class="annualRecNote">Au préscolaire, C1/C2/C3 servent ici de repères Henri pour structurer les activités motrices; ce ne sont pas les compétences officielles du programme-cycle.</span>'
+    : '<span class="annualRecNote">Répartition pédagogique Henri alignée au PFEQ/PDA. Le Ministère ne fixe pas un nombre officiel de séquences par compétence.</span>';
+  annualSetupText.textContent='Ce groupe a '+rec.possible+' période'+(rec.possible>1?'s':'')+' disponible'+(rec.possible>1?'s':'')+' dans l’année. Henri propose une structure adaptée à '+rec.profile.level.label+'.';
+  annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.profile.level.label+' · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+'</strong>'+
+    '<span>Durée cible : environ '+rec.target+' cours. Avec '+chosen+' séquence'+(chosen>1?'s':'')+', les '+rec.possible+' périodes sont utilisées (moyenne '+avg.toFixed(1).replace('.',',')+').</span>'+
+    '<span class="annualRecBreakdown"><span class="annualRecChip">C1 · '+chosenCounts.C1+'</span><span class="annualRecChip">C2 · '+chosenCounts.C2+'</span><span class="annualRecChip">C3 · '+chosenCounts.C3+'</span></span>'+note;
+  if(annualBuildBtn) annualBuildBtn.textContent=(annualPlans[groupId]||[]).length?'Recréer selon mon choix':'Créer selon mon choix';
 }
 function useAnnualRecommendation(){
   if(!annualGroup)return;
