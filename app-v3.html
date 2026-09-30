@@ -114,6 +114,10 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .annualRecommendation{margin-top:11px;background:var(--accent-soft);border-radius:14px;padding:11px 12px;color:var(--accent)}
 .annualRecommendation strong{display:block;font-size:12px}
 .annualRecommendation span{display:block;font-size:10px;line-height:1.4;margin-top:3px;opacity:.82}
+.annualRecBreakdown{display:flex!important;flex-wrap:wrap;gap:6px;margin-top:9px!important;opacity:1!important}
+.annualRecChip{display:inline-flex!important;align-items:center!important;width:auto!important;border-radius:999px;background:rgba(255,255,255,.76);padding:6px 9px;font-size:10px!important;font-weight:800}
+.annualRecNote{margin-top:8px!important;font-size:9px!important;opacity:.7!important}
+.annualAutoNote{color:#839095;font-size:9px;font-weight:700;margin-left:4px}
 .annualSetupActions{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:10px}
 .annualSuggestBtn{border:1px solid #cdd9df;background:#fff;color:var(--accent);border-radius:12px;padding:10px 12px;font-size:11px;font-weight:780}
 .annualBuildBtn{border:0;background:var(--accent);color:#fff;border-radius:12px;padding:10px 12px;font-size:11px;font-weight:780}
@@ -324,7 +328,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.0</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.1</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -388,8 +392,8 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <div id="annualRecommendation" class="annualRecommendation"></div>
     <div id="annualDataWarning"></div>
     <div class="annualSetupActions">
-      <button id="annualSuggestBtn" class="annualSuggestBtn" onclick="useAnnualRecommendation()">Utiliser la recommandation</button>
-      <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure()">Créer cette structure</button>
+      <button id="annualSuggestBtn" class="annualSuggestBtn" onclick="useAnnualRecommendation()">Utiliser la recommandation Henri</button>
+      <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Créer selon mon choix</button>
     </div>
   </div>
   <div class="planStats">
