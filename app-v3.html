@@ -106,32 +106,51 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .planStat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
 .planStat small{display:block;color:var(--muted);font-size:10px;font-weight:720}
 .planStat strong{display:block;font-size:22px;margin-top:3px;letter-spacing:-.03em}
-.annualList{display:grid;gap:9px;margin-top:12px}
-.annualItem{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;transition:border-color .16s ease,background .16s ease,transform .16s ease}
-.annualItem.dragging{opacity:.6;border-color:#9eafb8;background:#f7fafb}
-.annualTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.annualOverview{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 15px;margin:0 0 12px;box-shadow:0 3px 14px rgba(0,0,0,.018)}
+.annualOverviewTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.annualOverviewTop strong{font-size:13px;letter-spacing:-.01em}
+.annualOverviewBtn{border:0;background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:8px 10px;font-size:11px;font-weight:780;white-space:nowrap}
+.annualProgressTrack{height:7px;border-radius:999px;background:#ecefed;overflow:hidden;margin-top:11px}
+.annualProgressFill{display:block;height:100%;width:0;background:var(--accent);border-radius:inherit;transition:width .25s ease}
+.annualOverview small{display:block;color:var(--muted);font-size:10px;line-height:1.4;margin-top:8px}
+.annualList{display:grid;gap:10px;margin-top:14px;position:relative;padding-left:25px}
+.annualList::before{content:"";position:absolute;left:8px;top:20px;bottom:20px;width:2px;border-radius:2px;background:#dde4e7}
+.annualItem{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:15px;transition:border-color .16s ease,background .16s ease,transform .16s ease;box-shadow:0 3px 14px rgba(0,0,0,.018)}
+.annualItem::before{content:"";position:absolute;left:-23px;top:23px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 0 0 1px #c8d2d7}
+.annualItem.overflow{border-color:#ead8b8;background:#fffdf8}
+.annualItem.overflow::before{background:#a97838;box-shadow:0 0 0 1px #d8bd94}
+.annualItem.dragging{opacity:.58;border-color:#9eafb8;background:#f7fafb;transform:scale(.99)}
+.annualTop{display:flex;justify-content:space-between;gap:11px;align-items:flex-start}
 .dragHandle{width:34px;height:34px;flex:0 0 34px;border:0;background:#f3f4f3;border-radius:10px;color:#8b9296;font-size:18px;font-weight:800;display:grid;place-items:center;cursor:grab;touch-action:none}
 .dragHandle:active{cursor:grabbing}
 .annualMain{min-width:0;flex:1}
-.annualDates{margin-top:6px;color:var(--accent);font-size:12px;font-weight:740}
-.annualDates.unplaced{color:#9a6d31}
+.annualHeaderLine{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.annualStatus{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;background:#f1f3f4;color:#7b8085;font-size:10px;font-weight:780}
+.annualStatus.ready{background:#eef4f1;color:#3f6756}
+.annualStatus.warn{background:#faf2e6;color:#8a642f}
+.annualDatePill{display:inline-flex;align-items:center;margin-top:8px;border-radius:10px;background:#f4f6f7;color:var(--accent);padding:7px 9px;font-size:11px;font-weight:760}
+.annualDatePill.warn{background:#faf2e6;color:#8a642f}
 .annualReorder{display:flex;gap:5px;margin-left:auto}
-.orderBtn{width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:10px;color:var(--accent);font-weight:800}
+.orderBtn{width:32px;height:32px;border:1px solid var(--line);background:#fff;border-radius:10px;color:var(--accent);font-weight:800}
 @media(hover:hover) and (pointer:fine){.dragHandle:hover{background:#e9edef}}
 .compBadge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800}
-.annualSport{font-size:16px;font-weight:780;margin-top:7px}
-.annualMeta{color:var(--muted);font-size:12px;margin-top:3px}
-.itemActions{display:flex;gap:6px;margin-top:11px}
-.itemBtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;color:var(--accent);font-size:11px;font-weight:720}
-.itemBtn.danger{color:#925048}
+.annualSport{font-size:18px;font-weight:800;margin-top:8px;letter-spacing:-.025em}
+.annualMeta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px;margin-top:9px}
+.annualMiniProgress{height:4px;background:#eff1f1;border-radius:999px;overflow:hidden;margin-top:7px}
+.annualMiniProgress span{display:block;height:100%;background:#7f949f;border-radius:inherit}
+.itemActions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.itemBtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;color:var(--accent);font-size:11px;font-weight:720}
+.itemBtn.primary{border-color:var(--accent);background:var(--accent);color:#fff}
+.itemBtn.danger{color:#925048;margin-left:auto}
 .planHint{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.4}
-.planSync{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#eef4f1;border:1px solid #dce9e2;border-radius:16px;padding:12px 13px;margin:0 0 12px}
-.planSyncMain{display:flex;align-items:center;gap:9px;min-width:0}
-.planSyncDot{width:8px;height:8px;border-radius:50%;background:#4e765f;box-shadow:0 0 0 4px rgba(78,118,95,.09);flex:0 0 auto}
-.planSync strong{display:block;font-size:12px;color:#355848}
-.planSync small{display:block;color:#678072;font-size:10px;margin-top:2px;line-height:1.35}
-.planSyncBtn{border:0;background:#fff;color:#355848;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:780;white-space:nowrap}
-.annualItemCalendar{border:0;background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:7px 9px;font-size:11px;font-weight:760}
+.annualItemCalendar{border:0;background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:8px 10px;font-size:11px;font-weight:760}
+@media(max-width:520px){
+  .annualList{padding-left:21px}
+  .annualList::before{left:7px}
+  .annualItem::before{left:-20px}
+  .annualReorder{flex-direction:column}
+  .itemBtn.danger{margin-left:0}
+}
 .macroSeqList{display:grid;gap:9px;margin-top:12px}
 .macroSeqCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:18px;padding:15px 16px;text-align:left;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
 .macroSeqSport{font-size:16px;font-weight:790;letter-spacing:-.015em}
@@ -262,7 +281,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.6</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.7</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -320,10 +339,12 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
     <div class="planStat"><small>Restants</small><strong id="annualRemaining">0</strong></div>
   </div>
-  <div class="planSync">
-    <div class="planSyncMain"><span class="planSyncDot"></span><span><strong>Synchronisé avec le calendrier</strong><small id="annualSyncText">Les blocs utilisent automatiquement les périodes de ce groupe.</small></span></div>
-    <button class="planSyncBtn" onclick="openAnnualCalendar()">Voir</button>
+  <div class="annualOverview">
+    <div class="annualOverviewTop"><strong id="annualCoverageText">Année synchronisée</strong><button class="annualOverviewBtn" onclick="openAnnualCalendar()">Voir le calendrier</button></div>
+    <div class="annualProgressTrack"><span id="annualProgressFill" class="annualProgressFill"></span></div>
+    <small id="annualSyncText">Les blocs utilisent automatiquement les périodes de ce groupe.</small>
   </div>
+  <div id="annualConflict"></div>
   <div id="annualList" class="annualList"></div>
   <div class="planForm" style="margin-top:12px">
     <div class="planGrid">
@@ -773,32 +794,52 @@ function renderAnnualPlanner(){
   const ranges=getAnnualRanges(groupId,blocks);
   const planned=blocks.reduce((n,b)=>n+Number(b.courses||0),0);
   const remaining=Math.max(0,possible-planned);
+  const overflow=Math.max(0,planned-possible);
+  const placed=Math.min(planned,possible);
+  const coverage=possible?Math.min(100,Math.round((placed/possible)*100)):0;
   annualPossible.textContent=possible;
   annualPlanned.textContent=planned;
   annualRemaining.textContent=remaining;
+  if(annualCoverageText) annualCoverageText.textContent=overflow?overflow+' cours à ajuster':placed+' / '+possible+' cours placés';
+  if(annualProgressFill) annualProgressFill.style.width=coverage+'%';
   if(annualSyncText){
-    const dated=Math.min(planned,possible);
-    annualSyncText.textContent=dated+' cours placés sur '+possible+' période'+(possible>1?'s':'')+' disponible'+(possible>1?'s':'')+'. Les changements sont reflétés immédiatement.';
+    annualSyncText.textContent=overflow
+      ? 'La planification dépasse de '+overflow+' cours les périodes disponibles. Henri conserve l’ordre et te montre quoi ajuster.'
+      : remaining
+        ? remaining+' cours restent disponibles. Déplace un bloc et toutes les dates suivantes se recalculent.'
+        : 'Toute l’année disponible est placée. Déplace un bloc et toutes les dates suivantes se recalculent.';
   }
+  if(annualConflict) annualConflict.innerHTML=renderScheduleConflict(groupId);
   annualList.innerHTML=blocks.map((b,i)=>{
     const r=ranges[i];
+    const saved=getSavedSequence(groupId,b.id);
+    const isOverflow=r.allocated<r.needed;
+    const pct=r.needed?Math.round((r.allocated/r.needed)*100):100;
     let datesText='À placer';
-    let dateClass='annualDates unplaced';
     if(r.start&&r.end){
       datesText=r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end);
-      dateClass='annualDates';
-      if(r.allocated<r.needed){
-        datesText+=' · '+(r.needed-r.allocated)+' cours sans date';
-        dateClass+=' unplaced';
-      }
+      if(isOverflow) datesText+=' · '+(r.needed-r.allocated)+' sans date';
     }
-    return '<div class="annualItem" draggable="true" data-id="'+b.id+'">'+
+    const status=isOverflow?'Sans date':saved?'Séquence prête':'À planifier';
+    const statusClass=isOverflow?' warn':saved?' ready':'';
+    return '<div class="annualItem'+(isOverflow?' overflow':'')+'" draggable="true" data-id="'+b.id+'">'+
       '<div class="annualTop">'+
         '<button class="dragHandle" type="button" aria-label="Glisser '+b.sport+'" data-drag-id="'+b.id+'">≡</button>'+
-        '<div class="annualMain"><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><div class="annualSport">'+b.sport+'</div><div class="annualMeta">'+b.courses+' cours</div><div class="'+dateClass+'">'+datesText+'</div></div>'+
+        '<div class="annualMain">'+
+          '<div class="annualHeaderLine"><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
+          '<div class="annualSport">'+b.sport+'</div>'+
+          '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+
+          '<div class="annualMeta"><span>'+b.courses+' cours</span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
+          '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
+        '</div>'+
         '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
       '</div>'+
-      '<div class="itemActions"><button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button><button class="annualItemCalendar" onclick="openAnnualBlockCalendar(\''+groupId+'\',\''+b.id+'\')">Calendrier</button><button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button></div>'+
+      '<div class="itemActions">'+
+        '<button class="itemBtn primary" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+(saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>'+
+        '<button class="annualItemCalendar" onclick="openAnnualBlockCalendar(\''+groupId+'\',\''+b.id+'\')">Calendrier</button>'+
+        '<button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button>'+
+        '<button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button>'+
+      '</div>'+
     '</div>';
   }).join('');
   setupAnnualDrag();
@@ -1237,14 +1278,15 @@ function applyConflictSequenceCount(groupId,blockId){
   const msg=conflict.overflow
     ? 'Ajustement appliqué · il reste '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' sans période.'
     : 'Horaire ajusté · toutes les séances ont maintenant une date.';
-  renderQuickResult(msg);
+  if(document.getElementById('quickSession')?.classList.contains('active')) renderQuickResult(msg);
 }
 function ignoreScheduleConflict(groupId){
   const conflict=getScheduleConflict(groupId);
   if(!conflict.overflow)return;
   scheduleConflictIgnores[groupId]=conflictFingerprint(conflict);
   saveConflictIgnores();
-  renderQuickResult('Avis ignoré. Henri conserve le dépassement demandé.');
+  if(annualGroup?.value===groupId&&document.getElementById('annualPlanner')?.classList.contains('active')) renderAnnualPlanner();
+  if(document.getElementById('quickSession')?.classList.contains('active')) renderQuickResult('Avis ignoré. Henri conserve le dépassement demandé.');
 }
 
 function openQuickSession(){fillPlanGroupSelects();go('quickSession')}
