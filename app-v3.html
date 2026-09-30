@@ -354,7 +354,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.9</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.10</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -1029,7 +1029,7 @@ function updateAnnualRecommendation(forceCount=false){
   annualRecommendation.classList.remove('warning');
   if(annualDataWarning) annualDataWarning.innerHTML='';
   if(annualPossibleLabel) annualPossibleLabel.textContent='Cours possibles';
-  if(annualSuggestBtn){annualSuggestBtn.disabled=false;annualSuggestBtn.style.display='';annualSuggestBtn.onclick=useAnnualRecommendation}
+  if(annualSuggestBtn){annualSuggestBtn.disabled=false;annualSuggestBtn.style.display='none';annualSuggestBtn.onclick=useAnnualRecommendation}
   if(annualBuildBtn){annualBuildBtn.disabled=false;annualBuildBtn.onclick=()=>applyAnnualStructure(false)}
   if(forceCount||annualSequenceCount.dataset.manual!=='1') annualSequenceCount.value=rec.recommended;
   const requested=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
