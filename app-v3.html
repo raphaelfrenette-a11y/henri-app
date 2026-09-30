@@ -125,6 +125,13 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .itemBtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;color:var(--accent);font-size:11px;font-weight:720}
 .itemBtn.danger{color:#925048}
 .planHint{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.4}
+.planSync{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#eef4f1;border:1px solid #dce9e2;border-radius:16px;padding:12px 13px;margin:0 0 12px}
+.planSyncMain{display:flex;align-items:center;gap:9px;min-width:0}
+.planSyncDot{width:8px;height:8px;border-radius:50%;background:#4e765f;box-shadow:0 0 0 4px rgba(78,118,95,.09);flex:0 0 auto}
+.planSync strong{display:block;font-size:12px;color:#355848}
+.planSync small{display:block;color:#678072;font-size:10px;margin-top:2px;line-height:1.35}
+.planSyncBtn{border:0;background:#fff;color:#355848;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:780;white-space:nowrap}
+.annualItemCalendar{border:0;background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:7px 9px;font-size:11px;font-weight:760}
 .macroSeqList{display:grid;gap:9px;margin-top:12px}
 .macroSeqCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:18px;padding:15px 16px;text-align:left;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
 .macroSeqSport{font-size:16px;font-weight:790;letter-spacing:-.015em}
@@ -255,7 +262,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.5</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v4.6</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <button class="hero" onclick="openSession('Ultimate — Se démarquer','Séance 2/5 · Secondaire 3')">
@@ -293,9 +300,9 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 
 <section id="plan" class="screen">
   <h1>Planifier</h1>
-  <p class="planIntro">De l’année complète jusqu’au prochain cours. Henri garde la même structure, mais tu peux toujours la modifier.</p>
+  <p class="planIntro">De l’année complète jusqu’au prochain cours. Chaque changement se répercute automatiquement dans le calendrier.</p>
   <div class="planMenu">
-    <button class="planMenuCard" onclick="openAnnualPlanner()"><span class="planMenuIcon">A</span><span><strong>Planification annuelle</strong><small>Répartir C1, C2 et C3, choisir les sports et utiliser les jours de cours disponibles.</small></span><span class="groupArrow">›</span></button>
+    <button class="planMenuCard" onclick="openAnnualPlanner()"><span class="planMenuIcon">A</span><span><strong>Planification annuelle</strong><small>Répartir C1, C2 et C3, choisir les sports et voir immédiatement leurs vraies dates dans le calendrier.</small></span><span class="groupArrow">›</span></button>
     <button class="planMenuCard" onclick="openSequenceSetup()"><span class="planMenuIcon">S</span><span><strong>Planifier une séquence</strong><small>Créer une progression de 3, 4, 5, 6 ou 7 cours avec un gabarit entièrement modifiable.</small></span><span class="groupArrow">›</span></button>
     <button class="planMenuCard" onclick="openQuickSession()"><span class="planMenuIcon">1</span><span><strong>Séance individuelle</strong><small>Préparer rapidement une période ponctuelle, sans l’intégrer à une séquence.</small></span><span class="groupArrow">›</span></button>
   </div>
@@ -304,7 +311,7 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
 <section id="annualPlanner" class="screen">
   <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
   <h1>Planification annuelle</h1>
-  <p class="planIntro">Construis l’année par blocs. Henri calcule les cours disponibles et ce qu’il reste à planifier.</p>
+  <p class="planIntro">Construis l’année par blocs. Henri utilise l’horaire et le calendrier scolaire pour attribuer les vraies dates, puis recalcule tout dès que tu déplaces un bloc.</p>
   <div class="planForm">
     <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="renderAnnualPlanner()"></select></div>
   </div>
@@ -312,6 +319,10 @@ h1{font-size:40px;letter-spacing:-.045em;margin:6px 0 20px}
     <div class="planStat"><small>Cours possibles</small><strong id="annualPossible">0</strong></div>
     <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
     <div class="planStat"><small>Restants</small><strong id="annualRemaining">0</strong></div>
+  </div>
+  <div class="planSync">
+    <div class="planSyncMain"><span class="planSyncDot"></span><span><strong>Synchronisé avec le calendrier</strong><small id="annualSyncText">Les blocs utilisent automatiquement les périodes de ce groupe.</small></span></div>
+    <button class="planSyncBtn" onclick="openAnnualCalendar()">Voir</button>
   </div>
   <div id="annualList" class="annualList"></div>
   <div class="planForm" style="margin-top:12px">
@@ -684,6 +695,15 @@ const planCompetenceNames={C1:'Agir',C2:'Interagir',C3:'Mode de vie sain et acti
 let annualPlans=JSON.parse(localStorage.getItem('henriAnnualPlans')||'{}');
 let activeSequence=JSON.parse(localStorage.getItem('henriActiveSequence')||'null');
 let savedSequences=JSON.parse(localStorage.getItem('henriSequences')||'{}');
+function sequenceStorageKey(groupId,blockId){return groupId+'::'+blockId}
+function getSavedSequence(groupId,blockId){
+  return savedSequences[sequenceStorageKey(groupId,blockId)]||savedSequences[blockId]||null;
+}
+function setSavedSequence(groupId,blockId,sequence){
+  savedSequences[sequenceStorageKey(groupId,blockId)]=JSON.parse(JSON.stringify(sequence));
+  if(savedSequences[blockId]?.groupId===groupId) delete savedSequences[blockId];
+  localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
+}
 let individualSessions=JSON.parse(localStorage.getItem('henriIndividualSessions')||'[]');
 let scheduleConflictIgnores=JSON.parse(localStorage.getItem('henriScheduleConflictIgnores')||'{}');
 let selectedAnnualBlockId=null;
@@ -756,6 +776,10 @@ function renderAnnualPlanner(){
   annualPossible.textContent=possible;
   annualPlanned.textContent=planned;
   annualRemaining.textContent=remaining;
+  if(annualSyncText){
+    const dated=Math.min(planned,possible);
+    annualSyncText.textContent=dated+' cours placés sur '+possible+' période'+(possible>1?'s':'')+' disponible'+(possible>1?'s':'')+'. Les changements sont reflétés immédiatement.';
+  }
   annualList.innerHTML=blocks.map((b,i)=>{
     const r=ranges[i];
     let datesText='À placer';
@@ -774,7 +798,7 @@ function renderAnnualPlanner(){
         '<div class="annualMain"><span class="compBadge">'+b.comp+' · '+planCompetenceNames[b.comp]+'</span><div class="annualSport">'+b.sport+'</div><div class="annualMeta">'+b.courses+' cours</div><div class="'+dateClass+'">'+datesText+'</div></div>'+
         '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
       '</div>'+
-      '<div class="itemActions"><button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button><button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button></div>'+
+      '<div class="itemActions"><button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button><button class="annualItemCalendar" onclick="openAnnualBlockCalendar(\''+groupId+'\',\''+b.id+'\')">Calendrier</button><button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button></div>'+
     '</div>';
   }).join('');
   setupAnnualDrag();
@@ -814,14 +838,14 @@ function moveAnnualBlock(id,delta){
   const i=blocks.findIndex(b=>b.id===id), j=i+delta;
   if(i<0||j<0||j>=blocks.length) return;
   [blocks[i],blocks[j]]=[blocks[j],blocks[i]];
-  saveAnnual();renderAnnualPlanner();
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function commitAnnualDomOrder(){
   const groupId=annualGroup.value;
   const blocks=annualPlans[groupId]||[];
   const ids=[...annualList.querySelectorAll('.annualItem')].map(el=>el.dataset.id);
   annualPlans[groupId]=ids.map(id=>blocks.find(b=>b.id===id)).filter(Boolean);
-  saveAnnual();renderAnnualPlanner();
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function setupAnnualDrag(){
   if(!annualList) return;
@@ -884,6 +908,29 @@ function setupAnnualDrag(){
   });
 }
 
+function openCalendarAtDate(date){
+  if(date){
+    const d=new Date(date+'T12:00:00');
+    shownYear=d.getFullYear();
+    shownMonth=d.getMonth();
+  }
+  renderMonth();
+  renderWeek();
+  go('home');
+  setCalendarView('month');
+}
+function openAnnualCalendar(){
+  const groupId=annualGroup?.value||groupsData[0]?.id;
+  const first=getGroupCourseDates(groupId)[0]||null;
+  openCalendarAtDate(first);
+}
+function openAnnualBlockCalendar(groupId,blockId){
+  ensureAnnualPlan(groupId);
+  const blocks=annualPlans[groupId]||[];
+  const index=blocks.findIndex(b=>b.id===blockId);
+  const range=getAnnualRanges(groupId,blocks)[index];
+  openCalendarAtDate(range?.start||getGroupCourseDates(groupId)[0]||null);
+}
 function saveIndividualSessions(){
   localStorage.setItem('henriIndividualSessions',JSON.stringify(individualSessions));
 }
@@ -903,7 +950,7 @@ function rebuildPlanningAssignments(){
     ensureAnnualPlan(group.id);
     const queue=[];
     (annualPlans[group.id]||[]).forEach(block=>{
-      const saved=savedSequences[block.id];
+      const saved=getSavedSequence(group.id,block.id);
       const count=Math.max(0,Number(block.courses)||0);
       for(let i=0;i<count;i++){
         const session=saved?.sessions?.[i]||null;
@@ -969,7 +1016,7 @@ function renderMacroSequences(){
   macroSequenceList.innerHTML=blocks.map((b,i)=>{
     const r=ranges[i];
     const range=r.start&&r.end?(r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end)):'Dates à venir';
-    const saved=savedSequences[b.id];
+    const saved=getSavedSequence(groupId,b.id);
     return '<button class="macroSeqCard" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+
       '<span><span class="compBadge">'+b.comp+'</span><span class="macroSeqSport">'+b.sport+'</span><span class="macroSeqMeta">'+b.courses+' cours · '+range+'</span><span class="seqStatus'+(saved?' ready':'')+'">'+(saved?'Séquence enregistrée':'À planifier')+'</span></span>'+
       '<span class="groupArrow">›</span>'+
@@ -987,12 +1034,12 @@ function openMacroSequence(groupId,blockId){
   const group=groupsData.find(g=>g.id===groupId);
   const rangeText=range?.start&&range?.end?(range.start===range.end?formatPlanDate(range.start):formatPlanDate(range.start)+' au '+formatPlanDate(range.end)):'Dates à venir';
   sequenceChoiceHero.innerHTML='<small>'+block.comp+' · '+planCompetenceNames[block.comp]+'</small><h2>'+block.sport+'</h2><p>'+group.name+' · '+block.courses+' cours · '+rangeText+'</p>';
-  const saved=savedSequences[blockId];
+  const saved=getSavedSequence(groupId,blockId);
   existingSequenceAction.innerHTML=saved?'<button class="planPrimary" onclick="continueSavedSequence()">Continuer / modifier ma séquence</button>':'';
   go('sequenceChoice');
 }
 function continueSavedSequence(){
-  const saved=savedSequences[selectedAnnualBlockId];
+  const saved=getSavedSequence(selectedAnnualGroupId,selectedAnnualBlockId);
   if(!saved) return;
   activeSequence=JSON.parse(JSON.stringify(saved));
   renderSequenceEditor();
@@ -1097,11 +1144,16 @@ function saveSequence(){
   if(!activeSequence)return;
   localStorage.setItem('henriActiveSequence',JSON.stringify(activeSequence));
   if(activeSequence.annualBlockId){
-    savedSequences[activeSequence.annualBlockId]=JSON.parse(JSON.stringify(activeSequence));
-    localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
+    const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
+    if(block&&Number(block.courses)!==activeSequence.sessions.length){
+      block.courses=activeSequence.sessions.length;
+      saveAnnual();
+    }
+    setSavedSequence(activeSequence.groupId,activeSequence.annualBlockId,activeSequence);
     rebuildPlanningAssignments();
+    if(annualGroup?.value===activeSequence.groupId) renderAnnualPlanner();
   }
-  alert('Séquence enregistrée dans Henri.');
+  alert(activeSequence.annualBlockId?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
 }
 function openSessionEditor(index,source){
   sessionEditorSource=source||'sequence';
