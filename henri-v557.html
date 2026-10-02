@@ -2748,6 +2748,12 @@ let activeGroupId=null;
 setTimeout(fillPlanGroupSelects,0);
 function saveGroups(){
   localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
+  const map=getPersistentGroupCodeMap();
+  groupsData.forEach(g=>{
+    const vals=[g.name,...(g.aliases||[]),...(g.sourceCodes||[])];
+    vals.forEach(v=>extractEDUGroupCodes(v).forEach(code=>map[normalizeEDUCode(code)]=g.id));
+  });
+  savePersistentGroupCodeMap(map);
   if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
 }
 function renderGroups(){
@@ -3300,9 +3306,33 @@ function normalizeGroupAlias(value){
     .replace(/[^A-Z0-9]/g,'');
 }
 function extractEDUGroupCodes(text){
-  const raw=String(text||'').toUpperCase();
-  const matches=[...raw.matchAll(/EDU\s*([1-5])\s*[G6]\s*(\d)\s*[-–—_:.]?\s*(\d{1,2})/g)];
-  return [...new Set(matches.map(m=>'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0')))];
+  const raw=String(text||'').toUpperCase()
+    .replace(/[O]/g,'0')
+    .replace(/[|]/g,'1');
+  const found=[];
+  const patterns=[
+    /EDU\s*([1-5])\s*[G6]\s*([0-9])\s*[-–—_:.]?\s*([0-9]{1,2})/g,
+    /EDU\s*([1-5])\s*[G6]\s*([0-9])\s+([0-9]{1,2})/g
+  ];
+  patterns.forEach(re=>{
+    for(const m of raw.matchAll(re)){
+      const code='EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0');
+      if(!found.includes(code))found.push(code);
+    }
+  });
+  return found;
+}
+function getPersistentGroupCodeMap(){
+  try{return JSON.parse(localStorage.getItem('henriGroupCodeMap')||'{}')||{}}catch(e){return {}}
+}
+function savePersistentGroupCodeMap(map){localStorage.setItem('henriGroupCodeMap',JSON.stringify(map||{}))}
+function rebuildPersistentGroupCodeMap(){
+  const map=getPersistentGroupCodeMap();
+  groupsData.forEach(g=>(g.sourceCodes||[]).forEach(v=>{
+    const code=normalizeEDUCode(v);if(code)map[code]=g.id;
+  }));
+  savePersistentGroupCodeMap(map);
+  return map;
 }
 function groupSignatureFromCode(code){
   const m=String(code||'').toUpperCase().match(/EDU([1-5])G\d-?(\d{1,2})/);
@@ -3368,6 +3398,12 @@ function matchImportedGroup(rawCodeOrName){
     const exactCode=groupsData.find(g=>groupKeys(g).includes(fullCode));
     if(exactCode)return exactCode;
   }
+  if(fullCode){
+    const map=getPersistentGroupCodeMap();
+    const mappedId=map[fullCode];
+    const mapped=groupsData.find(g=>g.id===mappedId);
+    if(mapped)return mapped;
+  }
   const normalized=normalizeGroupAlias(raw);
   const exactName=groupsData.find(g=>groupKeys(g).includes(normalized));
   if(exactName)return exactName;
@@ -3394,7 +3430,7 @@ function parseGroupDocuments(docs){
     const groupMatch=text.match(/(?:Secondaire\s*\d+[^\n]{0,45}(?:Groupe|gr\.?)[^\n]{0,24}|Groupe\s*[A-Za-z0-9 ._-]{1,35})/i);
     if(groupMatch)groupName=groupMatch[0].replace(/\s+/g,' ').trim();
     if(!groupName)groupName=(file.name||('Groupe '+(fileIndex+1))).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
-    const identity=inferGroupIdentity(text,groupName);
+    const identity=inferGroupIdentity(String(text||'')+'\n'+String(file.name||''),groupName);
     groupName=identity.canonicalName;
     let candidates=[];
     if((file.name||'').toLowerCase().endsWith('.csv')){
@@ -3916,6 +3952,7 @@ async function handleSetupFile(type,input){
       groupsData=merged;
       importedSetupData.groupSheets=groupsData;
       saveGroups();
+      rebuildPersistentGroupCodeMap();
       state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' importé'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves'+(weak.length?' · '+weak.length+' à vérifier':'');
       localStorage.setItem('henriImportedGroups',JSON.stringify(groups));
       if(groupAIReview&&groupAIReviewList){
@@ -3927,11 +3964,22 @@ async function handleSetupFile(type,input){
       const teaching=Object.values(parsed).flat().filter(x=>x.group);
       if(!teaching.length)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
       // Re-run linkage against the currently imported groups, using exact names/codes first.
+      const codeMap=getPersistentGroupCodeMap();
       Object.values(parsed).forEach(day=>day.forEach(x=>{
         if(!x.group)return;
-        const g=matchImportedGroup(x.groupCode||x.group);
-        if(g){x.group=g.name;x.matchedGroupId=g.id}
+        const code=normalizeEDUCode(x.groupCode||x.group);
+        let g=matchImportedGroup(code||x.group);
+        if(!g&&code){
+          // Compare against every visible/raw identifier attached to each saved group.
+          g=groupsData.find(gr=>[gr.name,...(gr.aliases||[]),...(gr.sourceCodes||[])]
+            .some(v=>normalizeEDUCode(v)===code));
+        }
+        if(g){
+          x.group=g.name;x.matchedGroupId=g.id;
+          if(code)codeMap[code]=g.id;
+        }
       }));
+      savePersistentGroupCodeMap(codeMap);
       const linkedIds=new Set(teaching.map(x=>x.matchedGroupId).filter(Boolean));
       importedSetupData.teacherSchedule=parsed;
       state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedIds.size+'/'+groupsData.length+' groupes liés';
