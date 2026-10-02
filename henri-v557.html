@@ -4029,6 +4029,23 @@ function assignTeacherGroupCode(code,groupId){
   if(state)state.textContent='9 jours-cycle · '+Object.values(parsed||{}).flat().filter(x=>x.groupCode).length+' cours · '+info.linked+'/'+info.total+' groupes liés';
   renderTeacherLinkReview(parsed);
 }
+function closeTeacherLinkModal(){const m=document.getElementById('teacherLinkModal');if(m)m.style.display='none'}
+function openTeacherLinkModal(parsed){
+ const modal=document.getElementById('teacherLinkModal'),body=document.getElementById('teacherLinkModalBody'),meta=document.getElementById('teacherLinkModalMeta');if(!modal||!body||!meta)return;
+ const info=teacherLinkCount(parsed),unresolved=info.codes.filter(code=>!info.map[code]);if(!unresolved.length){closeTeacherLinkModal();return}
+ const code=unresolved[0],used=new Set(Object.values(info.map)),candidates=groupsData.filter(g=>!used.has(g.id));
+ meta.textContent=info.linked+' sur '+info.total+' groupes liés · '+unresolved.length+' restant'+(unresolved.length>1?'s':'');
+ const esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ body.innerHTML='<div style="font-size:12px;color:#8a8f96;font-weight:750">CODE DANS TON HORAIRE</div><div style="font-size:25px;font-weight:900;margin:4px 0 16px">'+esc(code)+'</div><div style="font-size:13px;font-weight:750;margin-bottom:8px">Quelle liste correspond à ce groupe?</div><div style="display:grid;gap:8px">'+candidates.map(g=>{const names=(g.students||[]).slice(0,4).map(s=>s.name).join(' · ');return '<button type="button" onclick="resolveTeacherCodeFromModal(\''+esc(code)+'\',\''+esc(g.id)+'\')" style="text-align:left;border:1px solid #e4e6e9;background:#fafbfc;border-radius:14px;padding:12px 14px;font:inherit"><b style="display:block">'+esc(g.name||g.sourceFile||'Liste')+'</b><span style="display:block;color:#777d85;font-size:11px;margin-top:3px">'+esc(names)+'</span></button>'}).join('')+'</div>';
+ modal.style.display='flex';
+}
+function resolveTeacherCodeFromModal(code,groupId){
+ const map=getPersistentGroupCodeMap();teacherScheduleCodes(importedSetupData.teacherSchedule).forEach(k=>{if(k!==code&&map[k]===groupId)delete map[k]});map[code]=groupId;savePersistentGroupCodeMap(map);
+ relinkTeacherSchedule(importedSetupData.teacherSchedule);localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(importedSetupData.teacherSchedule));
+ const info=teacherLinkCount(importedSetupData.teacherSchedule),teaching=Object.values(importedSetupData.teacherSchedule||{}).flat().filter(x=>x.groupCode),state=document.getElementById('teacherScheduleState');
+ if(state)state.textContent='9 jours-cycle · '+teaching.length+' cours · '+info.linked+'/'+info.total+' groupes liés';
+ renderTeacherLinkReview(importedSetupData.teacherSchedule);if(info.linked===info.total)closeTeacherLinkModal();else openTeacherLinkModal(importedSetupData.teacherSchedule);
+}
 async function handleSetupFile(type,input){
   if(type==='teacherSchedule'&&!setupFiles.groupSheets){
     input.value='';
@@ -4108,6 +4125,7 @@ async function handleSetupFile(type,input){
       state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkInfo.linked+'/'+linkInfo.total+' groupes liés';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
       renderTeacherLinkReview(parsed);
+      if(linkInfo.linked<linkInfo.total)setTimeout(()=>openTeacherLinkModal(parsed),80);
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
       const days=Object.keys(parsed).length;
@@ -4302,5 +4320,5 @@ setTimeout(()=>{
   updateGenerateState();
 },0);
 </script>
-</body>
+<div id="teacherLinkModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(18,22,28,.34);backdrop-filter:blur(12px);align-items:flex-end;justify-content:center;padding:16px"><div style="width:min(620px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:26px;padding:22px;box-shadow:0 24px 80px rgba(0,0,0,.18)"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px"><div><div style="font-size:20px;font-weight:850">Terminer la liaison des groupes</div><div id="teacherLinkModalMeta" style="margin-top:5px;color:#7a7f87;font-size:13px"></div></div><button type="button" onclick="closeTeacherLinkModal()" style="border:0;background:#f2f3f5;border-radius:50%;width:34px;height:34px;font-size:20px">×</button></div><div id="teacherLinkModalBody" style="margin-top:18px"></div></div></div></body>
 </html>
