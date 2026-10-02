@@ -497,7 +497,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.40</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.41</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -663,6 +663,10 @@ body{background:#f8f7f4}
   <button class="back" onclick="returnFromSequenceEditor()">‹ Retour</button>
   <div id="sequenceHeader" class="seqHeader"></div>
   <div id="sequenceOverview" class="seqOverview"></div>
+  <div class="planForm" style="margin-top:12px">
+    <div class="planField"><label>Objectif de la séquence</label><select id="sequenceObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('sequence',this.value)"></select></div>
+    <div class="planField" id="sequenceObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sequenceObjectiveCustom" class="planControl" placeholder="Écrire l’objectif de la séquence" oninput="saveCustomObjective('sequence',this.value)"></div>
+  </div>
   <div id="sequenceLessons" class="seqList"></div>
   <div class="seqAddRow">
     <button class="addSection" style="margin-top:0" onclick="addSequenceLesson()">+ Ajouter un cours</button>
@@ -675,8 +679,10 @@ body{background:#f8f7f4}
   <button class="back" onclick="returnFromSessionEditor()">‹ Retour</button>
   <div class="muted" id="editSessionMeta"></div>
   <h1 id="editSessionTitle">Séance</h1>
-  <div class="sessionObjective"><small>Objectif du cours</small><p id="editSessionObjectiveText"></p></div>
-  <button class="planSecondary" onclick="changeSessionObjective()">Modifier l’objectif</button>
+  <div class="planForm" style="margin-top:12px">
+    <div class="planField"><label>Objectif du cours</label><select id="sessionObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('session',this.value)"></select></div>
+    <div class="planField" id="sessionObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sessionObjectiveCustom" class="planControl" placeholder="Écrire l’objectif du cours" oninput="saveCustomObjective('session',this.value)"></div>
+  </div>
   <div id="editBlocks" class="editBlocks" style="margin-top:12px"></div>
   <button class="addSection" onclick="addSessionSection()">+ Ajouter une section</button>
 </section>
@@ -688,10 +694,11 @@ body{background:#f8f7f4}
   <div id="quickContext" class="quickScheduleSuccess" style="display:none;margin:0 0 12px"></div>
   <div class="planForm">
     <div class="planGrid">
-      <div class="planField"><label>Sport</label><select id="quickSport" class="planControl"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Flag football</option><option>Ultimate</option><option>Volleyball</option></select></div>
+      <div class="planField"><label>Sport</label><select id="quickSport" class="planControl" onchange="refreshQuickObjectiveOptions()"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Flag football</option><option>Ultimate</option><option>Volleyball</option></select></div>
       <div class="planField"><label>Groupe / niveau</label><select id="quickGroup" class="planControl"></select></div>
       <div class="planField"><label>Durée</label><select id="quickDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
-      <div class="planField"><label>Objectif</label><input id="quickObjective" class="planControl" value="Travailler l’habileté ciblée dans une situation progressive."></div>
+      <div class="planField"><label>Objectif</label><select id="quickObjective" class="planControl" onchange="handleObjectiveChoice('quick',this.value)"></select></div>
+      <div class="planField" id="quickObjectiveCustomWrap" style="display:none"><label>Objectif personnalisé</label><input id="quickObjectiveCustom" class="planControl" placeholder="Écrire l’objectif du cours" oninput="saveCustomObjective('quick',this.value)"></div>
     </div>
     <button class="planPrimary" onclick="buildQuickSession()">Créer la séance</button>
   </div>
@@ -2025,6 +2032,135 @@ function createSequenceFromMacro(useHenri){
 }
 function openStandaloneSequence(){fillPlanGroupSelects();go('standaloneSequence')}
 function returnFromSequenceEditor(){go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
+function getObjectiveSuggestions(sport,comp){
+  const base={
+    C1:[
+      'Exécuter et ajuster des actions motrices selon les contraintes de la situation.',
+      'Enchaîner des actions motrices avec contrôle, précision et efficacité.',
+      'Observer sa prestation et apporter des ajustements pour progresser.'
+    ],
+    C2:[
+      'Créer des options de jeu et soutenir efficacement les actions des partenaires.',
+      'Appliquer des principes d’action et de communication dans une situation collective.',
+      'Observer le jeu et ajuster une stratégie avec ses partenaires.'
+    ],
+    C3:[
+      'Planifier et réaliser une activité physique en fonction d’un objectif personnel.',
+      'Reconnaître les effets de l’effort et ajuster son engagement de façon sécuritaire.',
+      'Faire des choix favorisant une pratique régulière, saine et active.'
+    ]
+  };
+  const specific={
+    'Badminton':[
+      'Contrôler la trajectoire et le placement du volant pour maintenir ou construire l’échange.',
+      'Varier profondeur, largeur et rythme afin de déplacer l’adversaire.',
+      'Choisir une frappe pertinente selon sa position et celle de l’adversaire.'
+    ],
+    'Basketball':[
+      'Se démarquer et créer des lignes de passe pour soutenir la progression du ballon.',
+      'Enchaîner passe, déplacement et replacement dans une organisation collective.',
+      'Ajuster les choix offensifs et défensifs selon l’espace disponible.'
+    ],
+    'Flag football':[
+      'Créer une séparation avec son défenseur et offrir une cible au porteur.',
+      'Synchroniser les tracés et les passes dans une organisation offensive.',
+      'Protéger les corridors de passe et ajuster la couverture défensive.'
+    ],
+    'Ultimate':[
+      'Se rendre disponible et occuper l’espace libre pour maintenir la possession.',
+      'Enchaîner passes et déplacements afin de faire progresser le disque.',
+      'Ajuster le marquage et la stratégie selon les déplacements adverses.'
+    ],
+    'Volleyball':[
+      'Orienter les contacts pour assurer la continuité et construire l’attaque.',
+      'Se déplacer et se replacer pour soutenir les partenaires dans l’échange.',
+      'Communiquer et organiser collectivement la réception, la passe et l’attaque.'
+    ],
+    'Conditionnement physique':[
+      'Exécuter les mouvements avec une technique sécuritaire et adaptée à l’objectif d’entraînement.',
+      'Ajuster l’intensité, la charge ou le volume selon ses capacités et l’objectif visé.',
+      'Observer ses réactions à l’effort et utiliser ces informations pour réguler son entraînement.'
+    ],
+    'Musculation':[
+      'Exécuter les exercices avec une technique sécuritaire et un contrôle adéquat.',
+      'Choisir une charge et un volume cohérents avec l’objectif d’entraînement.',
+      'Analyser sa prestation afin d’ajuster progressivement l’entraînement.'
+    ],
+    'Course':[
+      'Adapter son allure et son effort afin de maintenir une intensité appropriée.',
+      'Utiliser des repères personnels pour gérer son rythme pendant l’effort.',
+      'Analyser ses sensations et ses résultats pour ajuster sa stratégie de course.'
+    ],
+    'Handball':[
+      'Se démarquer et créer des lignes de passe pour faire progresser le ballon.',
+      'Coordonner les déplacements offensifs avec ceux des partenaires.',
+      'Ajuster l’organisation défensive selon la position du ballon et des adversaires.'
+    ],
+    'Soccer':[
+      'Créer et utiliser des espaces libres pour soutenir la progression du ballon.',
+      'Coordonner passes, déplacements et soutien dans une organisation collective.',
+      'Ajuster les choix offensifs et défensifs selon l’évolution du jeu.'
+    ],
+    'Pickleball':[
+      'Contrôler le placement et la trajectoire de la balle pour construire l’échange.',
+      'Se replacer efficacement et exploiter les espaces disponibles.',
+      'Choisir une frappe pertinente selon la position de l’adversaire.'
+    ]
+  };
+  const list=[...(specific[sport]||[]),...(base[comp]||base.C2)];
+  return [...new Set(list)];
+}
+function objectiveOptionsHTML(sport,comp,current=''){
+  const suggestions=getObjectiveSuggestions(sport,comp);
+  const isSuggested=suggestions.includes(current);
+  return '<option value="__custom__"'+(!isSuggested&&current?' selected':'')+'>Personnaliser…</option>'+
+    suggestions.map(v=>'<option value="'+v.replace(/"/g,'&quot;')+'"'+(v===current?' selected':'')+'>'+v+'</option>').join('');
+}
+function renderObjectiveSelector(kind,current=''){
+  let select,custom,wrap,sport,comp;
+  if(kind==='sequence'){
+    select=document.getElementById('sequenceObjectiveSelect');custom=document.getElementById('sequenceObjectiveCustom');wrap=document.getElementById('sequenceObjectiveCustomWrap');
+    sport=activeSequence?.sport;comp=activeSequence?.comp;
+  }else if(kind==='session'){
+    select=document.getElementById('sessionObjectiveSelect');custom=document.getElementById('sessionObjectiveCustom');wrap=document.getElementById('sessionObjectiveCustomWrap');
+    sport=sessionEditorSource==='quick'?quickSessionData?.sport:activeSequence?.sport;
+    comp=sessionEditorSource==='quick'?'C2':activeSequence?.comp;
+  }else{
+    select=document.getElementById('quickObjective');custom=document.getElementById('quickObjectiveCustom');wrap=document.getElementById('quickObjectiveCustomWrap');
+    sport=quickSport?.value;comp='C2';
+  }
+  if(!select)return;
+  const suggestions=getObjectiveSuggestions(sport,comp);
+  const matched=suggestions.includes(current);
+  select.innerHTML=objectiveOptionsHTML(sport,comp,current);
+  if(current&&matched)select.value=current;
+  else select.value='__custom__';
+  if(custom)custom.value=matched?'':(current||'');
+  if(wrap)wrap.style.display=select.value==='__custom__'?'':'none';
+  syncHenriSelect(select);
+}
+function handleObjectiveChoice(kind,value){
+  let wrap,custom;
+  if(kind==='sequence'){wrap=sequenceObjectiveCustomWrap;custom=sequenceObjectiveCustom}
+  else if(kind==='session'){wrap=sessionObjectiveCustomWrap;custom=sessionObjectiveCustom}
+  else{wrap=quickObjectiveCustomWrap;custom=quickObjectiveCustom}
+  if(value==='__custom__'){
+    wrap.style.display='';
+    setTimeout(()=>custom?.focus(),50);
+    return;
+  }
+  wrap.style.display='none';
+  if(kind==='sequence'&&activeSequence)activeSequence.objective=value;
+  else if(kind==='session'){const s=currentEditableSession();if(s)s.objective=value}
+}
+function saveCustomObjective(kind,value){
+  const clean=value.trim();
+  if(kind==='sequence'&&activeSequence)activeSequence.objective=clean;
+  else if(kind==='session'){const s=currentEditableSession();if(s)s.objective=clean}
+}
+function refreshQuickObjectiveOptions(){
+  renderObjectiveSelector('quick','');
+}
 function defaultBlockSet(comp){
   if(comp==='C1') return [
     {type:'Échauffement',title:'Activation liée au thème',minutes:7},
@@ -2077,7 +2213,9 @@ function henriSequencePlan(sport,count){
 function makeSequence({comp,sport,groupId,groupName,count,duration,annualBlockId=null,useHenri=false}){
   const suggested=henriSequencePlan(sport,count);
   return {
-    id:'seq-'+Date.now(),annualBlockId,comp,sport,groupId,groupName,duration,sessions:
+    id:'seq-'+Date.now(),annualBlockId,comp,sport,groupId,groupName,duration,
+    objective:getObjectiveSuggestions(sport,comp)[0]||'',
+    sessions:
     Array.from({length:count},(_,i)=>({
       title:useHenri?suggested[i][0]:'Cours '+(i+1)+' · '+sport,
       objective:useHenri?suggested[i][1]:'Objectif à préciser pour '+sport+'.',
@@ -2131,6 +2269,7 @@ function renderSequenceEditor(){
     '<div class="seqOverviewFoot"><span>'+(isScheduled?(placed===total?'Toutes les séances ont une date dans le calendrier.':(total-placed)+' séance'+(total-placed>1?'s':'')+' sans date.'):'Séquence indépendante · les dates seront attribuées lorsqu’elle sera intégrée à l’année.')+'</span>'+
     (isScheduled?'<button onclick="openSequenceCalendar()">Voir dans le calendrier</button>':'')+'</div>';
   if(sequenceCalendarBtn) sequenceCalendarBtn.style.display=isScheduled?'':'none';
+  renderObjectiveSelector('sequence',activeSequence.objective||'');
   sequenceLessons.innerHTML=activeSequence.sessions.map((session,i)=>{
     const date=dates[i]||null;
     const objective=session.objective||'Objectif à préciser.';
@@ -2159,7 +2298,7 @@ function normalizeGenericSequenceTitles(){
 }
 function addSequenceLesson(){
   if(!activeSequence)return;
-  activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:'Objectif à préciser.',blocks:defaultBlockSet().map(b=>({...b}))});
+  activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:getObjectiveSuggestions(activeSequence.sport,activeSequence.comp)[0]||'Objectif à préciser.',blocks:defaultBlockSet(activeSequence.comp).map(b=>({...b}))});
   normalizeGenericSequenceTitles();
   renderSequenceEditor();
 }
@@ -2203,7 +2342,7 @@ function openSessionEditor(index,source){
   if(!session)return;
   editSessionMeta.textContent=sessionEditorSource==='quick'?'Séance individuelle':'Séance '+(index+1)+' sur '+activeSequence.sessions.length;
   editSessionTitle.textContent=session.title;
-  editSessionObjectiveText.textContent=session.objective;
+  renderObjectiveSelector('session',session.objective||'');
   renderSessionBlocks(session);
   go('sessionEditor');
 }
@@ -2211,7 +2350,6 @@ function renderSessionBlocks(session){
   editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+b.type+'</div><div class="editBlockTitle">'+b.title+'</div></div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
 }
 function currentEditableSession(){return sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[activeSessionIndex]}
-function changeSessionObjective(){const s=currentEditableSession();if(!s)return;const v=prompt('Objectif du cours',s.objective);if(v!==null){s.objective=v;editSessionObjectiveText.textContent=v}}
 function editSessionBlock(i){
   const s=currentEditableSession(),b=s?.blocks[i];if(!b)return;
   const title=prompt('Titre de la section',b.title);if(title!==null&&title.trim())b.title=title.trim();
@@ -2292,6 +2430,7 @@ function ignoreScheduleConflict(groupId){
 function openQuickSession(){
   quickPrefillDate=null;
   fillPlanGroupSelects();
+  refreshQuickObjectiveOptions();
   if(quickContext){quickContext.style.display='none';quickContext.textContent=''}
   go('quickSession')
 }
@@ -2303,6 +2442,7 @@ function openQuickSessionForCourse(date,index){
   quickPrefillDate=date;
   fillPlanGroupSelects();
   if(quickGroup)quickGroup.value=group.id;
+  refreshQuickObjectiveOptions();
   quickSessionData=null;
   if(quickResult){quickResult.classList.remove('show');quickResult.innerHTML=''}
   const d=new Date(date+'T12:00:00');
@@ -2321,7 +2461,7 @@ function buildQuickSession(){
     groupId:quickGroup.value,
     groupName:group?.name||'',
     duration:quickDuration.value,
-    objective:quickObjective.value||'Objectif à préciser.',
+    objective:quickObjective.value==='__custom__'?(quickObjectiveCustom.value.trim()||'Objectif à préciser.'):quickObjective.value,
     blocks:defaultBlockSet().map(b=>({...b}))
   };
   renderQuickResult();
@@ -3079,7 +3219,7 @@ renderGroups();
 fillTeamBuilderGroups();
 fillExceptionGroupOptions();
 renderCalendarExceptions();
-setTimeout(()=>enhanceAllHenriSelects(),0);
+setTimeout(()=>{enhanceAllHenriSelects();refreshQuickObjectiveOptions()},0);
 </script>
 </body>
 </html>
