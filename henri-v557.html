@@ -3362,7 +3362,8 @@ function rebuildPersistentGroupCodeMap(){
   return map;
 }
 function groupSignatureFromCode(code){
-  const m=String(code||'').toUpperCase().match(/EDU([1-5])G\d-?(\d{1,2})/);
+  const normalized=normalizeEDUCode(code);
+  const m=String(normalized||'').match(/EDU([1-5])G\d-(\d{2})/);
   return m?'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0'):'';
 }
 function inferGroupIdentity(text,fallbackName=''){
@@ -3373,7 +3374,15 @@ function inferGroupIdentity(text,fallbackName=''){
   let level=null,num=null;
   const m=hay.match(/(?:secondaire|sec\.?|s)\s*([1-5])[^\n]{0,30}(?:groupe|gr\.?)\s*0?(\d{1,2})/i);
   if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0');}
-  if(level&&num)aliases.add(normalizeGroupAlias('Secondaire '+level+' Groupe '+num));
+  if(!level&&codes.length===1){
+    const sig=groupSignatureFromCode(codes[0]);
+    const sm=sig.match(/^S([1-5])G(\d{2})$/);
+    if(sm){level=sm[1];num=sm[2];}
+  }
+  if(level&&num){
+    aliases.add('S'+level+'G'+String(Number(num)).padStart(2,'0'));
+    aliases.add(normalizeGroupAlias('Secondaire '+level+' Groupe '+num));
+  }
   if(fallbackName)aliases.add(normalizeGroupAlias(fallbackName));
   return {canonicalName:fallbackName||codes[0]||(level&&num?'Secondaire '+level+' · Groupe '+num:'Groupe'),aliases:[...aliases].filter(Boolean),level,number:num,codes};
 }
@@ -3388,7 +3397,10 @@ function semanticGroupKey(value){
 function canonicalGroupKey(value){return normalizeEDUCode(value)||semanticGroupKey(value)||normalizeGroupAlias(value);}
 function groupKeys(g){
   const keys=new Set();
-  (g?.sourceCodes||[]).forEach(v=>{const code=normalizeEDUCode(v);if(code)keys.add(code);});
+  (g?.sourceCodes||[]).forEach(v=>{
+    const code=normalizeEDUCode(v);
+    if(code){keys.add(code);const sig=groupSignatureFromCode(code);if(sig)keys.add(sig);}
+  });
   [g?.name,...(g?.aliases||[])].forEach(v=>{
     const code=normalizeEDUCode(v);if(code)keys.add(code);
     const n=normalizeGroupAlias(v);if(n)keys.add(n);
@@ -3406,6 +3418,13 @@ function matchImportedGroup(rawCodeOrName){
     const map=getPersistentGroupCodeMap();
     const mapped=groupsData.find(g=>g.id===map[code]);
     if(mapped)return mapped;
+    // Secondary bridge: EDU4G2-02 -> Secondaire 4 / groupe 02.
+    // Use it only when it identifies exactly ONE imported class.
+    const signature=groupSignatureFromCode(code);
+    if(signature){
+      const bySignature=groupsData.filter(g=>groupKeys(g).includes(signature));
+      if(bySignature.length===1)return bySignature[0];
+    }
     // OCR-tolerant fallback: only accept a unique one-character difference in the COMPLETE code.
     const compact=s=>String(s||'').replace(/[^A-Z0-9]/g,'');
     const target=compact(code);
