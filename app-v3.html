@@ -499,7 +499,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.50</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.51</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -3207,45 +3207,35 @@ function aiOCRScore(result){
 }
 async function runAIPhotoOCR(file,onProgress){
   if(!window.Tesseract)throw new Error('Le moteur IA de lecture ne s’est pas chargé.');
-  const passes=['enhanced','original'];
+  const passes=['enhanced','original','threshold'];
   let best=null;
   for(let p=0;p<passes.length;p++){
-    const source=passes[p]==='original'?file:await prepareImageForAI(file,passes[p]);
+    const mode=passes[p];
+    const source=mode==='original'?file:await prepareImageForAI(file,mode);
     const result=await Tesseract.recognize(source,'fra+eng',{
       logger:m=>{
         if(m.status==='recognizing text'&&onProgress){
-          const base=p/passes.length;
-          const step=(m.progress||0)/passes.length;
-          onProgress(Math.min(99,Math.round((base+step)*100)));
+          onProgress(Math.min(99,Math.round(((p+(m.progress||0))/passes.length)*100)));
         }
       }
     });
+    const words=(result?.data?.words||[]).map(w=>({
+      text:String(w.text||'').trim(),
+      confidence:Number(w.confidence||0),
+      bbox:w.bbox?{x0:w.bbox.x0,y0:w.bbox.y0,x1:w.bbox.x1,y1:w.bbox.y1}:null
+    })).filter(w=>w.text&&w.bbox);
     const candidate={
       text:normalizeImportText(result?.data?.text||''),
       confidence:Math.round(Number(result?.data?.confidence||0)),
       score:aiOCRScore(result),
-      pass:passes[p]
+      pass:mode,
+      words
     };
     if(!best||candidate.score>best.score)best=candidate;
-    const likelyNames=candidate.text.split('\n').filter(looksLikePersonName).length;
-    if(candidate.confidence>=86&&likelyNames>=12)break;
+    const classCodes=(candidate.text.match(/\bEDU\s*[1-5]\s*G\s*\d\s*[-–]?\s*\d{1,2}\b/gi)||[]).length;
+    if(candidate.confidence>=82&&classCodes>=5)break;
   }
   if(!best?.text)throw new Error('Aucun texte lisible détecté dans '+(file.name||'la photo')+'.');
-  if(best.confidence<72||best.text.split('\n').filter(looksLikePersonName).length<6){
-    const source=await prepareImageForAI(file,'threshold');
-    const result=await Tesseract.recognize(source,'fra+eng',{
-      logger:m=>{
-        if(m.status==='recognizing text'&&onProgress)onProgress(Math.min(99,Math.round(70+(m.progress||0)*29)));
-      }
-    });
-    const candidate={
-      text:normalizeImportText(result?.data?.text||''),
-      confidence:Math.round(Number(result?.data?.confidence||0)),
-      score:aiOCRScore(result),
-      pass:'threshold'
-    };
-    if(candidate.score>best.score)best=candidate;
-  }
   if(onProgress)onProgress(100);
   return best;
 }
@@ -3263,15 +3253,15 @@ async function readSetupFile(file,onProgress){
       pages.push(content.items.map(i=>i.str).join(' '));
       if(onProgress)onProgress(Math.round((p/pdf.numPages)*100));
     }
-    return {text:normalizeImportText(pages.join('\n')),confidence:100,engine:'PDF'};
+    return {text:normalizeImportText(pages.join('\n')),confidence:100,engine:'PDF',words:[]};
   }
   if(name.endsWith('.csv')||name.endsWith('.txt')||name.endsWith('.json')){
     if(onProgress)onProgress(100);
-    return {text:normalizeImportText(await file.text()),confidence:100,engine:'Texte'};
+    return {text:normalizeImportText(await file.text()),confidence:100,engine:'Texte',words:[]};
   }
   if((file.type||'').startsWith('image/')){
     const ai=await runAIPhotoOCR(file,onProgress);
-    return {text:ai.text,confidence:ai.confidence,engine:'IA locale',pass:ai.pass};
+    return {text:ai.text,confidence:ai.confidence,engine:'IA locale',pass:ai.pass,words:ai.words||[]};
   }
   throw new Error('Format non pris en charge : '+(file.name||'fichier')+'.');
 }
@@ -3293,6 +3283,79 @@ function looksLikePersonName(line){
   const words=clean.split(' ').filter(Boolean);
   return words.length>=2&&words.length<=5&&words.every(w=>/^[A-Za-zÀ-ÖØ-öø-ÿ'’.-]+$/.test(w));
 }
+function normalizeGroupAlias(value){
+  return String(value||'').toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Z0-9]/g,'');
+}
+function extractEDUGroupCodes(text){
+  const raw=String(text||'').toUpperCase();
+  const matches=[...raw.matchAll(/EDU\s*([1-5])\s*G\s*(\d)\s*[-–]?\s*(\d{1,2})/g)];
+  return [...new Set(matches.map(m=>'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0')))];
+}
+function groupSignatureFromCode(code){
+  const m=String(code||'').toUpperCase().match(/EDU([1-5])G\d-?(\d{1,2})/);
+  return m?'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0'):'';
+}
+function inferGroupIdentity(text,fallbackName=''){
+  const aliases=new Set();
+  const codes=extractEDUGroupCodes(text);
+  codes.forEach(code=>{
+    aliases.add(normalizeGroupAlias(code));
+    const sig=groupSignatureFromCode(code);
+    if(sig)aliases.add(sig);
+  });
+  const hay=String(text||'')+' '+String(fallbackName||'');
+  const secGroupPatterns=[
+    /(?:secondaire|sec\.?|s)\s*([1-5])[^\n]{0,25}(?:groupe|gr\.?)\s*0?(\d{1,2})/i,
+    /\b([1-5])\s*[-–]\s*0?(\d{1,2})\b/
+  ];
+  let level=null,num=null;
+  for(const re of secGroupPatterns){
+    const m=hay.match(re);
+    if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0');break}
+  }
+  if(!level&&codes[0]){
+    const m=codes[0].match(/EDU([1-5])G\d-(\d{2})/);
+    if(m){level=m[1];num=m[2]}
+  }
+  if(level&&num){
+    aliases.add('S'+level+'G'+num);
+    aliases.add(normalizeGroupAlias('Secondaire '+level+' Groupe '+num));
+  }
+  if(fallbackName)aliases.add(normalizeGroupAlias(fallbackName));
+  return {
+    canonicalName:level&&num?'Secondaire '+level+' · Groupe '+num:(fallbackName||codes[0]||'Groupe'),
+    aliases:[...aliases].filter(Boolean),
+    level,
+    number:num,
+    codes
+  };
+}
+function matchImportedGroup(rawCodeOrName){
+  const raw=String(rawCodeOrName||'');
+  const aliases=new Set([normalizeGroupAlias(raw)]);
+  extractEDUGroupCodes(raw).forEach(code=>{
+    aliases.add(normalizeGroupAlias(code));
+    const sig=groupSignatureFromCode(code);
+    if(sig)aliases.add(sig);
+  });
+  const inferred=inferGroupIdentity(raw,raw);
+  inferred.aliases.forEach(a=>aliases.add(a));
+  let best=null,bestScore=0;
+  for(const g of groupsData){
+    const gAliases=new Set([normalizeGroupAlias(g.name),...(g.aliases||[]).map(normalizeGroupAlias)]);
+    let score=0;
+    aliases.forEach(a=>{
+      if(gAliases.has(a))score=Math.max(score,100);
+      else for(const ga of gAliases){
+        if(a&&ga&&(a.includes(ga)||ga.includes(a))&&Math.min(a.length,ga.length)>=5)score=Math.max(score,70);
+      }
+    });
+    if(score>bestScore){best=g;bestScore=score}
+  }
+  return bestScore>=70?best:null;
+}
 function parseGroupDocuments(docs){
   const result=[];
   docs.forEach(({file,text,confidence,engine},fileIndex)=>{
@@ -3300,6 +3363,8 @@ function parseGroupDocuments(docs){
     const groupMatch=text.match(/(?:Secondaire\s*\d+[^\n]{0,45}(?:Groupe|gr\.?)[^\n]{0,24}|Groupe\s*[A-Za-z0-9 ._-]{1,35})/i);
     if(groupMatch)groupName=groupMatch[0].replace(/\s+/g,' ').trim();
     if(!groupName)groupName=(file.name||('Groupe '+(fileIndex+1))).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
+    const identity=inferGroupIdentity(text,groupName);
+    groupName=identity.canonicalName;
     let candidates=[];
     if((file.name||'').toLowerCase().endsWith('.csv')){
       const rows=text.split('\n').map(r=>r.split(/[;,]/).map(v=>v.trim()).filter(Boolean)).filter(r=>r.length);
@@ -3337,31 +3402,138 @@ function parseGroupDocuments(docs){
         sourceFile:file.name||'Photo '+(fileIndex+1),
         importConfidence:Number(confidence||100),
         importEngine:engine||'Lecture',
+        aliases:identity.aliases,
+        sourceCodes:identity.codes,
+        level:identity.level,
+        groupNumber:identity.number,
         students:unique.map((name,i)=>({id:'st-'+Date.now()+'-'+fileIndex+'-'+i,name,skill:3,leader:false,gender:'U',compatible:[],incompatible:[]}))
       });
     }
   });
   return result;
 }
+function normalizeEDUCode(raw){
+  const m=String(raw||'').toUpperCase().replace(/\s+/g,'').match(/EDU([1-5])G(\d)[-–]?(\d{1,2})/);
+  return m?'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0'):'';
+}
+function periodTimeFromColumn(index){
+  const times=['8 h 10','9 h 35','10 h 55','12 h 35','14 h 00'];
+  return times[index]||('Période '+(index+1));
+}
+function clusterValues(values,tolerance){
+  const sorted=[...values].sort((a,b)=>a-b);
+  const clusters=[];
+  sorted.forEach(v=>{
+    const last=clusters[clusters.length-1];
+    if(!last||Math.abs(v-last.avg)>tolerance)clusters.push({values:[v],avg:v});
+    else{
+      last.values.push(v);
+      last.avg=last.values.reduce((a,b)=>a+b,0)/last.values.length;
+    }
+  });
+  return clusters;
+}
+function parseTeacherScheduleGrid(words){
+  if(!Array.isArray(words)||!words.length)return {};
+  const usable=words.filter(w=>w.bbox&&w.confidence>=20);
+  const codeWords=usable.map(w=>({...w,code:normalizeEDUCode(w.text)})).filter(w=>w.code);
+  if(codeWords.length<3)return {};
+
+  // Day rows: detect "Jour" labels + nearby digits; otherwise infer 9 evenly ordered row bands from code Y positions.
+  const dayAnchors=[];
+  usable.filter(w=>/^jour$/i.test(w.text)).forEach(j=>{
+    const cy=(j.bbox.y0+j.bbox.y1)/2;
+    const near=usable.filter(n=>/^\d{1,2}$/.test(n.text)&&Math.abs(((n.bbox.y0+n.bbox.y1)/2)-cy)<35&&n.bbox.x0<j.bbox.x1+90)
+      .sort((a,b)=>Math.abs(a.bbox.x0-j.bbox.x1)-Math.abs(b.bbox.x0-j.bbox.x1))[0];
+    if(near){
+      const num=Number(near.text);
+      if(num>=1&&num<=10)dayAnchors.push({day:num,y:cy});
+    }
+  });
+  dayAnchors.sort((a,b)=>a.day-b.day);
+
+  let rowCenters=[];
+  if(dayAnchors.length>=5){
+    rowCenters=dayAnchors.map(a=>({day:a.day,y:a.y}));
+  }else{
+    const ys=codeWords.map(w=>(w.bbox.y0+w.bbox.y1)/2);
+    const min=Math.min(...ys),max=Math.max(...ys);
+    const step=(max-min)/8;
+    rowCenters=Array.from({length:9},(_,i)=>({day:i+1,y:min+i*step}));
+  }
+
+  // Column centers from detected course codes. Merge into the 5 teaching columns used by this schedule.
+  const xs=codeWords.map(w=>(w.bbox.x0+w.bbox.x1)/2);
+  let xClusters=clusterValues(xs,55).filter(c=>c.values.length>=1).sort((a,b)=>a.avg-b.avg);
+  if(xClusters.length>5){
+    // Keep strongest/widest-spread five columns.
+    xClusters=xClusters.sort((a,b)=>b.values.length-a.values.length).slice(0,5).sort((a,b)=>a.avg-b.avg);
+  }
+  const columnCenters=xClusters.map(c=>c.avg);
+  if(columnCenters.length<3)return {};
+
+  const out={};
+  codeWords.forEach(w=>{
+    const cy=(w.bbox.y0+w.bbox.y1)/2;
+    const cx=(w.bbox.x0+w.bbox.x1)/2;
+    const row=rowCenters.reduce((best,r)=>Math.abs(r.y-cy)<Math.abs(best.y-cy)?r:best,rowCenters[0]);
+    const col=columnCenters.reduce((best,x,i)=>Math.abs(x-cx)<Math.abs(columnCenters[best]-cx)?i:best,0);
+    const group=matchImportedGroup(w.code);
+    const groupName=group?.name||inferGroupIdentity(w.code,w.code).canonicalName;
+    const day='Jour '+row.day;
+    if(!out[day])out[day]=[];
+    if(!out[day].some(x=>x.group===groupName&&x.time===periodTimeFromColumn(col))){
+      out[day].push({
+        time:periodTimeFromColumn(col),
+        group:groupName,
+        groupCode:w.code,
+        matchedGroupId:group?.id||null,
+        activity:'Éducation physique'
+      });
+    }
+  });
+  Object.values(out).forEach(arr=>arr.sort((a,b)=>a.time.localeCompare(b.time,'fr')));
+  return out;
+}
 function parseTeacherScheduleText(text){
   const out={};
-  const dayRe=/Jour\s*([1-9]|10)\b/gi;
-  const matches=[...text.matchAll(dayRe)];
-  matches.forEach((m,i)=>{
+  const raw=String(text||'');
+  const dayMatches=[...raw.matchAll(/Jour\s*([1-9]|10)\b/gi)];
+  dayMatches.forEach((m,i)=>{
     const day='Jour '+m[1];
-    const chunk=text.slice(m.index,i+1<matches.length?matches[i+1].index:text.length);
-    const lessons=[];
-    const timeMatches=[...chunk.matchAll(/\b(\d{1,2})\s*[hH:]\s*(\d{2})\b/g)];
-    timeMatches.forEach((tm,j)=>{
-      const after=chunk.slice(tm.index+tm[0].length,j+1<timeMatches.length?timeMatches[j+1].index:chunk.length);
-      const group=groupsData.map(g=>g.name).find(name=>after.toLowerCase().includes(name.toLowerCase()))||
-        (after.match(/Secondaire\s*\d+[^\n]{0,30}(?:Groupe|gr\.?)\s*[A-Za-z0-9-]+/i)?.[0]||'').replace(/\s+/g,' ').trim();
-      if(group)lessons.push({time:Number(tm[1])+' h '+tm[2],group,activity:'Éducation physique'});
+    const chunk=raw.slice(m.index,i+1<dayMatches.length?dayMatches[i+1].index:raw.length);
+    const codes=extractEDUGroupCodes(chunk);
+    if(!codes.length)return;
+    out[day]=codes.map((code,index)=>{
+      const group=matchImportedGroup(code);
+      return {
+        time:periodTimeFromColumn(index),
+        group:group?.name||inferGroupIdentity(code,code).canonicalName,
+        groupCode:code,
+        matchedGroupId:group?.id||null,
+        activity:'Éducation physique'
+      };
     });
-    if(lessons.length)out[day]=lessons;
   });
   return out;
 }
+function parseTeacherScheduleDocs(docs){
+  const merged={};
+  docs.forEach(doc=>{
+    const grid=parseTeacherScheduleGrid(doc.words||[]);
+    const fallback=Object.keys(grid).length?grid:parseTeacherScheduleText(doc.text||'');
+    Object.entries(fallback).forEach(([day,lessons])=>{
+      if(!merged[day])merged[day]=[];
+      lessons.forEach(lesson=>{
+        const matched=lesson.matchedGroupId?groupsData.find(g=>g.id===lesson.matchedGroupId):matchImportedGroup(lesson.groupCode||lesson.group);
+        const normalized={...lesson,group:matched?.name||lesson.group,matchedGroupId:matched?.id||lesson.matchedGroupId||null};
+        if(!merged[day].some(x=>x.time===normalized.time&&x.group===normalized.group))merged[day].push(normalized);
+      });
+    });
+  });
+  return merged;
+}
+const frenchMonths=
 const frenchMonths={janvier:0,'février':1,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,'août':7,aout:7,septembre:8,octobre:9,novembre:10,'décembre':11,decembre:11};
 function parseDateToken(day,month,year){
   const m=String(month).toLowerCase().replace(/\.$/,'');
@@ -3403,13 +3575,13 @@ async function handleSetupFile(type,input){
     const docs=[];
     for(let i=0;i<files.length;i++){
       const file=files[i];
-      if(type==='groupSheets'){
-        state.textContent='Analyse '+(i+1)+' / '+files.length;
+      if(type==='groupSheets'||type==='teacherSchedule'){
+        state.textContent='Analyse IA '+(i+1)+' / '+files.length;
       }
       const read=await readSetupFile(file,p=>{
-        if(type==='groupSheets')state.textContent='Analyse IA '+(i+1)+' / '+files.length+' · '+p+' %';
+        if(type==='groupSheets'||type==='teacherSchedule')state.textContent='Analyse IA '+(i+1)+' / '+files.length+' · '+p+' %';
       });
-      docs.push({file,text:read.text,confidence:read.confidence,engine:read.engine});
+      docs.push({file,text:read.text,confidence:read.confidence,engine:read.engine,words:read.words||[]});
     }
     if(type==='groupSheets'){
       const groups=parseGroupDocuments(docs);
@@ -3432,11 +3604,12 @@ async function handleSetupFile(type,input){
         groupAIReviewList.innerHTML=groups.map(g=>'<div style="display:flex;justify-content:space-between;gap:12px"><span><b>'+g.name+'</b> · '+g.students.length+' élèves</span><span>'+g.importConfidence+' %'+(g.importConfidence<70||g.students.length<8?' · à vérifier':'')+'</span></div>').join('');
       }
     }else if(type==='teacherSchedule'){
-      const parsed=parseTeacherScheduleText(docs.map(d=>d.text).join('\n'));
+      const parsed=parseTeacherScheduleDocs(docs);
       const lessons=Object.values(parsed).reduce((n,a)=>n+a.length,0);
-      if(!lessons)throw new Error('Aucune période liée à un groupe détectée.');
+      if(!lessons)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
+      const linked=Object.values(parsed).flat().filter(x=>x.matchedGroupId).length;
       importedSetupData.teacherSchedule=parsed;
-      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' cours';
+      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' cours · '+linked+' liés aux groupes';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
     }else{
       const parsed=parseSchoolCalendarText(docs.map(d=>d.text).join('\n'));
