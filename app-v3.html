@@ -753,7 +753,7 @@ function rebuildCalendarEvents(){
     if(ex.groupId==='all'&&start&&start===end&&!calendarEvents[start]) calendarEvents[start]=ex.type+(ex.reason?' · '+ex.reason:'');
   });
 }
-const dayNames=const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const shortMonths=['janv.','févr.','mars','avr.','mai','juin','juill.','août','sept.','oct.','nov.','déc.'];
 function renderWeek(){
   if(!weekGrid) return;
