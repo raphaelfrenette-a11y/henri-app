@@ -3470,81 +3470,110 @@ function clusterValues(values,tolerance){
 }
 function parseTeacherScheduleGrid(words){
   if(!Array.isArray(words)||!words.length)return {};
-  const usable=words.filter(w=>w.bbox&&w.confidence>=20);
+  const usable=words.filter(w=>w.bbox&&w.confidence>=15);
+  const center=w=>({x:(w.bbox.x0+w.bbox.x1)/2,y:(w.bbox.y0+w.bbox.y1)/2});
   const codeWords=usable.map(w=>({...w,code:normalizeEDUCode(w.text)})).filter(w=>w.code);
   if(codeWords.length<3)return {};
 
-  // Day rows: detect "Jour" labels + nearby digits; otherwise infer 9 evenly ordered row bands from code Y positions.
+  // ----- ROWS: read the actual Jour 1 ... Jour 9 labels -----
   const dayAnchors=[];
-  usable.filter(w=>/^jour$/i.test(w.text)).forEach(j=>{
-    const cy=(j.bbox.y0+j.bbox.y1)/2;
-    const near=usable.filter(n=>/^\d{1,2}$/.test(n.text)&&Math.abs(((n.bbox.y0+n.bbox.y1)/2)-cy)<35&&n.bbox.x0<j.bbox.x1+90)
-      .sort((a,b)=>Math.abs(a.bbox.x0-j.bbox.x1)-Math.abs(b.bbox.x0-j.bbox.x1))[0];
-    if(near){
-      const num=Number(near.text);
-      if(num>=1&&num<=10)dayAnchors.push({day:num,y:cy});
+  usable.forEach((w,i)=>{
+    const txt=String(w.text||'').trim();
+    let m=txt.match(/^jour\\s*([1-9])$/i);
+    if(m){dayAnchors.push({day:Number(m[1]),y:center(w).y});return}
+    if(/^jour$/i.test(txt)){
+      const p=center(w);
+      const near=usable.map(n=>({n,p:center(n)}))
+        .filter(v=>/^[1-9]$/.test(String(v.n.text||'').trim())&&Math.abs(v.p.y-p.y)<45&&v.p.x>p.x-15&&v.p.x<p.x+140)
+        .sort((a,b)=>Math.abs(a.p.x-p.x)-Math.abs(b.p.x-p.x))[0];
+      if(near)dayAnchors.push({day:Number(near.n.text),y:(p.y+near.p.y)/2});
     }
   });
-  dayAnchors.sort((a,b)=>a.day-b.day);
-
+  // OCR sometimes reads "Jour" and the number as one larger token or loses a label.
+  // Complete missing rows from the regular 9-row table geometry.
+  const uniqueDays=new Map();
+  dayAnchors.forEach(a=>uniqueDays.set(a.day,a));
   let rowCenters=[];
-  if(dayAnchors.length>=5){
-    rowCenters=dayAnchors.map(a=>({day:a.day,y:a.y}));
+  if(uniqueDays.size>=2){
+    const known=[...uniqueDays.values()].sort((a,b)=>a.day-b.day);
+    const steps=[];
+    for(let i=1;i<known.length;i++)steps.push((known[i].y-known[i-1].y)/(known[i].day-known[i-1].day));
+    steps.sort((a,b)=>a-b);
+    const step=steps[Math.floor(steps.length/2)]||0;
+    const base=known.reduce((sum,a)=>sum+(a.y-(a.day-1)*step),0)/known.length;
+    rowCenters=Array.from({length:9},(_,i)=>({day:i+1,y:base+i*step}));
   }else{
-    const ys=codeWords.map(w=>(w.bbox.y0+w.bbox.y1)/2);
-    const min=Math.min(...ys),max=Math.max(...ys);
+    // Last resort: infer all nine rows from the full vertical spread of course codes.
+    const ys=codeWords.map(w=>center(w).y).sort((a,b)=>a-b);
+    const min=ys[0],max=ys[ys.length-1];
     const step=(max-min)/8;
     rowCenters=Array.from({length:9},(_,i)=>({day:i+1,y:min+i*step}));
   }
 
-  // Use the actual P1/P2/P3/P4 headers when they are visible in the teacher schedule.
-  // Never create a column for "intégration cognitive".
-  const periodAnchors={};
-  usable.forEach(w=>{
-    const idx=periodIndex(w.text);
-    if(idx>=0)periodAnchors[idx]=(w.bbox.x0+w.bbox.x1)/2;
-  });
-  let columnCenters=[];
-  if(Object.keys(periodAnchors).length>=3){
-    columnCenters=HENRI_PERIODS.map((_,i)=>periodAnchors[i]??null);
-    // Fill a missing P anchor only from neighbouring real P columns.
-    for(let i=0;i<4;i++){
-      if(columnCenters[i]!=null)continue;
-      const left=i>0?columnCenters[i-1]:null,right=i<3?columnCenters[i+1]:null;
-      if(left!=null&&right!=null)columnCenters[i]=(left+right)/2;
+  // ----- COLUMNS: this printed timetable is P1 | P2 | Int. cognitive | lunch | P3 | P4 -----
+  // Find the five EDU-code x bands that actually contain courses. The middle band is
+  // "Int. cognitive"; it must NEVER become a teaching period.
+  const xs=codeWords.map(w=>center(w).x);
+  let bands=clusterValues(xs,65).sort((a,b)=>a.avg-b.avg);
+  // Merge overly-close OCR fragments.
+  while(bands.length>5){
+    let best=0,gap=Infinity;
+    for(let i=0;i<bands.length-1;i++){
+      const g=bands[i+1].avg-bands[i].avg;
+      if(g<gap){gap=g;best=i}
+    }
+    const vals=[...bands[best].values,...bands[best+1].values];
+    bands.splice(best,2,{values:vals,avg:vals.reduce((a,b)=>a+b,0)/vals.length});
+  }
+
+  let teachingCenters=[];
+  if(bands.length>=5){
+    // Exact structure visible on the uploaded timetable:
+    // band 0=P1, 1=P2, 2=Int cognitive, 3=P3, 4=P4.
+    teachingCenters=[bands[0].avg,bands[1].avg,bands[bands.length-2].avg,bands[bands.length-1].avg];
+  }else{
+    // Header-aware fallback for cleaner scans.
+    const headerCandidates=[];
+    for(let p=1;p<=4;p++){
+      const direct=usable.find(w=>new RegExp('p[eé]riode\\s*'+p,'i').test(String(w.text||'')));
+      if(direct)headerCandidates[p-1]=center(direct).x;
+    }
+    if(headerCandidates.filter(Boolean).length===4)teachingCenters=headerCandidates;
+    else{
+      // Never use a suspected cognitive band: prefer the two leftmost and two rightmost bands.
+      if(bands.length>=4)teachingCenters=[bands[0].avg,bands[1].avg,bands[bands.length-2].avg,bands[bands.length-1].avg];
     }
   }
-  if(columnCenters.filter(x=>x!=null).length<3){
-    const xs=codeWords.map(w=>(w.bbox.x0+w.bbox.x1)/2);
-    let xClusters=clusterValues(xs,55).filter(c=>c.values.length>=1).sort((a,b)=>a.avg-b.avg);
-    if(xClusters.length>4)xClusters=xClusters.slice(0,4);
-    columnCenters=xClusters.map(c=>c.avg);
-  }
-  if(columnCenters.length<3)return {};
+  if(teachingCenters.length!==4)return {};
 
   const out={};
+  for(let d=1;d<=9;d++)out['Jour '+d]=[];
+
   codeWords.forEach(w=>{
-    const cy=(w.bbox.y0+w.bbox.y1)/2;
-    const cx=(w.bbox.x0+w.bbox.x1)/2;
-    const row=rowCenters.reduce((best,r)=>Math.abs(r.y-cy)<Math.abs(best.y-cy)?r:best,rowCenters[0]);
-    const validCols=columnCenters.map((x,i)=>({x,i})).filter(v=>v.x!=null);
-    const col=validCols.reduce((best,v)=>Math.abs(v.x-cx)<Math.abs(best.x-cx)?v:best,validCols[0]).i;
+    const p=center(w);
+    const row=rowCenters.reduce((best,r)=>Math.abs(r.y-p.y)<Math.abs(best.y-p.y)?r:best,rowCenters[0]);
+    // Reject codes that belong to Int. cognitive by requiring proximity to a real P column.
+    const nearest=teachingCenters.map((x,i)=>({i,dist:Math.abs(x-p.x)})).sort((a,b)=>a.dist-b.dist)[0];
+    const typicalGap=Math.min(...teachingCenters.slice(1).map((x,i)=>Math.abs(x-teachingCenters[i])));
+    if(nearest.dist>Math.max(70,typicalGap*.42))return;
+    const col=nearest.i;
     const group=matchImportedGroup(w.code);
     const groupName=group?.name||inferGroupIdentity(w.code,w.code).canonicalName;
     const day='Jour '+row.day;
-    if(!out[day])out[day]=[];
-    if(!out[day].some(x=>x.group===groupName&&x.time===periodTimeFromColumn(col))){
-      out[day].push({
-        time:periodTimeFromColumn(col),
-        period:periodLabelFromColumn(col),
-        group:groupName,
-        groupCode:w.code,
-        matchedGroupId:group?.id||null,
-        activity:'Éducation physique'
-      });
-    }
+    const lesson={
+      time:periodTimeFromColumn(col),
+      period:periodLabelFromColumn(col),
+      group:groupName,
+      groupCode:w.code,
+      matchedGroupId:group?.id||null,
+      activity:'Éducation physique'
+    };
+    const existing=out[day].findIndex(x=>periodIndex(x.period)===col);
+    if(existing<0)out[day].push(lesson);
+    else if(!out[day][existing].matchedGroupId&&lesson.matchedGroupId)out[day][existing]=lesson;
   });
-  Object.values(out).forEach(arr=>arr.sort((a,b)=>a.time.localeCompare(b.time,'fr')));
+
+  Object.keys(out).forEach(day=>{out[day]=normalizeTeacherDay(out[day])});
   return out;
 }
 function parseTeacherScheduleText(text){
