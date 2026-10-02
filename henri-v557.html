@@ -1016,17 +1016,12 @@ function renderWeek(){
           '#a66a3f', // terre cuite
           '#b85aa3'  // prune
         ];
-        const matchedGroup=entry.matchedGroupId
-          ? groupsData.find(g=>g.id===entry.matchedGroupId)
-          : matchImportedGroup(entry.groupCode||entry.group);
-        let groupIndex=matchedGroup?groupsData.findIndex(g=>g.id===matchedGroup.id):-1;
-        if(groupIndex<0){
-          const colorKey=normalizeGroupAlias(entry.groupCode||entry.group||'groupe');
-          let hash=0;
-          for(let i=0;i<colorKey.length;i++)hash=((hash*31)+colorKey.charCodeAt(i))>>>0;
-          groupIndex=hash;
-        }
-        const groupColor=groupColors[groupIndex%groupColors.length];
+        // La couleur dépend uniquement du libellé déjà présent dans l'horaire.
+        // Aucun accès/modification à groupsData : les groupes enregistrés restent intacts.
+        const colorKey=String(entry.groupCode||entry.group||'groupe').toUpperCase().replace(/[^A-Z0-9À-ÖØ-Ý]/g,'');
+        let groupHash=0;
+        for(let j=0;j<colorKey.length;j++)groupHash=((groupHash*31)+colorKey.charCodeAt(j))>>>0;
+        const groupColor=groupColors[groupHash%groupColors.length];
         const sportLower=sport.toLowerCase();
         let sportIcon='●';
         if(sportLower.includes('badminton')){sportIcon='🏸'}
