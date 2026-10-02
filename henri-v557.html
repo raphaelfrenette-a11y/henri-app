@@ -1031,9 +1031,9 @@ function renderWeek(){
         else if(sportLower.includes('tennis')){sportIcon='🎾'}
         else if(sportLower.includes('planifier')){sportIcon='＋'}
         out+='<button class="weekEvent" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
-          '<span class="time">'+entry.time+'</span>'+
+          '<span class="time">'+periodDisplay(entry)+'</span>'+
           '<span class="groupBar" aria-hidden="true"></span>'+
-          '<span class="course">'+entry.group+'</span>'+
+          '<span class="course">'+(entry.group||'Période libre')+'</span>'+
           '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'"><span class="sportIcon" aria-hidden="true">'+sportIcon+'</span>'+sport+'</span>'+
         '</button>';
       });
@@ -3427,17 +3427,35 @@ function normalizeEDUCode(raw){
   const m=String(raw||'').toUpperCase().replace(/\s+/g,'').match(/EDU([1-5])G(\d)[-–]?(\d{1,2})/);
   return m?'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0'):'';
 }
-function periodTimeFromColumn(index){
-  const periods=[
-    {period:'P1',time:'8 h 10'},
-    {period:'P2',time:'9 h 35'},
-    {period:'P3',time:'12 h 35'},
-    {period:'P4',time:'14 h 00'}
-  ];
-  return periods[index]?.time||'';
+const HENRI_PERIODS=[
+  {period:'P1',time:'8 h 10'},
+  {period:'P2',time:'9 h 35'},
+  {period:'P3',time:'12 h 35'},
+  {period:'P4',time:'14 h 00'}
+];
+function periodTimeFromColumn(index){return HENRI_PERIODS[index]?.time||''}
+function periodLabelFromColumn(index){return HENRI_PERIODS[index]?.period||''}
+function periodIndex(value){
+  const m=String(value||'').toUpperCase().match(/\bP\s*([1-4])\b/);
+  return m?Number(m[1])-1:-1;
 }
-function periodLabelFromColumn(index){
-  return ['P1','P2','P3','P4'][index]||'';
+function periodDisplay(entry){
+  const p=entry?.period||'';
+  const t=entry?.time||'';
+  return p+(p&&t?' · ':'')+t;
+}
+function emptyPeriodEntry(index){
+  return {period:periodLabelFromColumn(index),time:periodTimeFromColumn(index),group:'',groupCode:'',matchedGroupId:null,activity:'Éducation physique',isFree:true};
+}
+function normalizeTeacherDay(lessons){
+  const slots=HENRI_PERIODS.map((_,i)=>emptyPeriodEntry(i));
+  (Array.isArray(lessons)?lessons:[]).forEach((lesson,seq)=>{
+    let idx=periodIndex(lesson.period);
+    if(idx<0&&lesson.time)idx=HENRI_PERIODS.findIndex(p=>p.time===lesson.time);
+    if(idx<0&&seq<4)idx=seq;
+    if(idx>=0&&idx<4)slots[idx]={...slots[idx],...lesson,period:periodLabelFromColumn(idx),time:periodTimeFromColumn(idx),isFree:!lesson.group};
+  });
+  return slots;
 }
 function clusterValues(values,tolerance){
   const sorted=[...values].sort((a,b)=>a-b);
@@ -3481,14 +3499,29 @@ function parseTeacherScheduleGrid(words){
     rowCenters=Array.from({length:9},(_,i)=>({day:i+1,y:min+i*step}));
   }
 
-  // Four real teaching periods only: P1, P2, P3, P4. Integration cognitive is never a course.
-  const xs=codeWords.map(w=>(w.bbox.x0+w.bbox.x1)/2);
-  let xClusters=clusterValues(xs,55).filter(c=>c.values.length>=1).sort((a,b)=>a.avg-b.avg);
-  if(xClusters.length>4){
-    // Keep only the four real course columns. Ignore integration/cognitive blocks.
-    xClusters=xClusters.sort((a,b)=>b.values.length-a.values.length).slice(0,4).sort((a,b)=>a.avg-b.avg);
+  // Use the actual P1/P2/P3/P4 headers when they are visible in the teacher schedule.
+  // Never create a column for "intégration cognitive".
+  const periodAnchors={};
+  usable.forEach(w=>{
+    const idx=periodIndex(w.text);
+    if(idx>=0)periodAnchors[idx]=(w.bbox.x0+w.bbox.x1)/2;
+  });
+  let columnCenters=[];
+  if(Object.keys(periodAnchors).length>=3){
+    columnCenters=HENRI_PERIODS.map((_,i)=>periodAnchors[i]??null);
+    // Fill a missing P anchor only from neighbouring real P columns.
+    for(let i=0;i<4;i++){
+      if(columnCenters[i]!=null)continue;
+      const left=i>0?columnCenters[i-1]:null,right=i<3?columnCenters[i+1]:null;
+      if(left!=null&&right!=null)columnCenters[i]=(left+right)/2;
+    }
   }
-  const columnCenters=xClusters.map(c=>c.avg);
+  if(columnCenters.filter(x=>x!=null).length<3){
+    const xs=codeWords.map(w=>(w.bbox.x0+w.bbox.x1)/2);
+    let xClusters=clusterValues(xs,55).filter(c=>c.values.length>=1).sort((a,b)=>a.avg-b.avg);
+    if(xClusters.length>4)xClusters=xClusters.slice(0,4);
+    columnCenters=xClusters.map(c=>c.avg);
+  }
   if(columnCenters.length<3)return {};
 
   const out={};
@@ -3496,7 +3529,8 @@ function parseTeacherScheduleGrid(words){
     const cy=(w.bbox.y0+w.bbox.y1)/2;
     const cx=(w.bbox.x0+w.bbox.x1)/2;
     const row=rowCenters.reduce((best,r)=>Math.abs(r.y-cy)<Math.abs(best.y-cy)?r:best,rowCenters[0]);
-    const col=columnCenters.reduce((best,x,i)=>Math.abs(x-cx)<Math.abs(columnCenters[best]-cx)?i:best,0);
+    const validCols=columnCenters.map((x,i)=>({x,i})).filter(v=>v.x!=null);
+    const col=validCols.reduce((best,v)=>Math.abs(v.x-cx)<Math.abs(best.x-cx)?v:best,validCols[0]).i;
     const group=matchImportedGroup(w.code);
     const groupName=group?.name||inferGroupIdentity(w.code,w.code).canonicalName;
     const day='Jour '+row.day;
@@ -3522,19 +3556,25 @@ function parseTeacherScheduleText(text){
   dayMatches.forEach((m,i)=>{
     const day='Jour '+m[1];
     const chunk=raw.slice(m.index,i+1<dayMatches.length?dayMatches[i+1].index:raw.length);
-    const codes=extractEDUGroupCodes(chunk);
-    if(!codes.length)return;
-    out[day]=codes.slice(0,4).map((code,index)=>{
-      const group=matchImportedGroup(code);
-      return {
-        time:periodTimeFromColumn(index),
-        period:periodLabelFromColumn(index),
-        group:group?.name||inferGroupIdentity(code,code).canonicalName,
-        groupCode:code,
-        matchedGroupId:group?.id||null,
-        activity:'Éducation physique'
-      };
-    });
+    const cleanChunk=chunk.replace(/int[eé]gration\s+cognitive[^\n]*/gi,'');
+    const slots=[];
+    for(let pi=1;pi<=4;pi++){
+      const re=new RegExp('P\\s*'+pi+'\\b([\\s\\S]*?)(?=P\\s*[1-4]\\b|$)','i');
+      const pm=cleanChunk.match(re);
+      const code=pm?extractEDUGroupCodes(pm[1])[0]:'';
+      if(code){
+        const group=matchImportedGroup(code);
+        slots.push({time:periodTimeFromColumn(pi-1),period:'P'+pi,group:group?.name||inferGroupIdentity(code,code).canonicalName,groupCode:code,matchedGroupId:group?.id||null,activity:'Éducation physique'});
+      }
+    }
+    if(slots.length)out[day]=slots;
+    else{
+      const codes=extractEDUGroupCodes(cleanChunk);
+      if(codes.length)out[day]=codes.slice(0,4).map((code,index)=>{
+        const group=matchImportedGroup(code);
+        return {time:periodTimeFromColumn(index),period:periodLabelFromColumn(index),group:group?.name||inferGroupIdentity(code,code).canonicalName,groupCode:code,matchedGroupId:group?.id||null,activity:'Éducation physique'};
+      });
+    }
   });
   return out;
 }
@@ -3552,6 +3592,7 @@ function parseTeacherScheduleDocs(docs){
       });
     });
   });
+  Object.keys(merged).forEach(day=>{merged[day]=normalizeTeacherDay(merged[day])});
   return merged;
 }
 const frenchMonths={janvier:0,'février':1,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,'août':7,aout:7,septembre:8,octobre:9,novembre:10,'décembre':11,decembre:11};
@@ -3853,8 +3894,12 @@ function generateMySchedule(){
   schoolDays=calendar;
   scheduleEntries={};
   Object.entries(schoolDays).forEach(([date,cycle])=>{
-    const lessons=teacher[cycle]||[];
-    if(lessons.length)scheduleEntries[date]=lessons.map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
+    const d=new Date(date+'T12:00:00');
+    const weekday=d.getDay();
+    if(weekday<1||weekday>5)return;
+    if(!/^Jour\s+(?:[1-9]|10)$/i.test(String(cycle||'')))return;
+    // Calendar decides the cycle day; teacher schedule decides the group in each P1-P4.
+    scheduleEntries[date]=normalizeTeacherDay(teacher[cycle]||[]).map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
   });
   localStorage.removeItem('henriDemoSchedule');
   localStorage.setItem('henriSetupComplete','1');
