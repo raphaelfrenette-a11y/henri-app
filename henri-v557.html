@@ -921,11 +921,6 @@ body{background:#f8f7f4}
 </div>
 
 <script>
-const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
-if(localStorage.getItem('henriFreshStartVersion')!==HENRI_FRESH_START_VERSION){
-  Object.keys(localStorage).filter(k=>k.startsWith('henri')).forEach(k=>localStorage.removeItem(k));
-  localStorage.setItem('henriFreshStartVersion',HENRI_FRESH_START_VERSION);
-}
 let previousScreen='home';
 function go(id){
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
@@ -3433,8 +3428,16 @@ function normalizeEDUCode(raw){
   return m?'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0'):'';
 }
 function periodTimeFromColumn(index){
-  const times=['8 h 10','9 h 35','10 h 55','12 h 35','14 h 00'];
-  return times[index]||('Période '+(index+1));
+  const periods=[
+    {period:'P1',time:'8 h 10'},
+    {period:'P2',time:'9 h 35'},
+    {period:'P3',time:'12 h 35'},
+    {period:'P4',time:'14 h 00'}
+  ];
+  return periods[index]?.time||'';
+}
+function periodLabelFromColumn(index){
+  return ['P1','P2','P3','P4'][index]||'';
 }
 function clusterValues(values,tolerance){
   const sorted=[...values].sort((a,b)=>a-b);
@@ -3478,12 +3481,12 @@ function parseTeacherScheduleGrid(words){
     rowCenters=Array.from({length:9},(_,i)=>({day:i+1,y:min+i*step}));
   }
 
-  // Column centers from detected course codes. Merge into the 5 teaching columns used by this schedule.
+  // Four real teaching periods only: P1, P2, P3, P4. Integration cognitive is never a course.
   const xs=codeWords.map(w=>(w.bbox.x0+w.bbox.x1)/2);
   let xClusters=clusterValues(xs,55).filter(c=>c.values.length>=1).sort((a,b)=>a.avg-b.avg);
-  if(xClusters.length>5){
-    // Keep strongest/widest-spread five columns.
-    xClusters=xClusters.sort((a,b)=>b.values.length-a.values.length).slice(0,5).sort((a,b)=>a.avg-b.avg);
+  if(xClusters.length>4){
+    // Keep only the four real course columns. Ignore integration/cognitive blocks.
+    xClusters=xClusters.sort((a,b)=>b.values.length-a.values.length).slice(0,4).sort((a,b)=>a.avg-b.avg);
   }
   const columnCenters=xClusters.map(c=>c.avg);
   if(columnCenters.length<3)return {};
@@ -3501,6 +3504,7 @@ function parseTeacherScheduleGrid(words){
     if(!out[day].some(x=>x.group===groupName&&x.time===periodTimeFromColumn(col))){
       out[day].push({
         time:periodTimeFromColumn(col),
+        period:periodLabelFromColumn(col),
         group:groupName,
         groupCode:w.code,
         matchedGroupId:group?.id||null,
@@ -3520,10 +3524,11 @@ function parseTeacherScheduleText(text){
     const chunk=raw.slice(m.index,i+1<dayMatches.length?dayMatches[i+1].index:raw.length);
     const codes=extractEDUGroupCodes(chunk);
     if(!codes.length)return;
-    out[day]=codes.map((code,index)=>{
+    out[day]=codes.slice(0,4).map((code,index)=>{
       const group=matchImportedGroup(code);
       return {
         time:periodTimeFromColumn(index),
+        period:periodLabelFromColumn(index),
         group:group?.name||inferGroupIdentity(code,code).canonicalName,
         groupCode:code,
         matchedGroupId:group?.id||null,
