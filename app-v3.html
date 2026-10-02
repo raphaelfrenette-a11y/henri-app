@@ -407,7 +407,28 @@ body{background:#f8f7f4}
 .teamBuilderHero h2{font-size:22px;letter-spacing:-.035em;margin:0 0 5px}
 .teamBuilderHero p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
 .teamSetup{background:#fff;border:1px solid var(--line);border-radius:20px;padding:17px}
-.teamSetupGrid{display:grid;grid-template-columns:1.5fr .7fr;gap:9px}
+.teamSetupGrid{display:grid;grid-template-columns:1.35fr .65fr;gap:10px}
+.premiumPickerLabel{display:block;color:var(--muted);font-size:11px;font-weight:760;margin:0 0 6px}
+.premiumPickerButton{width:100%;min-height:52px;border:1px solid var(--line);background:#fafaf8;border-radius:14px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left}
+.premiumPickerButton strong{font-size:13px;letter-spacing:-.01em}
+.premiumPickerButton .pickerChevron{color:#9aa0a3;font-size:18px;line-height:1}
+.teamCountButtons{display:flex;flex-wrap:wrap;gap:6px}
+.teamCountBtn{min-width:44px;height:44px;border:1px solid var(--line);background:#fafaf8;border-radius:12px;font-size:12px;font-weight:780;color:#596166}
+.teamCountBtn.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 5px 12px rgba(49,74,91,.12)}
+.pickerOverlay{position:fixed;inset:0;background:rgba(20,25,28,.24);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:18px}
+.pickerOverlay.show{display:flex}
+.pickerSheet{width:min(560px,100%);background:#fff;border-radius:24px;padding:14px;box-shadow:0 24px 70px rgba(0,0,0,.2)}
+.pickerHandle{width:36px;height:4px;border-radius:999px;background:#d8dcde;margin:2px auto 12px}
+.pickerSheetHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px 10px}
+.pickerSheetHead strong{font-size:16px}
+.pickerClose{width:32px;height:32px;border:0;background:#f2f2f0;border-radius:50%;font-size:18px;color:#7e8488}
+.pickerList{display:grid;gap:5px}
+.pickerChoice{width:100%;border:0;background:#fff;border-radius:14px;padding:13px 12px;display:flex;align-items:center;justify-content:space-between;text-align:left}
+.pickerChoice:hover{background:#f7f7f5}
+.pickerChoice strong{font-size:13px}
+.pickerCheck{opacity:0;color:var(--accent);font-weight:850}
+.pickerChoice.on{background:#f2f6f8}
+.pickerChoice.on .pickerCheck{opacity:1}
 .teamOptions{display:grid;gap:8px;margin-top:12px}
 .teamOption{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #f0f1ef;padding-top:11px}
 .teamOption:first-child{border-top:0;padding-top:0}
@@ -451,7 +472,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.36</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.37</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -675,8 +696,16 @@ body{background:#f8f7f4}
   <h1>Générer des équipes</h1>
   <div class="teamSetup">
     <div class="teamSetupGrid">
-      <div class="planField"><label>Groupe</label><select id="teamGroup" class="planControl" onchange="teamBuilderGroupChanged()"></select></div>
-      <div class="planField"><label>Nombre d’équipes</label><select id="teamCount" class="planControl"></select></div>
+      <div>
+        <span class="premiumPickerLabel">Groupe</span>
+        <button id="teamGroupPicker" class="premiumPickerButton" onclick="openTeamGroupPicker()"><strong>Choisir un groupe</strong><span class="pickerChevron">›</span></button>
+        <select id="teamGroup" style="display:none" onchange="teamBuilderGroupChanged()"></select>
+      </div>
+      <div>
+        <span class="premiumPickerLabel">Nombre d’équipes</span>
+        <div id="teamCountButtons" class="teamCountButtons"></div>
+        <select id="teamCount" style="display:none"></select>
+      </div>
     </div>
 
     <div class="teamOptions">
@@ -714,6 +743,14 @@ body{background:#f8f7f4}
   </div>
 
   <div id="teamResult" class="teamResult"></div>
+
+  <div id="teamGroupOverlay" class="pickerOverlay" onclick="closeTeamGroupPicker(event)">
+    <div class="pickerSheet" onclick="event.stopPropagation()">
+      <div class="pickerHandle"></div>
+      <div class="pickerSheetHead"><strong>Choisir un groupe</strong><button class="pickerClose" onclick="closeTeamGroupPicker()">×</button></div>
+      <div id="teamGroupChoices" class="pickerList"></div>
+    </div>
+  </div>
 </section>
 
 <section id="settings" class="screen">
@@ -2476,6 +2513,45 @@ function fillTeamBuilderGroups(){
   const current=select.value;
   select.innerHTML=groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
   if(current&&groupsData.some(g=>g.id===current))select.value=current;
+  else if(groupsData[0])select.value=groupsData[0].id;
+  updateTeamGroupPickerLabel();
+  renderTeamGroupChoices();
+}
+function updateTeamGroupPickerLabel(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value)||groupsData[0];
+  const btn=document.getElementById('teamGroupPicker');
+  if(btn&&group)btn.querySelector('strong').textContent=group.name;
+}
+function openTeamGroupPicker(){
+  renderTeamGroupChoices();
+  document.getElementById('teamGroupOverlay')?.classList.add('show');
+}
+function closeTeamGroupPicker(event){
+  if(event&&event.target?.id!=='teamGroupOverlay')return;
+  document.getElementById('teamGroupOverlay')?.classList.remove('show');
+}
+function renderTeamGroupChoices(){
+  const list=document.getElementById('teamGroupChoices');
+  if(!list)return;
+  list.innerHTML=groupsData.map(g=>'<button class="pickerChoice'+(g.id===teamGroup?.value?' on':'')+'" onclick="selectTeamGroup(\''+g.id+'\')"><strong>'+g.name+'</strong><span class="pickerCheck">✓</span></button>').join('');
+}
+function selectTeamGroup(id){
+  if(teamGroup)teamGroup.value=id;
+  updateTeamGroupPickerLabel();
+  renderTeamGroupChoices();
+  document.getElementById('teamGroupOverlay')?.classList.remove('show');
+  teamBuilderGroupChanged();
+}
+function renderTeamCountButtons(){
+  const wrap=document.getElementById('teamCountButtons');
+  if(!wrap||!teamCount)return;
+  wrap.innerHTML=[...teamCount.options].map(o=>'<button class="teamCountBtn'+(o.selected?' on':'')+'" onclick="selectTeamCount('+o.value+')">'+o.value+'</button>').join('');
+}
+function selectTeamCount(value){
+  if(!teamCount)return;
+  teamCount.value=String(value);
+  renderTeamCountButtons();
+  if(teamResult){teamResult.classList.remove('show');teamResult.innerHTML=''}
 }
 function teamBuilderGroupChanged(){
   const group=groupsData.find(g=>g.id===teamGroup?.value)||groupsData[0];
@@ -2485,6 +2561,8 @@ function teamBuilderGroupChanged(){
   const maxTeams=Math.max(2,Math.min(10,Math.floor(group.students.length/2)||2));
   const suggested=Math.max(2,Math.round(group.students.length/5));
   teamCount.innerHTML=Array.from({length:maxTeams-1},(_,i)=>i+2).map(n=>'<option value="'+n+'"'+(n===suggested?' selected':'')+'>'+n+'</option>').join('');
+  updateTeamGroupPickerLabel();
+  renderTeamCountButtons();
   renderTeamAttendance();
   teamResult.classList.remove('show');
   teamResult.innerHTML='';
@@ -2524,6 +2602,7 @@ function resetTeamBuilder(){
     const suggested=Math.max(2,Math.round(group.students.length/5));
     if([...teamCount.options].some(o=>Number(o.value)===suggested)) teamCount.value=String(suggested);
     else if(teamCount.options.length) teamCount.selectedIndex=0;
+    renderTeamCountButtons();
   }
   if(teamResult){
     teamResult.classList.remove('show');
