@@ -494,10 +494,11 @@ body{background:#f8f7f4}
 .teamCompatibilityNote{margin-top:10px;color:var(--muted);font-size:10px;line-height:1.4}
 @media(max-width:600px){.teamSetupGrid{grid-template-columns:1fr}.generatedTeams{grid-template-columns:1fr}.teamOption{align-items:flex-start;flex-direction:column}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.45</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.46</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -806,21 +807,21 @@ body{background:#f8f7f4}
   <div class="setupStack">
     <label class="importCard ready" id="teacherScheduleCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M4 9h16"/></svg></span>
-      <span class="importText"><strong>Horaire d’enseignant</strong><span>Démo · cycle de 9 jours · 4 périodes de 75 min</span></span>
+      <span class="importText"><strong>Horaire d’enseignant</strong><span>PDF, texte ou CSV · Henri détecte les jours-cycle, groupes et périodes</span></span>
       <span class="importState" id="teacherScheduleState">Démo chargée</span>
       <input class="fileInput" id="teacherScheduleFile" type="file" accept=".pdf,image/*" onchange="handleSetupFile('teacherSchedule',this)">
     </label>
 
     <label class="importCard ready" id="schoolCalendarCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
-      <span class="importText"><strong>Calendrier scolaire</strong><span>Démo · Académie Dunton 2026–2027 · jours-cycle et pédagogiques</span></span>
+      <span class="importText"><strong>Calendrier scolaire</strong><span>PDF, texte ou CSV · jours-cycle, pédagogiques et congés</span></span>
       <span class="importState" id="schoolCalendarState">Démo chargée</span>
       <input class="fileInput" id="schoolCalendarFile" type="file" accept=".pdf,image/*" onchange="handleSetupFile('schoolCalendar',this)">
     </label>
 
     <label class="importCard ready" id="groupSheetsCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
-      <span class="importText"><strong>Listes de groupes</strong><span>Démo · 3 groupes fictifs avec profils élèves</span></span>
+      <span class="importText"><strong>Listes de groupes</strong><span>PDF ou CSV · un ou plusieurs groupes</span></span>
       <span class="importState" id="groupSheetsState">Démo chargée</span>
       <input class="fileInput" id="groupSheetsFile" type="file" accept=".pdf,.csv,image/*" multiple onchange="handleSetupFile('groupSheets',this)">
     </label>
@@ -854,7 +855,7 @@ body{background:#f8f7f4}
 
   <div class="generateBox">
     <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()">Générer mon horaire</button>
-    <p class="generateHint">Mode démo actif. Les trois sources sont déjà chargées pour tester le fonctionnement. Un vrai import remplacera simplement la démo correspondante.</p>
+    <p class="generateHint">Henri vérifie chaque document avant de générer l’horaire. Les données démo restent disponibles tant qu’aucun vrai ensemble complet n’a été validé.</p>
     <div id="setupSuccess" class="setupSuccess">Horaire généré. Ton calendrier Henri est maintenant prêt.</div>
   </div>
 
@@ -974,9 +975,19 @@ function rebuildCalendarEvents(){
 }
 const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const shortMonths=['janv.','févr.','mars','avr.','mai','juin','juill.','août','sept.','oct.','nov.','déc.'];
+function getLocalTodayKey(){
+  const now=new Date();
+  return dateKey(now.getFullYear(),now.getMonth(),now.getDate());
+}
+function getWeekMonday(base=new Date()){
+  const d=new Date(base.getFullYear(),base.getMonth(),base.getDate(),12);
+  const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  return d;
+}
 function renderWeek(){
   if(!weekGrid) return;
-  const start=new Date(2026,8,28);
+  const start=getWeekMonday();
   let out='';
   for(let i=0;i<5;i++){
     const d=new Date(start); d.setDate(start.getDate()+i);
@@ -984,7 +995,7 @@ function renderWeek(){
     const entries=getVisibleScheduleEntries(key);
     const blocked=getBlockedScheduleEntries(key);
     const cycle=schoolDays[key];
-    const today=key==='2026-09-28';
+    const today=key===getLocalTodayKey();
     out+='<div class="weekDay'+(today?' today':'')+'">'+
       '<button class="dayHead" onclick="openDayPlan(\''+key+'\')"><span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span></button>';
     if(entries.length){
@@ -993,7 +1004,7 @@ function renderWeek(){
         let sport=entry.annualPlan||'À planifier';
         if(sport==='À choisir') sport='À planifier';
         const groupColors=['#3b82f6','#34a853','#f59e0b','#8b5cf6'];
-        const groupIndex=Math.max(0,defaultGroups.findIndex(g=>g.name===entry.group));
+        const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
         const groupColor=groupColors[groupIndex%groupColors.length];
         const sportLower=sport.toLowerCase();
         let sportIcon='●';
@@ -1121,7 +1132,8 @@ function openCourseEntry(date,index){
 }
 
 const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-let shownYear=2026,shownMonth=8;
+const initialCalendarDate=new Date();
+let shownYear=initialCalendarDate.getFullYear(),shownMonth=initialCalendarDate.getMonth();
 function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
 function renderMonth(){
   monthTitle.textContent=monthNames[shownMonth]+' '+shownYear;
@@ -1141,7 +1153,7 @@ function renderMonth(){
     const schoolDay=schoolDays[key];
     const pedago=schoolDay==='Pédagogique'||schoolDay==='Congé';
     const hasException=calendarExceptions.some(ex=>exceptionCoversDate(ex,key));
-    const today=key==='2026-09-28';
+    const today=key===getLocalTodayKey();
     const hasSomething=entries.length||blocked.length||pedago||hasException;
     out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'">'+
       '<button class="monthDayButton" onclick="openDayPlan(\''+key+'\')">'+
@@ -3127,54 +3139,200 @@ function enrichDemoPlanning(entries){
   return entries;
 }
 
-const setupFiles={teacherSchedule:true,schoolCalendar:true,groupSheets:true};
-function handleSetupFile(type,input){
-  const hasFile=input.files&&input.files.length>0;
-  setupFiles[type]=hasFile;
+const setupFiles={teacherSchedule:false,schoolCalendar:false,groupSheets:false};
+const importedSetupData={
+  teacherSchedule:JSON.parse(localStorage.getItem('henriImportedTeacherSchedule')||'null'),
+  schoolCalendar:JSON.parse(localStorage.getItem('henriImportedSchoolCalendar')||'null'),
+  groupSheets:JSON.parse(localStorage.getItem('henriImportedGroups')||'null')
+};
+Object.keys(setupFiles).forEach(k=>setupFiles[k]=!!importedSetupData[k]);
+
+function normalizeImportText(text){
+  return String(text||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\r/g,'\n').replace(/\n{2,}/g,'\n').trim();
+}
+async function readSetupFile(file){
+  const name=(file.name||'').toLowerCase();
+  if(name.endsWith('.pdf')){
+    if(!window.pdfjsLib)throw new Error('Le lecteur PDF ne s’est pas chargé.');
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buffer=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+    const pages=[];
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);
+      const content=await page.getTextContent();
+      pages.push(content.items.map(i=>i.str).join(' '));
+    }
+    return normalizeImportText(pages.join('\n'));
+  }
+  if(name.endsWith('.csv')||name.endsWith('.txt')||name.endsWith('.json')){
+    return normalizeImportText(await file.text());
+  }
+  throw new Error('Ce fichier est une image. Pour ce test, utilise le PDF original ou un CSV afin que Henri puisse lire le texte.');
+}
+function normalizePersonName(s){
+  return s.replace(/^\s*[0-9#.-]+\s*/,'').replace(/\s+/g,' ').trim();
+}
+function looksLikePersonName(line){
+  const x=normalizePersonName(line);
+  if(x.length<5||x.length>70)return false;
+  if(/\b(secondaire|groupe|classe|enseignant|élève|eleve|nom|prénom|prenom|code|fiche|liste|jour|période|periode|école|ecole)\b/i.test(x))return false;
+  if(/\d{2,}/.test(x))return false;
+  const words=x.split(' ').filter(Boolean);
+  return words.length>=2&&words.length<=5&&words.every(w=>/^[A-Za-zÀ-ÖØ-öø-ÿ'’-]+$/.test(w));
+}
+function parseGroupDocuments(docs){
+  const result=[];
+  docs.forEach(({file,text},fileIndex)=>{
+    let groupName='';
+    const groupMatch=text.match(/(?:Secondaire\s*\d+[^\n]{0,35}(?:Groupe|gr\.?)[^\n]{0,20}|Groupe\s*[A-Za-z0-9 ._-]{1,30})/i);
+    if(groupMatch)groupName=groupMatch[0].replace(/\s+/g,' ').trim();
+    if(!groupName)groupName=(file.name||('Groupe '+(fileIndex+1))).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
+    let candidates=[];
+    if((file.name||'').toLowerCase().endsWith('.csv')){
+      const rows=text.split('\n').map(r=>r.split(/[;,]/).map(v=>v.trim()).filter(Boolean)).filter(r=>r.length);
+      rows.forEach(r=>{
+        const joined=r.filter(v=>looksLikePersonName(v)).sort((a,b)=>b.length-a.length)[0];
+        if(joined)candidates.push(normalizePersonName(joined));
+        else if(r.length>=2&&/^[A-Za-zÀ-ÖØ-öø-ÿ'’-]+$/.test(r[0])&&/^[A-Za-zÀ-ÖØ-öø-ÿ'’ -]+$/.test(r[1]))candidates.push((r[0]+' '+r[1]).trim());
+      });
+    }else{
+      const chunks=text.split(/\n| {3,}|(?=\d+\s+[A-ZÀ-ÖØ-Þ])/);
+      candidates=chunks.map(normalizePersonName).filter(looksLikePersonName);
+    }
+    const unique=[...new Set(candidates)].slice(0,80);
+    if(unique.length){
+      result.push({id:'import-'+Date.now()+'-'+fileIndex,name:groupName,students:unique.map((name,i)=>({id:'st-'+Date.now()+'-'+fileIndex+'-'+i,name,skill:3,leader:false,gender:'U',compatible:[],incompatible:[]}))});
+    }
+  });
+  return result;
+}
+function parseTeacherScheduleText(text){
+  const out={};
+  const dayRe=/Jour\s*([1-9]|10)\b/gi;
+  const matches=[...text.matchAll(dayRe)];
+  matches.forEach((m,i)=>{
+    const day='Jour '+m[1];
+    const chunk=text.slice(m.index,i+1<matches.length?matches[i+1].index:text.length);
+    const lessons=[];
+    const timeMatches=[...chunk.matchAll(/\b(\d{1,2})\s*[hH:]\s*(\d{2})\b/g)];
+    timeMatches.forEach((tm,j)=>{
+      const after=chunk.slice(tm.index+tm[0].length,j+1<timeMatches.length?timeMatches[j+1].index:chunk.length);
+      const group=groupsData.map(g=>g.name).find(name=>after.toLowerCase().includes(name.toLowerCase()))||
+        (after.match(/Secondaire\s*\d+[^\n]{0,30}(?:Groupe|gr\.?)\s*[A-Za-z0-9-]+/i)?.[0]||'').replace(/\s+/g,' ').trim();
+      if(group)lessons.push({time:Number(tm[1])+' h '+tm[2],group,activity:'Éducation physique'});
+    });
+    if(lessons.length)out[day]=lessons;
+  });
+  return out;
+}
+const frenchMonths={janvier:0,'février':1,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,'août':7,aout:7,septembre:8,octobre:9,novembre:10,'décembre':11,decembre:11};
+function parseDateToken(day,month,year){
+  const m=String(month).toLowerCase().replace(/\.$/,'');
+  const mi=frenchMonths[m]??(Number(month)-1);
+  if(mi<0||mi>11)return null;
+  return dateKey(Number(year),mi,Number(day));
+}
+function parseSchoolCalendarText(text){
+  const out={};
+  const patterns=[
+    /(\d{4})-(\d{1,2})-(\d{1,2})[^\n]{0,45}(Jour\s*\d+|Pédagogique|Pedagogique|Congé|Conge)/gi,
+    /(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})[^\n]{0,45}(Jour\s*\d+|Pédagogique|Pedagogique|Congé|Conge)/gi,
+    /(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(\d{4})[^\n]{0,45}(Jour\s*\d+|Pédagogique|Pedagogique|Congé|Conge)/gi
+  ];
+  for(const re of patterns){
+    for(const m of text.matchAll(re)){
+      let key,type;
+      if(/^\d{4}$/.test(m[1]))key=dateKey(Number(m[1]),Number(m[2])-1,Number(m[3]));
+      else key=parseDateToken(m[1],m[2],m[3]);
+      type=m[4].replace(/Pedagogique/i,'Pédagogique').replace(/Conge/i,'Congé').replace(/Jour\s*/i,'Jour ');
+      if(key)out[key]=type;
+    }
+    if(Object.keys(out).length)break;
+  }
+  return out;
+}
+async function handleSetupFile(type,input){
+  const files=[...(input.files||[])];
   const state=document.getElementById(type+'State');
   const card=document.getElementById(type+'Card');
-  if(hasFile){
-    const count=input.files.length;
-    state.textContent=count>1?count+' fichiers':'Ajouté';
+  setupFiles[type]=false;
+  importedSetupData[type]=null;
+  state.textContent='Analyse…';
+  card.classList.remove('ready');
+  updateGenerateState();
+  if(!files.length){state.textContent='Importer';return}
+  try{
+    const docs=[];
+    for(const file of files)docs.push({file,text:await readSetupFile(file)});
+    if(type==='groupSheets'){
+      const groups=parseGroupDocuments(docs);
+      if(!groups.length)throw new Error('Aucun élève détecté.');
+      importedSetupData.groupSheets=groups;
+      groupsData=groups;
+      saveGroups();
+      state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves';
+      localStorage.setItem('henriImportedGroups',JSON.stringify(groups));
+    }else if(type==='teacherSchedule'){
+      const parsed=parseTeacherScheduleText(docs.map(d=>d.text).join('\n'));
+      const lessons=Object.values(parsed).reduce((n,a)=>n+a.length,0);
+      if(!lessons)throw new Error('Aucune période liée à un groupe détectée.');
+      importedSetupData.teacherSchedule=parsed;
+      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' cours';
+      localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
+    }else{
+      const parsed=parseSchoolCalendarText(docs.map(d=>d.text).join('\n'));
+      const days=Object.keys(parsed).length;
+      if(days<5)throw new Error('Pas assez de dates scolaires détectées.');
+      importedSetupData.schoolCalendar=parsed;
+      state.textContent=days+' dates détectées';
+      localStorage.setItem('henriImportedSchoolCalendar',JSON.stringify(parsed));
+    }
+    setupFiles[type]=true;
     card.classList.add('ready');
-  }else{
-    state.textContent='Importer';
+    henriSyncSharedData({skipSequenceEditor:true});
+  }catch(err){
+    setupFiles[type]=false;
+    state.textContent='À vérifier';
     card.classList.remove('ready');
+    alert('Henri n’a pas pu valider ce document : '+err.message);
   }
   updateGenerateState();
-  if(type==='groupSheets'&&hasFile) renderGroups();
 }
 function updateGenerateState(){
   generateScheduleBtn.disabled=!Object.values(setupFiles).every(Boolean);
 }
 function generateMySchedule(){
-  if(!Object.values(setupFiles).every(Boolean)) return;
-
-  schoolDays=makeFullDemoSchoolDays();
+  if(!Object.values(setupFiles).every(Boolean)){
+    alert('Importe et valide les trois sources avant de générer ton horaire.');
+    return;
+  }
+  const teacher=importedSetupData.teacherSchedule;
+  const calendar=importedSetupData.schoolCalendar;
+  const groups=importedSetupData.groupSheets;
+  if(!teacher||!calendar||!groups)return;
+  groupsData=groups;
+  schoolDays=calendar;
   scheduleEntries={};
-
   Object.entries(schoolDays).forEach(([date,cycle])=>{
-    const lessons=demoTeacherSchedule[cycle]||[];
-    if(lessons.length){
-      scheduleEntries[date]=lessons.map(lesson=>({
-        ...lesson,
-        ...(demoPlanningByGroup[lesson.group]||{annualPlan:null,sequence:null,session:null})
-      }));
-    }
+    const lessons=teacher[cycle]||[];
+    if(lessons.length)scheduleEntries[date]=lessons.map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
   });
-  rebuildPlanningAssignments();
-
+  localStorage.removeItem('henriDemoSchedule');
   localStorage.setItem('henriSetupComplete','1');
-  localStorage.setItem('henriDemoSchedule','1');
   localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
   localStorage.setItem('henriSchoolDays',JSON.stringify(schoolDays));
-  setupSuccess.textContent='Horaire démo généré à partir du calendrier scolaire et du cycle de 9 jours.';
+  localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
+  rebuildPlanningAssignments();
+  henriSyncSharedData({skipSequenceEditor:true});
+  const total=Object.values(scheduleEntries).reduce((n,a)=>n+a.length,0);
+  setupSuccess.textContent='Horaire généré · '+groupsData.length+' groupes · '+total+' périodes placées.';
   setupSuccess.classList.add('show');
-  renderMonth();
-  renderWeek();
-  setTimeout(()=>{go('home');setCalendarView('month')},450);
+  shownYear=new Date().getFullYear();shownMonth=new Date().getMonth();
+  renderMonth();renderWeek();
+  setTimeout(()=>{goHome();setCalendarView('week')},350);
 }
-if(localStorage.getItem('henriDemoDataVersion')!==DEMO_DATA_VERSION){
+if(localStorage.getItem('henriSetupComplete')!=='1'&&localStorage.getItem('henriDemoDataVersion')!==DEMO_DATA_VERSION){
   schoolDays=makeFullDemoSchoolDays();
   scheduleEntries={};
   Object.entries(schoolDays).forEach(([date,cycleName])=>{
@@ -3316,7 +3474,20 @@ renderGroups();
 fillTeamBuilderGroups();
 fillExceptionGroupOptions();
 renderCalendarExceptions();
-setTimeout(()=>{enhanceAllHenriSelects();refreshQuickObjectiveOptions()},0);
+setTimeout(()=>{
+  enhanceAllHenriSelects();refreshQuickObjectiveOptions();
+  const labels={
+    teacherSchedule:importedSetupData.teacherSchedule?'Horaire validé':null,
+    schoolCalendar:importedSetupData.schoolCalendar?(Object.keys(importedSetupData.schoolCalendar).length+' dates'):null,
+    groupSheets:importedSetupData.groupSheets?(importedSetupData.groupSheets.length+' groupe'+(importedSetupData.groupSheets.length>1?'s':'')):null
+  };
+  Object.entries(labels).forEach(([k,label])=>{
+    if(!label)return;
+    document.getElementById(k+'State').textContent=label;
+    document.getElementById(k+'Card').classList.add('ready');
+  });
+  updateGenerateState();
+},0);
 </script>
 </body>
 </html>
