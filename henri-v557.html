@@ -3362,92 +3362,59 @@ function groupSignatureFromCode(code){
 }
 function inferGroupIdentity(text,fallbackName=''){
   const aliases=new Set();
-  const codes=extractEDUGroupCodes(text);
-  codes.forEach(code=>{
-    aliases.add(normalizeGroupAlias(code));
-    const sig=groupSignatureFromCode(code);
-    if(sig)aliases.add(sig);
-  });
+  const codes=extractEDUGroupCodes(String(text||'')+' '+String(fallbackName||''));
+  codes.forEach(code=>aliases.add(code));
   const hay=String(text||'')+' '+String(fallbackName||'');
-  const secGroupPatterns=[
-    /(?:secondaire|sec\.?|s)\s*([1-5])[^\n]{0,25}(?:groupe|gr\.?)\s*0?(\d{1,2})/i,
-    /\b([1-5])\s*[-–]\s*0?(\d{1,2})\b/
-  ];
   let level=null,num=null;
-  for(const re of secGroupPatterns){
-    const m=hay.match(re);
-    if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0');break}
-  }
-  if(!level&&codes[0]){
-    const m=codes[0].match(/EDU([1-5])G(\d)-\d{2}/);
-    if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0')}
-  }
-  if(level&&num){
-    aliases.add('S'+level+'G'+num);
-    aliases.add(normalizeGroupAlias('Secondaire '+level+' Groupe '+num));
-  }
+  const m=hay.match(/(?:secondaire|sec\.?|s)\s*([1-5])[^\n]{0,30}(?:groupe|gr\.?)\s*0?(\d{1,2})/i);
+  if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0');}
+  if(level&&num)aliases.add(normalizeGroupAlias('Secondaire '+level+' Groupe '+num));
   if(fallbackName)aliases.add(normalizeGroupAlias(fallbackName));
-  return {
-    canonicalName:fallbackName||codes[0]||(level&&num?'Secondaire '+level+' · Groupe '+num:'Groupe'),
-    aliases:[...aliases].filter(Boolean),
-    level,
-    number:num,
-    codes
-  };
+  return {canonicalName:fallbackName||codes[0]||(level&&num?'Secondaire '+level+' · Groupe '+num:'Groupe'),aliases:[...aliases].filter(Boolean),level,number:num,codes};
 }
 function semanticGroupKey(value){
-  const raw=String(value||'');
-  const code=normalizeEDUCode(raw);
-  if(code){
-    const m=code.match(/EDU([1-5])G(\d)-\d{2}/);
-    if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
-  }
-  const n=normalizeGroupAlias(raw);
-  let m=n.match(/(?:SECONDAIRE|SEC|S)?([1-5])(?:GROUPE|GR|G)0?(\d{1,2})/);
-  if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
-  return '';
+  // Never collapse EDU4G2-01 and EDU4G2-02: the complete EDU code identifies the actual class.
+  const code=normalizeEDUCode(value);
+  if(code)return code;
+  const n=normalizeGroupAlias(value);
+  const m=n.match(/(?:SECONDAIRE|SEC|S)?([1-5])(?:GROUPE|GR|G)0?(\d{1,2})/);
+  return m?'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0'):'';
 }
-function canonicalGroupKey(value){
-  const full=normalizeEDUCode(value);
-  return full||semanticGroupKey(value)||normalizeGroupAlias(value);
-}
+function canonicalGroupKey(value){return normalizeEDUCode(value)||semanticGroupKey(value)||normalizeGroupAlias(value);}
 function groupKeys(g){
   const keys=new Set();
-  (g?.sourceCodes||[]).forEach(v=>{
-    const code=normalizeEDUCode(v);if(code)keys.add(code);
-    const semantic=semanticGroupKey(v);if(semantic)keys.add(semantic);
-  });
+  (g?.sourceCodes||[]).forEach(v=>{const code=normalizeEDUCode(v);if(code)keys.add(code);});
   [g?.name,...(g?.aliases||[])].forEach(v=>{
+    const code=normalizeEDUCode(v);if(code)keys.add(code);
     const n=normalizeGroupAlias(v);if(n)keys.add(n);
-    const semantic=semanticGroupKey(v);if(semantic)keys.add(semantic);
+    const sem=semanticGroupKey(v);if(sem)keys.add(sem);
   });
-  if(g?.level&&g?.groupNumber){
-    keys.add('S'+g.level+'G'+String(Number(g.groupNumber)).padStart(2,'0'));
-  }
+  if(g?.level&&g?.groupNumber)keys.add('S'+g.level+'G'+String(Number(g.groupNumber)).padStart(2,'0'));
   return [...keys];
 }
 function matchImportedGroup(rawCodeOrName){
   const raw=String(rawCodeOrName||'');
-  const fullCode=normalizeEDUCode(raw);
-  const semantic=semanticGroupKey(raw);
-  if(fullCode){
-    const exact=groupsData.find(g=>groupKeys(g).includes(fullCode));
-    if(exact)return exact;
+  const code=normalizeEDUCode(raw);
+  if(code){
+    const exact=groupsData.filter(g=>groupKeys(g).includes(code));
+    if(exact.length===1)return exact[0];
     const map=getPersistentGroupCodeMap();
-    const mapped=groupsData.find(g=>g.id===map[fullCode]);
+    const mapped=groupsData.find(g=>g.id===map[code]);
     if(mapped)return mapped;
+    // OCR-tolerant fallback: only accept a unique one-character difference in the COMPLETE code.
+    const compact=s=>String(s||'').replace(/[^A-Z0-9]/g,'');
+    const target=compact(code);
+    const near=groupsData.filter(g=>(g.sourceCodes||[]).some(v=>{
+      const x=compact(normalizeEDUCode(v)); if(x.length!==target.length)return false;
+      let d=0;for(let i=0;i<x.length;i++)if(x[i]!==target[i])d++;
+      return d<=1;
+    }));
+    if(near.length===1)return near[0];
+    return null;
   }
-  if(semantic){
-    const byGroup=groupsData.filter(g=>groupKeys(g).includes(semantic));
-    if(byGroup.length===1)return byGroup[0];
-    if(byGroup.length>1){
-      // Prefer a group whose saved name explicitly contains the same level/group identity.
-      const exact=byGroup.find(g=>semanticGroupKey(g.name)===semantic);
-      if(exact)return exact;
-    }
-  }
-  const normalized=normalizeGroupAlias(raw);
-  return groupsData.find(g=>groupKeys(g).includes(normalized))||null;
+  const key=semanticGroupKey(raw)||normalizeGroupAlias(raw);
+  const matches=groupsData.filter(g=>groupKeys(g).includes(key));
+  return matches.length===1?matches[0]:null;
 }
 function parseGroupDocuments(docs){
   const result=[];
@@ -3972,18 +3939,16 @@ async function handleSetupFile(type,input){
         throw new Error('Henri n’a pas reconnu une liste complète dans '+missing.length+' photo'+(missing.length>1?'s':'')+' : '+missing.slice(0,3).join(', ')+(missing.length>3?'…':'')+'.');
       }
       const weak=groups.filter(g=>g.importConfidence<70||g.students.length<8);
-      // Merge imports into Mes groupes; never replace the teacher's existing group library with a partial import.
-      const merged=[...groupsData];
+      // The imported class lists are the source of truth for the current school year.
+      // If this is the first import after an annual reset, replace the empty library cleanly.
+      const merged=groupsData.length?[...groupsData]:[];
       groups.forEach(incoming=>{
-        const key=groupKeys(incoming)[0];
-        const idx=merged.findIndex(g=>(key&&groupKeys(g).includes(key))||normalizeGroupAlias(g.name)===normalizeGroupAlias(incoming.name));
-        if(idx>=0){
-          merged[idx]={...merged[idx],...incoming,id:merged[idx].id||incoming.id,
-            students:(incoming.students?.length?incoming.students:merged[idx].students),
-            aliases:[...new Set([...(merged[idx].aliases||[]),...(incoming.aliases||[])])],
-            sourceCodes:[...new Set([...(merged[idx].sourceCodes||[]),...(incoming.sourceCodes||[])])]
-          };
-        }else merged.push(incoming);
+        const fullCodes=(incoming.sourceCodes||[]).map(normalizeEDUCode).filter(Boolean);
+        let idx=-1;
+        if(fullCodes.length)idx=merged.findIndex(g=>fullCodes.some(code=>(g.sourceCodes||[]).map(normalizeEDUCode).includes(code)));
+        if(idx<0)idx=merged.findIndex(g=>normalizeGroupAlias(g.name)===normalizeGroupAlias(incoming.name));
+        if(idx>=0)merged[idx]={...merged[idx],...incoming,id:merged[idx].id||incoming.id,students:(incoming.students?.length?incoming.students:merged[idx].students),aliases:[...new Set([...(merged[idx].aliases||[]),...(incoming.aliases||[])])],sourceCodes:[...new Set([...(merged[idx].sourceCodes||[]),...(incoming.sourceCodes||[])])]};
+        else merged.push(incoming);
       });
       groupsData=merged;
       importedSetupData.groupSheets=groupsData;
