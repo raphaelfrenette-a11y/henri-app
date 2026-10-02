@@ -278,6 +278,28 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .conflictIgnored{margin-top:10px;border-radius:12px;background:#f3f3f1;color:var(--muted);padding:10px 11px;font-size:11px}
 @media(max-width:480px){.conflictSeq{grid-template-columns:1fr 68px}.conflictApply{grid-column:1/-1}.conflictSeq input{width:68px}}
 @media(max-width:600px){.planGrid{grid-template-columns:1fr}.planStats{grid-template-columns:repeat(3,1fr)}}
+.calendarExceptionSection{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 3px 14px rgba(0,0,0,.018)}
+.calendarExceptionHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.calendarExceptionHead h2{margin:0;font-size:19px;letter-spacing:-.025em}
+.calendarExceptionHead p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
+.exceptionAddBtn{border:0;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:9px 11px;font-size:11px;font-weight:780;white-space:nowrap}
+.exceptionForm{display:none;margin-top:14px;border-top:1px solid #f0f1ef;padding-top:14px}
+.exceptionForm.show{display:block}
+.exceptionGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.exceptionActions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
+.exceptionCancel{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:12px;padding:0 13px;font-weight:740}
+.exceptionImpact{display:none;margin-top:10px;border-radius:12px;background:#eef4f1;color:#3f6756;padding:10px 11px;font-size:11px;font-weight:680;line-height:1.45}
+.exceptionImpact.show{display:block}
+.exceptionList{display:grid;gap:8px;margin-top:14px}
+.exceptionEmpty{color:var(--muted);font-size:12px;padding:8px 1px}
+.exceptionItem{border:1px solid var(--line);background:#fafaf8;border-radius:15px;padding:12px 13px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.exceptionItem strong{display:block;font-size:13px}
+.exceptionItem small{display:block;color:var(--muted);font-size:10px;line-height:1.4;margin-top:3px}
+.exceptionDelete{border:0;background:#f6ecea;color:#865045;border-radius:10px;padding:8px 9px;font-size:10px;font-weight:760}
+.blockedCourse{border-color:#ead8b8;background:#fffaf2}
+.blockedCourse .dayPlanSport{color:#8a642f}
+.exceptionBadge{display:inline-flex;margin-top:8px;border-radius:999px;background:#faf2e6;color:#8a642f;padding:5px 8px;font-size:10px;font-weight:780}
+@media(max-width:560px){.exceptionGrid{grid-template-columns:1fr}.calendarExceptionHead{display:block}.exceptionAddBtn{margin-top:10px}.exceptionActions{grid-template-columns:1fr}}
 .settingsIntro{margin:-8px 0 22px;color:var(--muted);line-height:1.5;max-width:650px}
 .setupStack{display:grid;gap:10px}
 .importCard{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:17px 18px;display:grid;grid-template-columns:44px 1fr auto;gap:13px;align-items:center;box-shadow:0 3px 14px rgba(0,0,0,.018);transition:.18s ease}
@@ -378,7 +400,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.28</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.29</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -591,6 +613,32 @@ body{background:#f8f7f4}
     </label>
   </div>
 
+  <div class="calendarExceptionSection">
+    <div class="calendarExceptionHead">
+      <div>
+        <h2>Exceptions au calendrier</h2>
+        <p>Bloque une sortie, une activité spéciale ou une autre journée. Henri conserve l’horaire original et redistribue automatiquement les séances touchées.</p>
+      </div>
+      <button class="exceptionAddBtn" onclick="toggleExceptionForm(true)">+ Ajouter</button>
+    </div>
+
+    <div id="exceptionForm" class="exceptionForm">
+      <div class="exceptionGrid">
+        <div class="planField"><label>Date de début</label><input id="exceptionStart" type="date" class="planControl"></div>
+        <div class="planField"><label>Date de fin · optionnel</label><input id="exceptionEnd" type="date" class="planControl"></div>
+        <div class="planField"><label>Groupe concerné</label><select id="exceptionGroup" class="planControl"><option value="all">Tous les groupes</option></select></div>
+        <div class="planField"><label>Type</label><select id="exceptionType" class="planControl"><option>Sortie scolaire</option><option>Journée pédagogique</option><option>Activité spéciale</option><option>Examen</option><option>Gym indisponible</option><option>Absence enseignant</option><option>Autre</option></select></div>
+      </div>
+      <div class="planField" style="margin-top:9px"><label>Raison / note</label><input id="exceptionReason" class="planControl" placeholder="Ex. sortie au Musée de la civilisation"></div>
+      <div class="exceptionActions">
+        <button class="planPrimary" style="margin:0" onclick="addCalendarException()">Bloquer et redistribuer</button>
+        <button class="exceptionCancel" onclick="toggleExceptionForm(false)">Annuler</button>
+      </div>
+      <div id="exceptionImpact" class="exceptionImpact"></div>
+    </div>
+    <div id="exceptionList" class="exceptionList"></div>
+  </div>
+
   <div class="generateBox">
     <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()">Générer mon horaire</button>
     <p class="generateHint">Mode démo actif. Les trois sources sont déjà chargées pour tester le fonctionnement. Un vrai import remplacera simplement la démo correspondante.</p>
@@ -658,6 +706,7 @@ let previousScreen='home';
 function go(id){
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
   document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.screen===id));
+  if(id==='settings'){fillExceptionGroupOptions();renderCalendarExceptions()}
   scrollTo(0,0);
 }
 function openSession(title,meta){
@@ -689,8 +738,9 @@ let schoolDays={
 };
 function rebuildCalendarEvents(){
   calendarEvents={};
-  Object.entries(scheduleEntries).forEach(([date,entries])=>{
-    if(entries?.length){
+  Object.keys(scheduleEntries).forEach(date=>{
+    const entries=getVisibleScheduleEntries(date);
+    if(entries.length){
       const first=entries[0];
       calendarEvents[date]=first.time+' · '+first.group+(entries.length>1?' · +'+(entries.length-1):'');
     }
@@ -698,8 +748,12 @@ function rebuildCalendarEvents(){
   Object.entries(schoolDays).forEach(([date,type])=>{
     if(!calendarEvents[date]&&(type==='Pédagogique'||type==='Congé')) calendarEvents[date]=type==='Pédagogique'?'Journée pédagogique':'Congé';
   });
+  calendarExceptions.forEach(ex=>{
+    const start=ex.startDate||ex.date,end=ex.endDate||start;
+    if(ex.groupId==='all'&&start&&start===end&&!calendarEvents[start]) calendarEvents[start]=ex.type+(ex.reason?' · '+ex.reason:'');
+  });
 }
-const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const dayNames=const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const shortMonths=['janv.','févr.','mars','avr.','mai','juin','juill.','août','sept.','oct.','nov.','déc.'];
 function renderWeek(){
   if(!weekGrid) return;
@@ -708,13 +762,15 @@ function renderWeek(){
   for(let i=0;i<5;i++){
     const d=new Date(start); d.setDate(start.getDate()+i);
     const key=dateKey(d.getFullYear(),d.getMonth(),d.getDate());
-    const entries=scheduleEntries[key]||[];
+    const entries=getVisibleScheduleEntries(key);
+    const blocked=getBlockedScheduleEntries(key);
     const cycle=schoolDays[key];
     const today=key==='2026-09-28';
     out+='<div class="weekDay'+(today?' today':'')+'">'+
       '<button class="dayHead" onclick="openDayPlan(\''+key+'\')"><span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span></button>';
     if(entries.length){
-      entries.forEach((entry,idx)=>{
+      entries.forEach((entry)=>{
+        const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
         let sport=entry.annualPlan||'À planifier';
         if(sport==='À choisir') sport='À planifier';
         const groupColors=['#3b82f6','#34a853','#f59e0b','#8b5cf6'];
@@ -733,14 +789,18 @@ function renderWeek(){
         else if(sportLower.includes('course')||sportLower.includes('athl')){sportIcon='🏃'}
         else if(sportLower.includes('tennis')){sportIcon='🎾'}
         else if(sportLower.includes('planifier')){sportIcon='＋'}
-        out+='<button class="weekEvent" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+idx+')">'+
+        out+='<button class="weekEvent" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
           '<span class="time">'+entry.time+'</span>'+
           '<span class="groupBar" aria-hidden="true"></span>'+
           '<span class="course">'+entry.group+'</span>'+
           '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'"><span class="sportIcon" aria-hidden="true">'+sportIcon+'</span>'+sport+'</span>'+
         '</button>';
       });
-    }else{
+    }
+    blocked.forEach(({entry,exception})=>{
+      out+='<button class="weekEvent" style="--groupColor:#b28b56" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+entry.group+'</span><span class="quickSport">'+exception.type+'</span></button>';
+    });
+    if(!entries.length&&!blocked.length){
       out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu')+'</div>';
     }
     out+='</div>';
@@ -749,23 +809,35 @@ function renderWeek(){
 }
 
 function openDayPlan(date){
-  const entries=scheduleEntries[date]||[];
+  const entries=getVisibleScheduleEntries(date);
+  const blocked=getBlockedScheduleEntries(date);
   const cycle=schoolDays[date]||'';
   const d=new Date(date+'T12:00:00');
   dayPlanTitle.textContent=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()];
   dayPlanMeta.textContent=cycle;
-  if(entries.length){
-    dayPlanCourses.innerHTML=entries.map((entry,idx)=>{
-      const sport=entry.annualPlan||'Sport à planifier';
-      const session=entry.session||'Séance à planifier';
-      return '<div class="dayPlanCard">'+
-        '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
-        '<div class="dayPlanSport">'+sport+'</div>'+
-        '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+idx+')">'+session+'</button>'+
-      '</div>';
-    }).join('');
-  }else{
-    const label=cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu';
+  const cards=[];
+  entries.forEach(entry=>{
+    const originalIndex=(scheduleEntries[date]||[]).indexOf(entry);
+    const sport=entry.annualPlan||'Sport à planifier';
+    const session=entry.session||'Séance à planifier';
+    cards.push('<div class="dayPlanCard">'+
+      '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
+      '<div class="dayPlanSport">'+sport+'</div>'+
+      '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+originalIndex+')">'+session+'</button>'+
+    '</div>');
+  });
+  blocked.forEach(({entry,exception})=>{
+    cards.push('<div class="dayPlanCard blockedCourse">'+
+      '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
+      '<div class="dayPlanSport">'+exception.type+'</div>'+
+      '<div class="dayPlanPath">'+(exception.reason||'Cours bloqué dans les paramètres.')+'</div>'+
+      '<span class="exceptionBadge">Séance redistribuée automatiquement</span>'+
+    '</div>');
+  });
+  if(cards.length) dayPlanCourses.innerHTML=cards.join('');
+  else{
+    const allException=calendarExceptions.find(ex=>ex.groupId==='all'&&exceptionCoversDate(ex,date));
+    const label=allException?(allException.type+(allException.reason?' · '+allException.reason:'')):cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu';
     dayPlanCourses.innerHTML='<div class="placeholder">'+label+'</div>';
   }
   go('dayPlan');
@@ -841,12 +913,14 @@ function renderMonth(){
     else if(i>=offset+days){d=i-(offset+days)+1;m++;muted=true;if(m>11){m=0;y++}}
     else d=i-offset+1;
     const key=dateKey(y,m,d);
-    const entries=scheduleEntries[key]||[];
+    const entries=getVisibleScheduleEntries(key);
+    const blocked=getBlockedScheduleEntries(key);
     const schoolDay=schoolDays[key];
     const pedago=schoolDay==='Pédagogique'||schoolDay==='Congé';
+    const hasException=calendarExceptions.some(ex=>exceptionCoversDate(ex,key));
     const today=key==='2026-09-28';
-    const hasSomething=entries.length||pedago;
-    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+''+'">'+
+    const hasSomething=entries.length||blocked.length||pedago||hasException;
+    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'">'+
       '<button class="monthDayButton" onclick="openDayPlan(\''+key+'\')">'+
         '<span class="dayNum">'+d+'</span>'+
         (hasSomething?'<span class="eventDot"></span>':'')+
@@ -876,7 +950,143 @@ function setSavedSequence(groupId,blockId,sequence){
   localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
 }
 let individualSessions=JSON.parse(localStorage.getItem('henriIndividualSessions')||'[]');
+let calendarExceptions=JSON.parse(localStorage.getItem('henriCalendarExceptions')||'[]');
 let scheduleConflictIgnores=JSON.parse(localStorage.getItem('henriScheduleConflictIgnores')||'{}');
+
+function saveCalendarExceptions(){localStorage.setItem('henriCalendarExceptions',JSON.stringify(calendarExceptions))}
+function exceptionCoversDate(ex,date){
+  const start=ex.startDate||ex.date;
+  const end=ex.endDate||start;
+  return !!start&&date>=start&&date<=end;
+}
+function getCalendarException(date,groupId){
+  return calendarExceptions.find(ex=>exceptionCoversDate(ex,date)&&(ex.groupId==='all'||ex.groupId===groupId))||null;
+}
+function getEntryGroupId(entry){
+  return groupsData.find(g=>g.name===entry.group)?.id||null;
+}
+function getVisibleScheduleEntries(date){
+  return (scheduleEntries[date]||[]).filter(entry=>{
+    const groupId=getEntryGroupId(entry);
+    return !groupId||!getCalendarException(date,groupId);
+  });
+}
+function getBlockedScheduleEntries(date){
+  return (scheduleEntries[date]||[]).map(entry=>{
+    const groupId=getEntryGroupId(entry);
+    const exception=groupId?getCalendarException(date,groupId):null;
+    return exception?{entry,exception,groupId}:null;
+  }).filter(Boolean);
+}
+function fillExceptionGroupOptions(){
+  const select=document.getElementById('exceptionGroup');
+  if(!select||typeof groupsData==='undefined')return;
+  const current=select.value||'all';
+  select.innerHTML='<option value="all">Tous les groupes</option>'+groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
+  if([...select.options].some(o=>o.value===current))select.value=current;
+}
+function toggleExceptionForm(show){
+  const form=document.getElementById('exceptionForm');
+  if(!form)return;
+  form.classList.toggle('show',!!show);
+  if(show){
+    fillExceptionGroupOptions();
+    if(!exceptionStart.value){
+      const now=new Date();
+      exceptionStart.value=dateKey(now.getFullYear(),now.getMonth(),now.getDate());
+    }
+  }
+}
+function formatExceptionRange(ex){
+  const start=ex.startDate||ex.date;
+  const end=ex.endDate||start;
+  if(!start)return '';
+  return start===end?formatPlanDate(start):formatPlanDate(start)+' au '+formatPlanDate(end);
+}
+function getExceptionAffectedGroupIds(ex){
+  const ids=new Set();
+  Object.entries(scheduleEntries).forEach(([date,entries])=>{
+    if(!exceptionCoversDate(ex,date))return;
+    entries.forEach(entry=>{
+      const id=getEntryGroupId(entry);
+      if(id&&(ex.groupId==='all'||ex.groupId===id))ids.add(id);
+    });
+  });
+  return [...ids];
+}
+function snapshotGroupPlanEnds(groupIds){
+  const out={};
+  groupIds.forEach(id=>{
+    const ranges=getAnnualRanges(id,annualPlans[id]||[]);
+    const dates=ranges.map(r=>r.end).filter(Boolean);
+    out[id]=dates[dates.length-1]||null;
+  });
+  return out;
+}
+function addCalendarException(){
+  const start=exceptionStart?.value;
+  if(!start){alert('Choisis une date de début.');return}
+  const end=exceptionEnd?.value||start;
+  if(end<start){alert('La date de fin doit être après la date de début.');return}
+  const ex={
+    id:'exc-'+Date.now(),
+    startDate:start,
+    endDate:end,
+    groupId:exceptionGroup?.value||'all',
+    type:exceptionType?.value||'Autre',
+    reason:(exceptionReason?.value||'').trim()
+  };
+  const affected=getExceptionAffectedGroupIds(ex);
+  const before=snapshotGroupPlanEnds(affected);
+  calendarExceptions.push(ex);
+  calendarExceptions.sort((a,b)=>(a.startDate||a.date||'').localeCompare(b.startDate||b.date||''));
+  affected.forEach(id=>delete scheduleConflictIgnores[id]);
+  saveConflictIgnores();
+  saveCalendarExceptions();
+  rebuildPlanningAssignments();
+  const after=snapshotGroupPlanEnds(affected);
+  const moved=affected.filter(id=>before[id]!==after[id]);
+  const blockedCount=Object.entries(scheduleEntries).reduce((n,[date,entries])=>{
+    if(!exceptionCoversDate(ex,date))return n;
+    return n+entries.filter(entry=>{
+      const id=getEntryGroupId(entry);
+      return id&&(ex.groupId==='all'||ex.groupId===id);
+    }).length;
+  },0);
+  const impact=document.getElementById('exceptionImpact');
+  if(impact){
+    const moveText=moved.length?moved.length+' groupe'+(moved.length>1?'s':'')+' redistribué'+(moved.length>1?'s':''):'aucune séquence annuelle à déplacer';
+    impact.textContent=blockedCount+' cours bloqué'+(blockedCount>1?'s':'')+' · '+moveText+'. Le calendrier et les dates de planification ont été recalculés.';
+    impact.classList.add('show');
+  }
+  exceptionReason.value='';
+  exceptionEnd.value='';
+  renderCalendarExceptions();
+}
+function deleteCalendarException(id){
+  const ex=calendarExceptions.find(x=>x.id===id);
+  if(!ex)return;
+  const affected=getExceptionAffectedGroupIds(ex);
+  calendarExceptions=calendarExceptions.filter(x=>x.id!==id);
+  affected.forEach(id=>delete scheduleConflictIgnores[id]);
+  saveConflictIgnores();
+  saveCalendarExceptions();
+  rebuildPlanningAssignments();
+  renderCalendarExceptions();
+}
+function renderCalendarExceptions(){
+  const list=document.getElementById('exceptionList');
+  if(!list)return;
+  if(!calendarExceptions.length){
+    list.innerHTML='<div class="exceptionEmpty">Aucune exception ajoutée. Ton horaire suit le calendrier scolaire normal.</div>';
+    return;
+  }
+  list.innerHTML=calendarExceptions.map(ex=>{
+    const group=ex.groupId==='all'?'Tous les groupes':(groupsData.find(g=>g.id===ex.groupId)?.name||'Groupe');
+    const detail=[group,ex.type,ex.reason].filter(Boolean).join(' · ');
+    return '<div class="exceptionItem"><div><strong>'+formatExceptionRange(ex)+'</strong><small>'+detail+'</small></div><button class="exceptionDelete" onclick="deleteCalendarException(\''+ex.id+'\')">Retirer</button></div>';
+  }).join('');
+}
 let selectedAnnualBlockId=null;
 let selectedAnnualGroupId=null;
 let activeSessionIndex=0;
@@ -933,7 +1143,7 @@ function getGroupCourseDates(groupId){
   const g=groupsData.find(x=>x.id===groupId);
   if(!g) return [];
   return Object.keys(scheduleEntries)
-    .filter(date=>(scheduleEntries[date]||[]).some(e=>e.group===g.name))
+    .filter(date=>!getCalendarException(date,groupId)&&(scheduleEntries[date]||[]).some(e=>e.group===g.name))
     .sort();
 }
 function getGroupSequenceDates(groupId){
@@ -2213,7 +2423,7 @@ function generateMySchedule(){
       }));
     }
   });
-  rebuildCalendarEvents();
+  rebuildPlanningAssignments();
 
   localStorage.setItem('henriSetupComplete','1');
   localStorage.setItem('henriDemoSchedule','1');
@@ -2258,6 +2468,8 @@ if(localStorage.getItem('henriDemoSchedule')==='1'){
 }
 rebuildPlanningAssignments();
 renderGroups();
+fillExceptionGroupOptions();
+renderCalendarExceptions();
 </script>
 </body>
 </html>
