@@ -3206,39 +3206,33 @@ function aiOCRScore(result){
   return confidence+(Math.min(35,likelyNames)*1.4)+Math.min(12,alpha/180);
 }
 async function runAIPhotoOCR(file,onProgress){
-  if(!window.Tesseract)throw new Error('Le lecteur de photo ne s’est pas chargé.');
+  if(!window.Tesseract)throw new Error('Le lecteur de photos ne s’est pas chargé.');
   const passes=['enhanced','original','threshold'];
   let best=null;
   for(let p=0;p<passes.length;p++){
     const mode=passes[p];
-    const source=mode==='original'?file:await prepareImageForAI(file,mode);
-    const sourceW=source.width||source.naturalWidth||1;
-    const sourceH=source.height||source.naturalHeight||1;
-    const result=await Tesseract.recognize(source,'fra+eng',{
-      logger:m=>{
-        if(m.status==='recognizing text'&&onProgress){
-          onProgress(Math.min(99,Math.round(((p+(m.progress||0))/passes.length)*100)));
-        }
-      }
-    });
+    const source=await prepareImageForAI(file,mode);
+    const result=await Tesseract.recognize(source,'fra+eng',{logger:m=>{
+      if(m.status==='recognizing text'&&onProgress)onProgress(Math.min(99,Math.round(((p+(m.progress||0))/passes.length)*100)));
+    }});
     const words=(result?.data?.words||[]).map(w=>({
       text:String(w.text||'').trim(),
       confidence:Number(w.confidence||0),
-      nx0:w.bbox?Math.max(0,Math.min(1,w.bbox.x0/sourceW)):0,
-      ny0:w.bbox?Math.max(0,Math.min(1,w.bbox.y0/sourceH)):0,
-      nx1:w.bbox?Math.max(0,Math.min(1,w.bbox.x1/sourceW)):0,
-      ny1:w.bbox?Math.max(0,Math.min(1,w.bbox.y1/sourceH)):0
-    })).filter(w=>w.text&&w.nx1>w.nx0&&w.ny1>w.ny0);
+      bbox:w.bbox?{x0:w.bbox.x0,y0:w.bbox.y0,x1:w.bbox.x1,y1:w.bbox.y1}:null
+    })).filter(w=>w.text&&w.bbox);
     const candidate={
       text:normalizeImportText(result?.data?.text||''),
       confidence:Math.round(Number(result?.data?.confidence||0)),
       score:aiOCRScore(result),
       pass:mode,
-      words
+      words,
+      imageWidth:source.width,
+      imageHeight:source.height
     };
     if(!best||candidate.score>best.score)best=candidate;
-    const classCodes=(candidate.text.match(/\bEDU\s*[1-5]\s*G\s*\d\s*[-–]?\s*\d{1,2}\b/gi)||[]).length;
-    if(candidate.confidence>=82&&classCodes>=5)break;
+    const months=(candidate.text.match(/janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre/gi)||[]).length;
+    const edu=(candidate.text.match(/\bEDU\s*[1-5]\s*G\s*\d\s*[-–]?\s*\d{1,2}\b/gi)||[]).length;
+    if(candidate.confidence>=82&&(months>=8||edu>=5))break;
   }
   if(!best?.text)throw new Error('Aucun texte lisible détecté dans '+(file.name||'la photo')+'.');
   if(onProgress)onProgress(100);
@@ -3258,15 +3252,15 @@ async function readSetupFile(file,onProgress){
       pages.push(content.items.map(i=>i.str).join(' '));
       if(onProgress)onProgress(Math.round((p/pdf.numPages)*100));
     }
-    return {text:normalizeImportText(pages.join('\n')),confidence:100,engine:'PDF',words:[]};
+    return {text:normalizeImportText(pages.join('\n')),confidence:100,engine:'PDF',words:[],imageWidth:0,imageHeight:0};
   }
   if(name.endsWith('.csv')||name.endsWith('.txt')||name.endsWith('.json')){
     if(onProgress)onProgress(100);
-    return {text:normalizeImportText(await file.text()),confidence:100,engine:'Texte',words:[]};
+    return {text:normalizeImportText(await file.text()),confidence:100,engine:'Texte',words:[],imageWidth:0,imageHeight:0};
   }
   if((file.type||'').startsWith('image/')){
     const ai=await runAIPhotoOCR(file,onProgress);
-    return {text:ai.text,confidence:ai.confidence,engine:'IA locale',pass:ai.pass,words:ai.words||[]};
+    return {text:ai.text,confidence:ai.confidence,engine:'Photo',pass:ai.pass,words:ai.words||[],imageWidth:ai.imageWidth||0,imageHeight:ai.imageHeight||0};
   }
   throw new Error('Format non pris en charge : '+(file.name||'fichier')+'.');
 }
@@ -3440,7 +3434,7 @@ function clusterValues(values,tolerance){
 }
 function parseTeacherScheduleGrid(words){
   if(!Array.isArray(words)||!words.length)return {};
-  const usable=words.filter(w=>w.nx1>w.nx0&&w.ny1>w.ny0&&w.confidence>=20).map(w=>({...w,bbox:{x0:w.nx0*1000,y0:w.ny0*1000,x1:w.nx1*1000,y1:w.ny1*1000}}));
+  const usable=words.filter(w=>w.bbox&&w.confidence>=20);
   const codeWords=usable.map(w=>({...w,code:normalizeEDUCode(w.text)})).filter(w=>w.code);
   if(codeWords.length<3)return {};
 
@@ -3601,157 +3595,126 @@ function parseSchoolCalendarLoose(text){
   });
   return out;
 }
-function median(values){
-  if(!values.length)return 0;
-  const a=[...values].sort((x,y)=>x-y),m=Math.floor(a.length/2);
-  return a.length%2?a[m]:(a[m-1]+a[m])/2;
+function calendarMonthIndex(value){
+  const key=String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
+  const map={janvier:0,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,aout:7,septembre:8,octobre:9,novembre:10,decembre:11};
+  return Object.prototype.hasOwnProperty.call(map,key)?map[key]:null;
 }
-function clusterIndexes(values,maxGap=2){
-  if(!values.length)return [];
-  const out=[];let start=values[0],prev=values[0];
-  for(let i=1;i<values.length;i++){
-    const v=values[i];
-    if(v-prev>maxGap){out.push([start,prev]);start=v}
-    prev=v;
-  }
-  out.push([start,prev]);
+function clusterCalendarNumbers(values,tolerance){
+  const sorted=[...values].sort((a,b)=>a-b),out=[];
+  sorted.forEach(v=>{
+    const last=out[out.length-1];
+    if(!last||Math.abs(v-last.avg)>tolerance)out.push({avg:v,values:[v]});
+    else{last.values.push(v);last.avg=last.values.reduce((a,b)=>a+b,0)/last.values.length}
+  });
   return out;
 }
-function schoolCalendarGreen(r,g,b){
-  return g>105&&g>r*1.12&&g>b*.92&&(g-r)>18;
-}
-function classifyCalendarCellColor(data,w,h,x0,y0,x1,y1){
-  const mx=Math.max(2,Math.floor((x1-x0)*.18));
-  const my=Math.max(2,Math.floor((y1-y0)*.18));
-  let total=0,red=0,blue=0,green=0;
-  for(let y=Math.max(0,Math.floor(y0+my));y<Math.min(h,Math.ceil(y1-my));y+=2){
-    for(let x=Math.max(0,Math.floor(x0+mx));x<Math.min(w,Math.ceil(x1-mx));x+=2){
-      const i=(y*w+x)*4,r=data[i],g=data[i+1],b=data[i+2];
-      total++;
-      if(r>145&&r>g*1.35&&r>b*1.25)red++;
-      if(b>95&&b>r*1.18&&b>g*1.05)blue++;
-      if(g>120&&g>r*1.08&&g>b*1.13)green++;
-    }
-  }
-  if(!total)return '';
-  const rr=red/total,bb=blue/total,gg=green/total;
-  if(rr>.23)return 'Congé';
-  if(bb>.23)return 'Congé';
-  if(gg>.23)return 'Pédagogique';
-  return '';
-}
-async function loadImageCanvasForCalendar(file){
+async function loadCalendarImage(file,w,h){
   const url=URL.createObjectURL(file);
   try{
-    const img=await new Promise((resolve,reject)=>{
-      const el=new Image();
-      el.onload=()=>resolve(el);
-      el.onerror=()=>reject(new Error('Photo illisible.'));
-      el.src=url;
-    });
-    const canvas=document.createElement('canvas');
-    canvas.width=img.naturalWidth||img.width;
-    canvas.height=img.naturalHeight||img.height;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(img,0,0,canvas.width,canvas.height);
-    return {ctx,width:canvas.width,height:canvas.height};
+    const img=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('Photo illisible.'));el.src=url;});
+    const canvas=document.createElement('canvas');canvas.width=w||img.naturalWidth;canvas.height=h||img.naturalHeight;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    return {canvas,ctx};
   }finally{URL.revokeObjectURL(url)}
 }
-function inferCalendarStart(text){
-  const raw=String(text||'').toLowerCase();
-  const re=/(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(20\d{2})/gi;
-  const matches=[...raw.matchAll(re)];
-  if(matches.length){
-    return {month:frenchMonths[matches[0][1].toLowerCase()],year:Number(matches[0][2])};
+function classifyCalendarCellColor(ctx,x0,y0,x1,y1){
+  const px=(x1-x0)*.18,py=(y1-y0)*.18;
+  const sx=Math.max(0,Math.floor(x0+px)),sy=Math.max(0,Math.floor(y0+py));
+  const sw=Math.max(2,Math.floor((x1-x0)-2*px)),sh=Math.max(2,Math.floor((y1-y0)-2*py));
+  const d=ctx.getImageData(sx,sy,sw,sh).data;
+  let g=0,b=0,r=0,t=0;
+  for(let i=0;i<d.length;i+=16){
+    const R=d[i],G=d[i+1],B=d[i+2],mx=Math.max(R,G,B),mn=Math.min(R,G,B);
+    if(mx-mn<28||mx<65)continue;t++;
+    if(G>R*1.12&&G>B*1.08)g++;
+    else if(B>R*1.18&&B>G*1.06)b++;
+    else if(R>G*1.22&&R>B*1.18)r++;
   }
-  const y=raw.match(/(20\d{2})\s*[-–]\s*(20\d{2})/);
-  return {month:6,year:y?Number(y[1]):new Date().getFullYear()};
+  if(t<3)return '';
+  if(g/t>.42)return 'Pédagogique';
+  if(b/t>.42||r/t>.42)return 'Congé';
+  return '';
 }
-function extractCycleFromCell(words,day,x0,y0,x1,y1){
-  const nums=(words||[]).filter(w=>{
-    const cx=(w.nx0+w.nx1)/2,cy=(w.ny0+w.ny1)/2;
-    return /^\d{1,2}$/.test(w.text)&&cx>=x0&&cx<=x1&&cy>=y0&&cy<=y1;
-  }).map(w=>({n:Number(w.text),h:w.ny1-w.ny0,y:(w.ny0+w.ny1)/2,x:(w.nx0+w.nx1)/2}));
-  if(!nums.length)return '';
-  const maxH=Math.max(...nums.map(z=>z.h));
-  const candidates=nums.filter(x=>x.n>=1&&x.n<=9&&!(x.n===day&&x.h>=maxH*.85));
-  if(!candidates.length)return '';
-  candidates.sort((a,b)=>(a.h-b.h)||((b.y+b.x)-(a.y+a.x)));
-  return 'Jour '+candidates[0].n;
+function parseSchoolBoundary(text,start){
+  const re=start
+    ?/(?:début|debut)[^\n]{0,60}?(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(20\d{2})/i
+    :/(?:fin)[^\n]{0,60}?(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(20\d{2})/i;
+  const m=String(text||'').match(re);if(!m)return null;
+  const month=calendarMonthIndex(m[2]);return month===null?null:dateKey(Number(m[3]),month,Number(m[1]));
 }
-async function parseSchoolCalendarImage(file,doc){
-  if(!(file.type||'').startsWith('image/'))return {};
-  const {ctx,width,height}=await loadImageCanvasForCalendar(file);
-  const image=ctx.getImageData(0,0,width,height),d=image.data;
-  const rowHits=[];
-  for(let y=0;y<height;y+=3){
-    let hit=0,total=0;
-    for(let x=0;x<width;x+=6){
-      const i=(y*width+x)*4;
-      if(schoolCalendarGreen(d[i],d[i+1],d[i+2]))hit++;
-      total++;
-    }
-    if(hit/Math.max(1,total)>.42)rowHits.push(y);
-  }
-  const yBands=clusterIndexes(rowHits,6).map(v=>({y0:v[0],y1:v[1]})).filter(b=>b.y1-b.y0>=12);
-  if(yBands.length<2)return {};
+async function parseSchoolCalendarVisual(doc){
+  if(!(doc.file?.type||'').startsWith('image/')||!doc.words?.length||!doc.imageWidth||!doc.imageHeight)return {};
+  const W=doc.imageWidth,H=doc.imageHeight,words=doc.words.filter(w=>w.bbox&&w.confidence>=12);
+  const anchors=[];const seen=new Set();
+  words.forEach(w=>{const m=calendarMonthIndex(w.text);if(m!==null&&!seen.has(m)){seen.add(m);anchors.push({month:m,x:(w.bbox.x0+w.bbox.x1)/2,y:(w.bbox.y0+w.bbox.y1)/2});}});
+  if(anchors.length<6)return {};
+  anchors.sort((a,b)=>a.y-b.y||a.x-b.x);
+  const xs=clusterCalendarNumbers(anchors.map(a=>a.x),W*.09).sort((a,b)=>a.avg-b.avg);
+  const ys=clusterCalendarNumbers(anchors.map(a=>a.y),H*.07).sort((a,b)=>a.avg-b.avg);
+  if(xs.length<3||ys.length<2)return {};
+  const {ctx}=await loadCalendarImage(doc.file,W,H);
+  const years=[...String(doc.text||'').matchAll(/\b(20\d{2})\b/g)].map(m=>Number(m[1]));
+  const y1=years.length?Math.min(...years):new Date().getFullYear(),y2=years.length?Math.max(...years):y1+1;
+  const out={},direct={};
 
-  const blocks=[];
-  yBands.forEach((yb,rowIndex)=>{
-    const colHits=[];
-    for(let x=0;x<width;x+=3){
-      let hit=0,total=0;
-      for(let y=yb.y0;y<=yb.y1;y+=3){
-        const i=(Math.min(height-1,y)*width+Math.min(width-1,x))*4;
-        if(schoolCalendarGreen(d[i],d[i+1],d[i+2]))hit++;
-        total++;
+  anchors.forEach(a=>{
+    const xi=xs.reduce((bi,x,i)=>Math.abs(x.avg-a.x)<Math.abs(xs[bi].avg-a.x)?i:bi,0);
+    const yi=ys.reduce((bi,y,i)=>Math.abs(y.avg-a.y)<Math.abs(ys[bi].avg-a.y)?i:bi,0);
+    const xc=xs[xi].avg,yc=ys[yi].avg;
+    const left=xi? (xs[xi-1].avg+xc)/2 : Math.max(0,xc-(xs[1].avg-xc)/2);
+    const right=xi<xs.length-1?(xc+xs[xi+1].avg)/2:Math.min(W,xc+(xc-xs[xi-1].avg)/2);
+    const top=Math.max(0,yc-H*.01),bottom=yi<ys.length-1?(yc+ys[yi+1].avg)/2:Math.min(H,yc+(yc-ys[yi-1].avg)/2);
+
+    const nums=words.filter(w=>{const cx=(w.bbox.x0+w.bbox.x1)/2,cy=(w.bbox.y0+w.bbox.y1)/2;return cx>=left&&cx<=right&&cy>=top&&cy<=bottom&&/^\d{1,2}$/.test(w.text)})
+      .map(w=>({...w,n:Number(w.text),cx:(w.bbox.x0+w.bbox.x1)/2,cy:(w.bbox.y0+w.bbox.y1)/2,h:w.bbox.y1-w.bbox.y0})).filter(n=>n.n>=1&&n.n<=31);
+    if(nums.length<15)return;
+    const hs=nums.map(n=>n.h).sort((a,b)=>a-b),mh=hs[Math.floor(hs.length*.62)]||8;
+    const dates=nums.filter(n=>n.h>=mh*.72&&n.cy>yc+Math.max(14,H*.018));
+    if(dates.length<12)return;
+    const rows=clusterCalendarNumbers(dates.map(n=>n.cy),H*.018).sort((a,b)=>a.avg-b.avg).slice(0,6);
+    const gap=rows.length>1?rows.slice(1).reduce((s,r,i)=>s+(r.avg-rows[i].avg),0)/(rows.length-1):(bottom-top)/6;
+    const first=rows[0]?.avg||yc+H*.055,cellW=(right-left)/7,year=a.month>=7?y1:y2;
+    const byDate=new Map();
+    dates.forEach(n=>{const p=byDate.get(n.n);if(!p||n.h>p.h)byDate.set(n.n,n)});
+    byDate.forEach((n,day)=>{
+      const col=Math.max(0,Math.min(6,Math.floor((n.cx-left)/cellW)));
+      const row=Math.max(0,Math.min(5,Math.round((n.cy-first)/Math.max(1,gap))));
+      const x0=left+col*cellW,x1=x0+cellW,rc=first+row*gap,y0=rc-gap*.48,y1c=rc+gap*.48;
+      const key=dateKey(year,a.month,day),special=classifyCalendarCellColor(ctx,x0,y0,x1,y1c);
+      if(special)out[key]=special;
+      const tiny=nums.filter(t=>t!==n&&t.n>=1&&t.n<=9&&t.h<n.h*.78&&t.cx>=x0&&t.cx<=x1&&t.cy>=y0&&t.cy<=y1c).sort((u,v)=>u.h-v.h)[0];
+      if(tiny&&!special)direct[key]=tiny.n;
+    });
+  });
+
+  const keys=Object.keys(direct).sort();
+  if(keys.length){
+    const firstKey=keys[0];let cur=direct[firstKey],active=false;
+    const start=parseSchoolBoundary(doc.text,true)||firstKey,end=parseSchoolBoundary(doc.text,false)||keys[keys.length-1];
+    let d=new Date(start+'T12:00:00'),endD=new Date(end+'T12:00:00');
+    while(d<=endD){
+      const key=dateKey(d.getFullYear(),d.getMonth(),d.getDate()),wd=d.getDay();
+      if(key===firstKey){cur=direct[firstKey];active=true}
+      if(active&&wd>=1&&wd<=5){
+        if(direct[key])cur=direct[key];
+        if(!out[key]){out[key]='Jour '+cur;cur=cur>=9?1:cur+1}
       }
-      if(hit/Math.max(1,total)>.52)colHits.push(x);
+      d.setDate(d.getDate()+1);
     }
-    const xBands=clusterIndexes(colHits,6).map(v=>({x0:v[0],x1:v[1]})).filter(b=>b.x1-b.x0>width*.12);
-    xBands.forEach((xb,colIndex)=>blocks.push({...xb,...yb,rowIndex,colIndex}));
-  });
-  if(blocks.length<8)return {};
-
-  blocks.sort((a,b)=>a.y0-b.y0||a.x0-b.x0);
-  const rowStarts=[...new Set(blocks.map(b=>b.y0))].sort((a,b)=>a-b);
-  const rowStep=median(rowStarts.slice(1).map((v,i)=>v-rowStarts[i]))||height*.19;
-  const start=inferCalendarStart(doc.text||'');
-  const out={};
-
-  blocks.forEach((block,index)=>{
-    const dt=new Date(start.year,start.month+index,1,12);
-    const year=dt.getFullYear(),month=dt.getMonth();
-    const firstDow=new Date(year,month,1,12).getDay();
-    const daysInMonth=new Date(year,month+1,0,12).getDate();
-    const gridTop=block.y1+2;
-    const gridBottom=Math.min(height-1,block.y0+rowStep-12);
-    const cellW=(block.x1-block.x0+1)/7;
-    const cellH=(gridBottom-gridTop)/7;
-    for(let day=1;day<=daysInMonth;day++){
-      const offset=firstDow+day-1,col=offset%7,row=Math.floor(offset/7);
-      const x0=block.x0+col*cellW,x1=x0+cellW;
-      const y0=gridTop+(row+1)*cellH,y1=y0+cellH;
-      const type=classifyCalendarCellColor(d,width,height,x0,y0,x1,y1);
-      const cycle=extractCycleFromCell(doc.words||[],day,x0/width,y0/height,x1/width,y1/height);
-      const key=dateKey(year,month,day);
-      if(type)out[key]=type;
-      else if(cycle)out[key]=cycle;
-    }
-  });
+  }
   return out;
 }
 async function parseSchoolCalendarDocs(docs){
   const out={};
   for(const doc of docs){
+    if((doc.file?.type||'').startsWith('image/'))Object.assign(out,await parseSchoolCalendarVisual(doc));
     Object.assign(out,parseSchoolCalendarLoose(doc.text||''));
     Object.assign(out,parseSchoolCalendarText(doc.text||''));
-    try{
-      Object.assign(out,await parseSchoolCalendarImage(doc.file,doc));
-    }catch(e){}
   }
   return out;
 }
+
 async function handleSetupFile(type,input){
   const files=[...(input.files||[])];
   const state=document.getElementById(type+'State');
@@ -3773,7 +3736,7 @@ async function handleSetupFile(type,input){
       const read=await readSetupFile(file,p=>{
         if(type==='groupSheets'||type==='teacherSchedule'||type==='schoolCalendar')state.textContent='Analyse '+(i+1)+' / '+files.length;
       });
-      docs.push({file,text:read.text,confidence:read.confidence,engine:read.engine,words:read.words||[]});
+      docs.push({file,text:read.text,confidence:read.confidence,engine:read.engine,words:read.words||[],imageWidth:read.imageWidth||0,imageHeight:read.imageHeight||0});
     }
     if(type==='groupSheets'){
       const groups=parseGroupDocuments(docs);
