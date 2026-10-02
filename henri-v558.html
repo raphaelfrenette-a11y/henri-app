@@ -921,8 +921,11 @@ body{background:#f8f7f4}
 </div>
 
 <script>
-const HENRI_STORAGE_VERSION='persistent-v1';
-localStorage.setItem('henriStorageVersion',HENRI_STORAGE_VERSION);
+const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
+if(localStorage.getItem('henriFreshStartVersion')!==HENRI_FRESH_START_VERSION){
+  Object.keys(localStorage).filter(k=>k.startsWith('henri')).forEach(k=>localStorage.removeItem(k));
+  localStorage.setItem('henriFreshStartVersion',HENRI_FRESH_START_VERSION);
+}
 let previousScreen='home';
 function go(id){
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
@@ -1200,18 +1203,36 @@ function getCalendarException(date,groupId){
 function getEntryGroupId(entry){
   return groupsData.find(g=>g.name===entry.group)?.id||null;
 }
+function scheduleTimeMinutes(value){
+  const raw=String(value||'').trim().toLowerCase();
+  let m=raw.match(/(\d{1,2})\s*[h:]\s*(\d{2})/);
+  if(m)return Number(m[1])*60+Number(m[2]);
+  m=raw.match(/p[eé]riode\s*(\d+)/i);
+  if(m){
+    const periodStarts=[490,575,655,755,840];
+    return periodStarts[Number(m[1])-1]??9999;
+  }
+  return 9999;
+}
+function sortScheduleEntries(entries){
+  return [...entries].sort((a,b)=>{
+    const diff=scheduleTimeMinutes(a.time)-scheduleTimeMinutes(b.time);
+    return diff||String(a.group||'').localeCompare(String(b.group||''),'fr');
+  });
+}
 function getVisibleScheduleEntries(date){
-  return (scheduleEntries[date]||[]).filter(entry=>{
+  const visible=(scheduleEntries[date]||[]).filter(entry=>{
     const groupId=getEntryGroupId(entry);
     return !groupId||!getCalendarException(date,groupId);
   });
+  return sortScheduleEntries(visible);
 }
 function getBlockedScheduleEntries(date){
   return (scheduleEntries[date]||[]).map(entry=>{
     const groupId=getEntryGroupId(entry);
     const exception=groupId?getCalendarException(date,groupId):null;
     return exception?{entry,exception,groupId}:null;
-  }).filter(Boolean);
+  }).filter(Boolean).sort((a,b)=>scheduleTimeMinutes(a.entry.time)-scheduleTimeMinutes(b.entry.time));
 }
 function fillExceptionGroupOptions(){
   const select=document.getElementById('exceptionGroup');
@@ -3145,66 +3166,6 @@ const importedSetupData={
 };
 Object.keys(setupFiles).forEach(k=>setupFiles[k]=!!importedSetupData[k]);
 
-function openHenriImportDB(){
-  return new Promise((resolve,reject)=>{
-    const req=indexedDB.open('HenriPersistentData',1);
-    req.onupgradeneeded=()=>{
-      const db=req.result;
-      if(!db.objectStoreNames.contains('imports'))db.createObjectStore('imports',{keyPath:'type'});
-    };
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error);
-  });
-}
-async function saveImportedFiles(type,files){
-  try{
-    const db=await openHenriImportDB();
-    const payload={
-      type,
-      updatedAt:Date.now(),
-      files:[...files].map(file=>({
-        name:file.name,
-        mime:file.type,
-        lastModified:file.lastModified,
-        size:file.size,
-        blob:file
-      }))
-    };
-    await new Promise((resolve,reject)=>{
-      const tx=db.transaction('imports','readwrite');
-      tx.objectStore('imports').put(payload);
-      tx.oncomplete=resolve;
-      tx.onerror=()=>reject(tx.error);
-    });
-    db.close();
-    return true;
-  }catch(e){
-    console.warn('Henri: sauvegarde du fichier original impossible',e);
-    return false;
-  }
-}
-async function loadImportedFiles(type){
-  try{
-    const db=await openHenriImportDB();
-    const data=await new Promise((resolve,reject)=>{
-      const tx=db.transaction('imports','readonly');
-      const req=tx.objectStore('imports').get(type);
-      req.onsuccess=()=>resolve(req.result||null);
-      req.onerror=()=>reject(req.error);
-    });
-    db.close();
-    return data;
-  }catch(e){
-    return null;
-  }
-}
-async function getImportPersistenceSummary(){
-  const types=['teacherSchedule','schoolCalendar','groupSheets'];
-  const result={};
-  for(const type of types)result[type]=await loadImportedFiles(type);
-  return result;
-}
-
 function normalizeImportText(text){
   return String(text||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\r/g,'\n').replace(/\n{2,}/g,'\n').trim();
 }
@@ -3839,7 +3800,6 @@ async function handleSetupFile(type,input){
       saveGroups();
       state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' importé'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves'+(weak.length?' · '+weak.length+' à vérifier':'');
       localStorage.setItem('henriImportedGroups',JSON.stringify(groups));
-      localStorage.setItem('henriImportManifest_groupSheets',JSON.stringify({count:files.length,updatedAt:Date.now(),names:files.map(f=>f.name)}));
       if(groupAIReview&&groupAIReviewList){
         groupAIReview.style.display='block';
         groupAIReviewList.innerHTML=groups.map(g=>'<div style="display:flex;justify-content:space-between;gap:12px"><span><b>'+g.name+'</b> · '+g.students.length+' élèves</span><span>'+(g.importConfidence<70||g.students.length<8?'À vérifier':'Importé')+'</span></div>').join('');
@@ -3852,7 +3812,6 @@ async function handleSetupFile(type,input){
       importedSetupData.teacherSchedule=parsed;
       state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' cours · '+linked+' liés aux groupes';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
-      localStorage.setItem('henriImportManifest_teacherSchedule',JSON.stringify({count:files.length,updatedAt:Date.now(),names:files.map(f=>f.name)}));
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
       const days=Object.keys(parsed).length;
@@ -3862,11 +3821,9 @@ async function handleSetupFile(type,input){
       importedSetupData.schoolCalendar=parsed;
       state.textContent='Calendrier importé · '+days+' dates · '+cycles+' jours-cycle · '+specials+' journées spéciales';
       localStorage.setItem('henriImportedSchoolCalendar',JSON.stringify(parsed));
-      localStorage.setItem('henriImportManifest_schoolCalendar',JSON.stringify({count:files.length,updatedAt:Date.now(),names:files.map(f=>f.name)}));
     }
     setupFiles[type]=true;
     card.classList.add('ready');
-    await saveImportedFiles(type,files);
     henriSyncSharedData({skipSequenceEditor:true});
   }catch(err){
     setupFiles[type]=false;
@@ -3892,7 +3849,7 @@ function generateMySchedule(){
   schoolDays=calendar;
   scheduleEntries={};
   Object.entries(schoolDays).forEach(([date,cycle])=>{
-    const lessons=teacher[cycle]||[];
+    const lessons=sortScheduleEntries(teacher[cycle]||[]);
     if(lessons.length)scheduleEntries[date]=lessons.map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
   });
   localStorage.removeItem('henriDemoSchedule');
@@ -4028,9 +3985,9 @@ renderCalendarExceptions();
 setTimeout(()=>{
   enhanceAllHenriSelects();refreshQuickObjectiveOptions();
   const labels={
-    teacherSchedule:importedSetupData.teacherSchedule?'Horaire importé':null,
-    schoolCalendar:importedSetupData.schoolCalendar?'Calendrier importé':null,
-    groupSheets:importedSetupData.groupSheets?(importedSetupData.groupSheets.length+' groupe'+(importedSetupData.groupSheets.length>1?'s':'')+' importé'+(importedSetupData.groupSheets.length>1?'s':'')):null
+    teacherSchedule:importedSetupData.teacherSchedule?'Horaire validé':null,
+    schoolCalendar:importedSetupData.schoolCalendar?(Object.keys(importedSetupData.schoolCalendar).length+' dates'):null,
+    groupSheets:importedSetupData.groupSheets?(importedSetupData.groupSheets.length+' groupe'+(importedSetupData.groupSheets.length>1?'s':'')):null
   };
   Object.entries(labels).forEach(([k,label])=>{
     if(!label)return;
