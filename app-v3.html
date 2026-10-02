@@ -497,7 +497,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.42</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.43</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -1163,12 +1163,16 @@ function setSavedSequence(groupId,blockId,sequence){
   savedSequences[sequenceStorageKey(groupId,blockId)]=JSON.parse(JSON.stringify(sequence));
   if(savedSequences[blockId]?.groupId===groupId) delete savedSequences[blockId];
   localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
 }
 let individualSessions=JSON.parse(localStorage.getItem('henriIndividualSessions')||'[]');
 let calendarExceptions=JSON.parse(localStorage.getItem('henriCalendarExceptions')||'[]');
 let scheduleConflictIgnores=JSON.parse(localStorage.getItem('henriScheduleConflictIgnores')||'{}');
 
-function saveCalendarExceptions(){localStorage.setItem('henriCalendarExceptions',JSON.stringify(calendarExceptions))}
+function saveCalendarExceptions(){
+  localStorage.setItem('henriCalendarExceptions',JSON.stringify(calendarExceptions));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+}
 function exceptionCoversDate(ex,date){
   const start=ex.startDate||ex.date;
   const end=ex.endDate||start;
@@ -1696,12 +1700,54 @@ function renderAnnualPlanner(){
   }).join('');
   setupAnnualDrag();
 }
+let henriSyncBusy=false;
+function henriPersistSharedState(){
+  try{
+    localStorage.setItem('henriAnnualPlans',JSON.stringify(annualPlans));
+    localStorage.setItem('henriSequences',JSON.stringify(savedSequences));
+    localStorage.setItem('henriIndividualSessions',JSON.stringify(individualSessions));
+    localStorage.setItem('henriCalendarExceptions',JSON.stringify(calendarExceptions));
+    if(typeof groupsData!=='undefined')localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
+    if(activeSequence)localStorage.setItem('henriActiveSequence',JSON.stringify(activeSequence));
+  }catch(e){}
+}
+function henriSyncSharedData(options={}){
+  if(henriSyncBusy)return;
+  henriSyncBusy=true;
+  try{
+    henriPersistSharedState();
+    if(typeof rebuildPlanningAssignments==='function')rebuildPlanningAssignments();
+    if(typeof fillPlanGroupSelects==='function')fillPlanGroupSelects();
+    if(typeof fillExceptionGroupOptions==='function')fillExceptionGroupOptions();
+    if(typeof renderGroups==='function')renderGroups();
+    if(typeof renderCalendarExceptions==='function')renderCalendarExceptions();
+    if(typeof fillTeamBuilderGroups==='function')fillTeamBuilderGroups();
+    if(typeof renderTeamAttendance==='function'&&document.getElementById('teamBuilder')?.classList.contains('active'))renderTeamAttendance();
+    if(typeof renderMacroSequences==='function'&&document.getElementById('sequenceSetup')?.classList.contains('active'))renderMacroSequences();
+    if(typeof renderAnnualPlanner==='function'&&document.getElementById('annualPlanner')?.classList.contains('active'))renderAnnualPlanner();
+    if(typeof renderSequenceEditor==='function'&&activeSequence&&document.getElementById('sequenceEditor')?.classList.contains('active')&&!options.skipSequenceEditor)renderSequenceEditor();
+    if(typeof renderMonth==='function')renderMonth();
+    if(typeof renderWeek==='function')renderWeek();
+  }finally{
+    henriSyncBusy=false;
+  }
+}
+function henriSyncSequenceToAnnual(){
+  if(!activeSequence?.annualBlockId)return;
+  const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
+  if(!block)return;
+  block.comp=activeSequence.comp;
+  block.sport=activeSequence.sport;
+  block.courses=activeSequence.sessions?.length||block.courses;
+  savedSequences[sequenceStorageKey(activeSequence.groupId,activeSequence.annualBlockId)]=JSON.parse(JSON.stringify(activeSequence));
+}
 function saveAnnual(){
   localStorage.setItem('henriAnnualPlans',JSON.stringify(annualPlans));
   if(annualGroup?.value){
     delete scheduleConflictIgnores[annualGroup.value];
     saveConflictIgnores();
   }
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
 }
 function addAnnualBlock(){
   const groupId=annualGroup.value;
@@ -1894,6 +1940,7 @@ function openAnnualBlockCalendar(groupId,blockId){
 }
 function saveIndividualSessions(){
   localStorage.setItem('henriIndividualSessions',JSON.stringify(individualSessions));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
 }
 function rebuildPlanningAssignments(){
   if(typeof groupsData==='undefined') return;
@@ -2162,11 +2209,18 @@ function handleObjectiveChoice(kind,value){
   wrap.style.display='none';
   if(kind==='sequence'&&activeSequence)activeSequence.objective=value;
   else if(kind==='session'){const s=currentEditableSession();if(s)s.objective=value}
+  if(kind==='sequence'||kind==='session'){
+    henriSyncSequenceToAnnual();
+    henriPersistSharedState();
+    if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+  }
 }
 function saveCustomObjective(kind,value){
   const clean=value.trim();
   if(kind==='sequence'&&activeSequence)activeSequence.objective=clean;
   else if(kind==='session'){const s=currentEditableSession();if(s)s.objective=clean}
+  henriSyncSequenceToAnnual();
+  henriPersistSharedState();
 }
 function refreshQuickObjectiveOptions(){
   renderObjectiveSelector('quick','');
@@ -2265,20 +2319,13 @@ function openSequenceCalendar(){
 function changeActiveSequenceComp(value){
   if(!activeSequence||!['C1','C2','C3'].includes(value))return;
   activeSequence.comp=value;
-  if(activeSequence.annualBlockId){
-    const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
-    if(block){
-      block.comp=value;
-      saveAnnual();
-      rebuildPlanningAssignments();
-      if(annualGroup?.value===activeSequence.groupId)renderAnnualPlanner();
-    }
-  }
   const currentObjective=activeSequence.objective||'';
   const suggestions=getObjectiveSuggestions(activeSequence.sport,value);
   if(!currentObjective||getObjectiveSuggestions(activeSequence.sport,'C1').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C2').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C3').includes(currentObjective)){
     activeSequence.objective=suggestions[0]||currentObjective;
   }
+  henriSyncSequenceToAnnual();
+  henriSyncSharedData({skipSequenceEditor:true});
   renderSequenceEditor();
 }
 function renderSequenceEditor(){
@@ -2333,6 +2380,7 @@ function addSequenceLesson(){
   if(!activeSequence)return;
   activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:getObjectiveSuggestions(activeSequence.sport,activeSequence.comp)[0]||'Objectif à préciser.',blocks:defaultBlockSet(activeSequence.comp).map(b=>({...b}))});
   normalizeGenericSequenceTitles();
+  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
   renderSequenceEditor();
 }
 function moveSequenceLesson(index,delta){
@@ -2341,6 +2389,7 @@ function moveSequenceLesson(index,delta){
   if(next<0||next>=activeSequence.sessions.length)return;
   [activeSequence.sessions[index],activeSequence.sessions[next]]=[activeSequence.sessions[next],activeSequence.sessions[index]];
   normalizeGenericSequenceTitles();
+  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
   renderSequenceEditor();
 }
 function deleteSequenceLesson(index){
@@ -2348,10 +2397,12 @@ function deleteSequenceLesson(index){
   if(!confirm('Supprimer ce cours de la séquence?'))return;
   activeSequence.sessions.splice(index,1);
   normalizeGenericSequenceTitles();
+  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
   renderSequenceEditor();
 }
 function saveSequence(){
   if(!activeSequence)return;
+  henriSyncSequenceToAnnual();
   localStorage.setItem('henriActiveSequence',JSON.stringify(activeSequence));
   if(activeSequence.annualBlockId){
     const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
@@ -2366,6 +2417,7 @@ function saveSequence(){
     rebuildPlanningAssignments();
     if(annualGroup?.value===activeSequence.groupId) renderAnnualPlanner();
   }
+  henriSyncSharedData({skipSequenceEditor:true});
   alert(activeSequence.annualBlockId?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
 }
 function openSessionEditor(index,source){
@@ -2388,17 +2440,18 @@ function editSessionBlock(i){
   const title=prompt('Titre de la section',b.title);if(title!==null&&title.trim())b.title=title.trim();
   const mins=prompt('Durée (minutes)',b.minutes);if(mins!==null&&Number(mins)>0)b.minutes=Number(mins);
   renderSessionBlocks(s);
+  henriSyncSequenceToAnnual();henriPersistSharedState();
 }
 function moveSessionBlock(i,delta){
   const s=currentEditableSession();if(!s)return;const j=i+delta;if(j<0||j>=s.blocks.length)return;
-  [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];renderSessionBlocks(s);
+  [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
 }
-function deleteSessionBlock(i){const s=currentEditableSession();if(!s)return;s.blocks.splice(i,1);renderSessionBlocks(s)}
+function deleteSessionBlock(i){const s=currentEditableSession();if(!s)return;s.blocks.splice(i,1);renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState()}
 function addSessionSection(){
   const s=currentEditableSession();if(!s)return;
   const type=prompt('Type de section','Éducatif');if(!type)return;
   const title=prompt('Titre','Nouvelle activité')||'Nouvelle activité';
-  s.blocks.push({type,title,minutes:10});renderSessionBlocks(s);
+  s.blocks.push({type,title,minutes:10});renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
 }
 function returnFromSessionEditor(){
   if(sessionEditorSource==='quick'){renderQuickResult();go('quickSession')}else{renderSequenceEditor();go('sequenceEditor')}
@@ -2664,7 +2717,10 @@ if(legacyDemoGroups) localStorage.setItem('henriGroupsData',JSON.stringify(group
 else localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
 let activeGroupId=null;
 setTimeout(fillPlanGroupSelects,0);
-function saveGroups(){localStorage.setItem('henriGroupsData',JSON.stringify(groupsData))}
+function saveGroups(){
+  localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+}
 function renderGroups(){
   if(!groupList) return;
   groupList.innerHTML=groupsData.map(g=>'<button class="groupCard" onclick="openGroup(\''+g.id+'\')"><span><strong>'+g.name+'</strong><span>'+g.students.length+' élèves · profils modifiables</span></span><span class="groupArrow">›</span></button>').join('');
