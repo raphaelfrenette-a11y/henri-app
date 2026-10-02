@@ -497,7 +497,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.41</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.42</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -662,6 +662,16 @@ body{background:#f8f7f4}
 <section id="sequenceEditor" class="screen">
   <button class="back" onclick="returnFromSequenceEditor()">‹ Retour</button>
   <div id="sequenceHeader" class="seqHeader"></div>
+  <div class="planForm" style="margin-top:12px">
+    <div class="planField">
+      <label>Compétence</label>
+      <select id="sequenceCompSelect" class="planControl" onchange="changeActiveSequenceComp(this.value)">
+        <option value="C1">C1 · Agir</option>
+        <option value="C2">C2 · Interagir</option>
+        <option value="C3">C3 · Mode de vie sain et actif</option>
+      </select>
+    </div>
+  </div>
   <div id="sequenceOverview" class="seqOverview"></div>
   <div class="planForm" style="margin-top:12px">
     <div class="planField"><label>Objectif de la séquence</label><select id="sequenceObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('sequence',this.value)"></select></div>
@@ -2252,6 +2262,25 @@ function openSequenceCalendar(){
   const dates=getSequenceDates(activeSequence);
   openCalendarAtDate(dates[0]||null);
 }
+function changeActiveSequenceComp(value){
+  if(!activeSequence||!['C1','C2','C3'].includes(value))return;
+  activeSequence.comp=value;
+  if(activeSequence.annualBlockId){
+    const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
+    if(block){
+      block.comp=value;
+      saveAnnual();
+      rebuildPlanningAssignments();
+      if(annualGroup?.value===activeSequence.groupId)renderAnnualPlanner();
+    }
+  }
+  const currentObjective=activeSequence.objective||'';
+  const suggestions=getObjectiveSuggestions(activeSequence.sport,value);
+  if(!currentObjective||getObjectiveSuggestions(activeSequence.sport,'C1').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C2').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C3').includes(currentObjective)){
+    activeSequence.objective=suggestions[0]||currentObjective;
+  }
+  renderSequenceEditor();
+}
 function renderSequenceEditor(){
   if(!activeSequence)return;
   const dates=getSequenceDates(activeSequence);
@@ -2263,6 +2292,10 @@ function renderSequenceEditor(){
   const last=dates[Math.min(dates.length,total)-1]||null;
   const rangeText=first&&last?(first===last?formatPlanDate(first):formatPlanDate(first)+' au '+formatPlanDate(last)):'Hors calendrier';
   sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+total+' cours · '+activeSequence.duration+' · '+rangeText+'</p>';
+  if(sequenceCompSelect){
+    sequenceCompSelect.value=activeSequence.comp;
+    syncHenriSelect(sequenceCompSelect);
+  }
   sequenceOverview.innerHTML=
     '<div class="seqOverviewTop"><strong>Progression de la séquence</strong><span>'+(isScheduled?placed+' / '+total+' cours placés':total+' cours')+'</span></div>'+
     '<div class="seqProgressTrack"><span style="width:'+pct+'%"></span></div>'+
