@@ -447,7 +447,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.30</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.31</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -635,7 +635,14 @@ body{background:#f8f7f4}
   <p class="planIntro">Des outils rapides pensés pour le gym. Ils utilisent directement les groupes et profils déjà enregistrés dans Henri.</p>
   <div class="toolGrid">
     <button class="toolCard" onclick="openTeamBuilder()">
-      <span class="toolIcon">ÉQ</span>
+      <span class="toolIcon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="5.5" r="2.1"/>
+    <circle cx="6.2" cy="15.8" r="2.1"/>
+    <circle cx="17.8" cy="15.8" r="2.1"/>
+    <path d="M10.9 7.3 7.4 13.8M13.1 7.3l3.5 6.5M8.3 15.8h7.4"/>
+  </svg>
+</span>
       <span><strong>Générer des équipes</strong><small>Créer des équipes équilibrées en quelques secondes à partir de tes listes de classe.</small></span>
       <span class="groupArrow">›</span>
     </button>
