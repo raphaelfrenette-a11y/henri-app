@@ -396,11 +396,58 @@ body{background:#f8f7f4}
   #home .sportIcon{width:15px;height:15px;font-size:12px}
 }
 #home .quickSport.planningSport{background:#fff2e6;color:#b85a12}
+
+/* v5.30 — générateur d’équipes */
+.toolGrid{display:grid;gap:10px}
+.toolCard{width:100%;border:1px solid var(--line);background:#fff;border-radius:21px;padding:18px;text-align:left;display:grid;grid-template-columns:46px 1fr auto;gap:13px;align-items:center;box-shadow:0 3px 14px rgba(0,0,0,.02)}
+.toolIcon{width:46px;height:46px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:16px;font-weight:850;letter-spacing:-.03em}
+.toolCard strong{display:block;font-size:16px;letter-spacing:-.02em}
+.toolCard small{display:block;color:var(--muted);font-size:12px;line-height:1.4;margin-top:4px}
+.teamBuilderHero{background:linear-gradient(145deg,#fff,#f8fafb);border:1px solid #dfe5e8;border-radius:22px;padding:18px;margin:10px 0 14px}
+.teamBuilderHero h2{font-size:22px;letter-spacing:-.035em;margin:0 0 5px}
+.teamBuilderHero p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+.teamSetup{background:#fff;border:1px solid var(--line);border-radius:20px;padding:17px}
+.teamSetupGrid{display:grid;grid-template-columns:1.5fr .7fr;gap:9px}
+.teamOptions{display:grid;gap:8px;margin-top:12px}
+.teamOption{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #f0f1ef;padding-top:11px}
+.teamOption:first-child{border-top:0;padding-top:0}
+.teamOptionText strong{display:block;font-size:12px}
+.teamOptionText small{display:block;color:var(--muted);font-size:10px;margin-top:2px;line-height:1.35}
+.teamSegment{display:inline-flex;background:#efefed;border-radius:10px;padding:3px;gap:2px}
+.teamSegment button{border:0;background:transparent;border-radius:8px;padding:7px 9px;color:#777d81;font-size:10px;font-weight:760}
+.teamSegment button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.teamAttendance{margin-top:14px;border-top:1px solid #f0f1ef;padding-top:13px}
+.teamAttendanceHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.teamAttendanceHead strong{font-size:12px}
+.teamAttendanceHead span{font-size:10px;color:var(--muted)}
+.attendanceChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.attendanceChip{border:1px solid var(--line);background:#f8f8f6;border-radius:999px;padding:7px 9px;font-size:10px;font-weight:700;color:#596166}
+.attendanceChip.absent{background:#f6ecea;color:#865045;border-color:#eedbd7;text-decoration:line-through}
+.teamGenerateBtn{width:100%;border:0;background:var(--accent);color:#fff;border-radius:14px;padding:13px 15px;font-weight:790;margin-top:14px;box-shadow:0 8px 18px rgba(49,74,91,.13)}
+.teamResult{display:none;margin-top:14px}
+.teamResult.show{display:block}
+.teamResultTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.teamResultTop strong{font-size:15px}
+.teamResultMeta{color:var(--muted);font-size:10px;margin-top:3px;line-height:1.4}
+.teamRegenerate{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:11px;padding:8px 10px;font-size:10px;font-weight:760;white-space:nowrap}
+.teamQuality{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.teamQuality span{display:inline-flex;border-radius:999px;background:#eef4f1;color:#3f6756;padding:6px 8px;font-size:9px;font-weight:780}
+.teamQuality span.warn{background:#faf2e6;color:#8a642f}
+.generatedTeams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.generatedTeam{background:#fff;border:1px solid var(--line);border-radius:18px;padding:13px 14px}
+.generatedTeamHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.generatedTeamHead strong{font-size:13px}
+.teamAverage{font-size:9px;color:var(--muted);background:#f3f4f3;border-radius:999px;padding:5px 7px}
+.teamStudent{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #f3f3f1;font-size:11px}
+.teamStudent:first-of-type{border-top:0}
+.teamStudentMeta{font-size:9px;color:var(--muted)}
+.teamCompatibilityNote{margin-top:10px;color:var(--muted);font-size:10px;line-height:1.4}
+@media(max-width:600px){.teamSetupGrid{grid-template-columns:1fr}.generatedTeams{grid-template-columns:1fr}.teamOption{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.29</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.30</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -583,7 +630,64 @@ body{background:#f8f7f4}
   <div id="quickResult" class="quickResult"></div>
 </section>
 
-<section id="tools" class="screen"><h1>Outils</h1><div class="placeholder">À intégrer ensuite.</div></section>
+<section id="tools" class="screen">
+  <h1>Outils</h1>
+  <p class="planIntro">Des outils rapides pensés pour le gym. Ils utilisent directement les groupes et profils déjà enregistrés dans Henri.</p>
+  <div class="toolGrid">
+    <button class="toolCard" onclick="openTeamBuilder()">
+      <span class="toolIcon">ÉQ</span>
+      <span><strong>Générer des équipes</strong><small>Créer des équipes équilibrées en quelques secondes à partir de tes listes de classe.</small></span>
+      <span class="groupArrow">›</span>
+    </button>
+  </div>
+</section>
+
+<section id="teamBuilder" class="screen">
+  <button class="back" onclick="go('tools')">‹ Retour aux outils</button>
+  <h1>Générer des équipes</h1>
+  <div class="teamBuilderHero">
+    <h2>Des équipes équilibrées, sans casse-tête.</h2>
+    <p>Henri tient toujours compte des compatibilités et incompatibilités enregistrées dans les profils élèves.</p>
+  </div>
+  <div class="teamSetup">
+    <div class="teamSetupGrid">
+      <div class="planField"><label>Groupe</label><select id="teamGroup" class="planControl" onchange="teamBuilderGroupChanged()"></select></div>
+      <div class="planField"><label>Nombre d’équipes</label><select id="teamCount" class="planControl"></select></div>
+    </div>
+
+    <div class="teamOptions">
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Répartition gars / filles</strong><small>Choisis la structure souhaitée pour les équipes.</small></div>
+        <div class="teamSegment" id="genderModeSegment">
+          <button class="on" data-value="mixed" onclick="setTeamGenderMode('mixed')">Mixte</button>
+          <button data-value="separate" onclick="setTeamGenderMode('separate')">Séparés</button>
+          <button data-value="none" onclick="setTeamGenderMode('none')">Libre</button>
+        </div>
+      </div>
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Équilibrer les habiletés</strong><small>Répartir les niveaux sportifs le plus également possible.</small></div>
+        <button id="teamSkillToggle" class="switch on" onclick="toggleTeamSetting('skill')"></button>
+      </div>
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Répartir les leaders</strong><small>Éviter de concentrer les élèves leaders dans une même équipe.</small></div>
+        <button id="teamLeaderToggle" class="switch on" onclick="toggleTeamSetting('leaders')"></button>
+      </div>
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Varier les partenaires</strong><small>Éviter autant que possible de recréer les mêmes équipes que récemment.</small></div>
+        <button id="teamNoveltyToggle" class="switch on" onclick="toggleTeamSetting('novelty')"></button>
+      </div>
+    </div>
+
+    <div class="teamAttendance">
+      <div class="teamAttendanceHead"><strong>Présences aujourd’hui</strong><span>Clique un élève pour le retirer temporairement</span></div>
+      <div id="teamAttendanceChips" class="attendanceChips"></div>
+    </div>
+
+    <button class="teamGenerateBtn" onclick="generateTeams()">Générer les équipes</button>
+  </div>
+
+  <div id="teamResult" class="teamResult"></div>
+</section>
 
 <section id="settings" class="screen">
   <button class="back" onclick="go('home')">‹ Retour</button>
@@ -2214,6 +2318,12 @@ const defaultGroups=[
   }
 ];
 
+function inferDemoGender(name){
+  const first=(name||'').split(' ')[0];
+  const girls=new Set(['Camille','Élodie','Mia','Juliette','Zoé','Emma','Léa','Chloé','Florence','Rose','Alice','Clara','Maude','Laurence','Anaïs','Sofia','Noémie','Charlotte']);
+  const boys=new Set(['Alexis','Thomas','Nathan','Samuel','Lucas','Félix','William','Olivier','Émile','Antoine','Gabriel','Jacob','Raphaël','Charles','Maxime','Jérôme','Mathis','Xavier']);
+  return girls.has(first)?'F':boys.has(first)?'M':'U';
+}
 function makeDefaultGroups(){
   const groups=defaultGroups.map(g=>({
     id:g.id,
@@ -2223,6 +2333,7 @@ function makeDefaultGroups(){
       name:s.name,
       skill:s.skill,
       leader:s.leader,
+      gender:s.gender||inferDemoGender(s.name),
       compatible:[],
       incompatible:[]
     }))
@@ -2254,7 +2365,13 @@ function makeDefaultGroups(){
 let storedGroups=JSON.parse(localStorage.getItem('henriGroupsData')||'null');
 const legacyDemoGroups=storedGroups&&storedGroups.some(g=>g.students?.some(s=>/^Élève \d+$/.test(s.name||'')));
 let groupsData=(!storedGroups||legacyDemoGroups)?makeDefaultGroups():storedGroups;
+groupsData.forEach(g=>g.students?.forEach(s=>{
+  if(!s.gender) s.gender=inferDemoGender(s.name);
+  if(!Array.isArray(s.compatible))s.compatible=[];
+  if(!Array.isArray(s.incompatible))s.incompatible=[];
+}));
 if(legacyDemoGroups) localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
+else localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
 let activeGroupId=null;
 setTimeout(fillPlanGroupSelects,0);
 function saveGroups(){localStorage.setItem('henriGroupsData',JSON.stringify(groupsData))}
@@ -2310,6 +2427,209 @@ function removeRelation(id,type,targetId){
   s[type]=s[type].filter(x=>x!==targetId);
   t[type]=t[type].filter(x=>x!==id);
   saveGroups();renderStudents();
+}
+
+const teamBuilderSettings={genderMode:'mixed',skill:true,leaders:true,novelty:true};
+let teamBuilderAbsent=new Set();
+let generatedTeamData=[];
+let teamHistory=JSON.parse(localStorage.getItem('henriTeamHistory')||'[]');
+
+function saveTeamHistory(){
+  teamHistory=teamHistory.slice(-30);
+  localStorage.setItem('henriTeamHistory',JSON.stringify(teamHistory));
+}
+function openTeamBuilder(){
+  fillTeamBuilderGroups();
+  teamBuilderGroupChanged();
+  go('teamBuilder');
+}
+function fillTeamBuilderGroups(){
+  const select=document.getElementById('teamGroup');
+  if(!select)return;
+  const current=select.value;
+  select.innerHTML=groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
+  if(current&&groupsData.some(g=>g.id===current))select.value=current;
+}
+function teamBuilderGroupChanged(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value)||groupsData[0];
+  if(!group)return;
+  if(teamGroup&&teamGroup.value!==group.id)teamGroup.value=group.id;
+  teamBuilderAbsent=new Set();
+  const maxTeams=Math.max(2,Math.min(10,Math.floor(group.students.length/2)||2));
+  const suggested=Math.max(2,Math.round(group.students.length/5));
+  teamCount.innerHTML=Array.from({length:maxTeams-1},(_,i)=>i+2).map(n=>'<option value="'+n+'"'+(n===suggested?' selected':'')+'>'+n+'</option>').join('');
+  renderTeamAttendance();
+  teamResult.classList.remove('show');
+  teamResult.innerHTML='';
+}
+function renderTeamAttendance(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value);
+  if(!group||!teamAttendanceChips)return;
+  teamAttendanceChips.innerHTML=group.students.map(s=>'<button class="attendanceChip'+(teamBuilderAbsent.has(s.id)?' absent':'')+'" onclick="toggleTeamAttendance(\''+s.id+'\')">'+s.name+'</button>').join('');
+}
+function toggleTeamAttendance(id){
+  if(teamBuilderAbsent.has(id))teamBuilderAbsent.delete(id);else teamBuilderAbsent.add(id);
+  renderTeamAttendance();
+}
+function setTeamGenderMode(mode){
+  teamBuilderSettings.genderMode=mode;
+  document.querySelectorAll('#genderModeSegment button').forEach(b=>b.classList.toggle('on',b.dataset.value===mode));
+}
+function toggleTeamSetting(key){
+  teamBuilderSettings[key]=!teamBuilderSettings[key];
+  const id=key==='skill'?'teamSkillToggle':key==='leaders'?'teamLeaderToggle':'teamNoveltyToggle';
+  document.getElementById(id)?.classList.toggle('on',teamBuilderSettings[key]);
+}
+function pairKey(a,b){return [a,b].sort().join('::')}
+function recentPartnerSet(groupId){
+  const set=new Set();
+  teamHistory.filter(h=>h.groupId===groupId).slice(-5).forEach(h=>{
+    (h.teams||[]).forEach(team=>{
+      for(let i=0;i<team.length;i++)for(let j=i+1;j<team.length;j++)set.add(pairKey(team[i],team[j]));
+    });
+  });
+  return set;
+}
+function studentGender(s){return ['M','F'].includes(s.gender)?s.gender:'U'}
+function scoreTeamPlacement(student,team,teams,settings,recentPairs,targetSizes){
+  let score=0;
+  const teamIndex=teams.indexOf(team);
+  if(team.length>=targetSizes[teamIndex])score+=10000;
+  const genders=team.map(studentGender).filter(g=>g!=='U');
+  const sg=studentGender(student);
+  if(settings.genderMode==='separate'&&sg!=='U'&&genders.some(g=>g!==sg))score+=2500;
+  if(settings.genderMode==='mixed'&&sg!=='U'){
+    const same=genders.filter(g=>g===sg).length;
+    const other=genders.length-same;
+    score+=(same-other)*4;
+  }
+  team.forEach(m=>{
+    if((student.incompatible||[]).includes(m.id)||(m.incompatible||[]).includes(student.id))score+=5000;
+    if((student.compatible||[]).includes(m.id)||(m.compatible||[]).includes(student.id))score-=80;
+    if(settings.novelty&&recentPairs.has(pairKey(student.id,m.id)))score+=9;
+  });
+  if(settings.skill){
+    const projected=[...team,student].reduce((n,s)=>n+(Number(s.skill)||3),0)/(team.length+1);
+    const allAvgs=teams.map((t,i)=>{
+      if(i===teamIndex)return projected;
+      return t.length?t.reduce((n,s)=>n+(Number(s.skill)||3),0)/t.length:3;
+    });
+    const mean=allAvgs.reduce((a,b)=>a+b,0)/allAvgs.length;
+    score+=allAvgs.reduce((n,x)=>n+Math.pow(x-mean,2),0)*5;
+  }
+  if(settings.leaders&&student.leader){
+    const leaderCount=team.filter(s=>s.leader).length;
+    score+=leaderCount*18;
+  }
+  score+=team.length*2;
+  return score;
+}
+function buildTeamsTrial(students,count,settings,recentPairs){
+  const teams=Array.from({length:count},()=>[]);
+  const base=Math.floor(students.length/count),extra=students.length%count;
+  const targetSizes=Array.from({length:count},(_,i)=>base+(i<extra?1:0));
+  const shuffled=students.slice().sort(()=>Math.random()-.5);
+  shuffled.sort((a,b)=>{
+    const ac=(a.compatible?.length||0)+(a.incompatible?.length||0)+(a.leader?1:0);
+    const bc=(b.compatible?.length||0)+(b.incompatible?.length||0)+(b.leader?1:0);
+    return bc-ac;
+  });
+  shuffled.forEach(student=>{
+    const ranked=teams.map(team=>({team,score:scoreTeamPlacement(student,team,teams,settings,recentPairs,targetSizes)+Math.random()*2})).sort((a,b)=>a.score-b.score);
+    ranked[0].team.push(student);
+  });
+  return teams;
+}
+function scoreWholeTeams(teams,settings,recentPairs){
+  let score=0;
+  const sizes=teams.map(t=>t.length),meanSize=sizes.reduce((a,b)=>a+b,0)/sizes.length;
+  score+=sizes.reduce((n,x)=>n+Math.pow(x-meanSize,2),0)*40;
+  const avgs=teams.map(t=>t.length?t.reduce((n,s)=>n+(Number(s.skill)||3),0)/t.length:0);
+  if(settings.skill){
+    const mean=avgs.reduce((a,b)=>a+b,0)/avgs.length;
+    score+=avgs.reduce((n,x)=>n+Math.pow(x-mean,2),0)*12;
+  }
+  teams.forEach(team=>{
+    let leaderCount=0;
+    team.forEach((s,i)=>{
+      if(s.leader)leaderCount++;
+      for(let j=i+1;j<team.length;j++){
+        const m=team[j];
+        if((s.incompatible||[]).includes(m.id)||(m.incompatible||[]).includes(s.id))score+=5000;
+        if((s.compatible||[]).includes(m.id)||(m.compatible||[]).includes(s.id))score-=120;
+        if(settings.novelty&&recentPairs.has(pairKey(s.id,m.id)))score+=10;
+        const gs=studentGender(s),gm=studentGender(m);
+        if(settings.genderMode==='separate'&&gs!=='U'&&gm!=='U'&&gs!==gm)score+=1800;
+      }
+    });
+    if(settings.leaders&&leaderCount>1)score+=(leaderCount-1)*30;
+    if(settings.genderMode==='mixed'){
+      const known=team.filter(s=>studentGender(s)!=='U');
+      if(known.length){
+        const males=known.filter(s=>studentGender(s)==='M').length;
+        const females=known.length-males;
+        score+=Math.abs(males-females)*3;
+      }
+    }
+  });
+  return score;
+}
+function generateTeams(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value);
+  if(!group)return;
+  const students=group.students.filter(s=>!teamBuilderAbsent.has(s.id));
+  const count=Math.max(2,Math.min(Number(teamCount?.value)||2,students.length));
+  if(students.length<count){alert('Il faut au moins un élève présent par équipe.');return}
+  const recent=recentPartnerSet(group.id);
+  let best=null,bestScore=Infinity;
+  for(let t=0;t<220;t++){
+    const candidate=buildTeamsTrial(students,count,teamBuilderSettings,recent);
+    const score=scoreWholeTeams(candidate,teamBuilderSettings,recent);
+    if(score<bestScore){best=candidate;bestScore=score}
+  }
+  generatedTeamData=best||[];
+  teamHistory.push({date:new Date().toISOString(),groupId:group.id,teams:generatedTeamData.map(team=>team.map(s=>s.id))});
+  saveTeamHistory();
+  renderGeneratedTeams();
+}
+function countCompatibilityIssues(teams){
+  let incompatible=0,compatibleTogether=0,compatibleTotal=0;
+  const all=teams.flat();
+  const seen=new Set();
+  all.forEach(s=>{
+    (s.compatible||[]).forEach(id=>{
+      const k=pairKey(s.id,id);
+      if(seen.has(k))return;seen.add(k);compatibleTotal++;
+      if(teams.some(t=>t.some(x=>x.id===s.id)&&t.some(x=>x.id===id)))compatibleTogether++;
+    });
+  });
+  teams.forEach(team=>team.forEach((s,i)=>team.slice(i+1).forEach(m=>{
+    if((s.incompatible||[]).includes(m.id)||(m.incompatible||[]).includes(s.id))incompatible++;
+  })));
+  return {incompatible,compatibleTogether,compatibleTotal};
+}
+function renderGeneratedTeams(){
+  if(!teamResult)return;
+  const issues=countCompatibilityIssues(generatedTeamData);
+  const avgs=generatedTeamData.map(t=>t.length?t.reduce((n,s)=>n+(Number(s.skill)||3),0)/t.length:0);
+  const spread=avgs.length?Math.max(...avgs)-Math.min(...avgs):0;
+  const quality=[
+    '<span>'+generatedTeamData.reduce((n,t)=>n+t.length,0)+' élèves répartis</span>',
+    teamBuilderSettings.skill?'<span'+(spread>.8?' class="warn"':'')+'>Écart habileté '+spread.toFixed(1)+'</span>':'',
+    '<span'+(issues.incompatible?' class="warn"':'')+'>'+(issues.incompatible?issues.incompatible+' incompatibilité à vérifier':'Incompatibilités respectées')+'</span>',
+    issues.compatibleTotal?'<span>'+issues.compatibleTogether+'/'+issues.compatibleTotal+' compatibilités regroupées</span>':''
+  ].filter(Boolean).join('');
+  teamResult.classList.add('show');
+  teamResult.innerHTML=
+    '<div class="teamResultTop"><div><strong>Équipes générées</strong><div class="teamResultMeta">Henri a optimisé la taille, les profils et les relations enregistrées.</div></div><button class="teamRegenerate" onclick="generateTeams()">Regénérer</button></div>'+
+    '<div class="teamQuality">'+quality+'</div>'+
+    '<div class="generatedTeams">'+generatedTeamData.map((team,i)=>{
+      const avg=team.length?(team.reduce((n,s)=>n+(Number(s.skill)||3),0)/team.length).toFixed(1):'—';
+      return '<div class="generatedTeam"><div class="generatedTeamHead"><strong>Équipe '+(i+1)+'</strong><span class="teamAverage">niveau '+avg+'</span></div>'+
+        team.map(s=>'<div class="teamStudent"><span>'+s.name+'</span><span class="teamStudentMeta">'+(s.leader?'Leader · ':'')+(studentGender(s)==='M'?'G':studentGender(s)==='F'?'F':'—')+' · '+(s.skill||3)+'/5</span></div>').join('')+
+      '</div>';
+    }).join('')+'</div>'+
+    '<div class="teamCompatibilityNote">Les compatibilités et incompatibilités sont toujours considérées. Si toutes les contraintes ne peuvent pas être satisfaites simultanément, Henri privilégie d’abord les incompatibilités à éviter, puis l’équilibre global.</div>';
 }
 
 function makeFullDemoSchoolDays(){
@@ -2468,6 +2788,7 @@ if(localStorage.getItem('henriDemoSchedule')==='1'){
 }
 rebuildPlanningAssignments();
 renderGroups();
+fillTeamBuilderGroups();
 fillExceptionGroupOptions();
 renderCalendarExceptions();
 </script>
