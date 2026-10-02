@@ -495,10 +495,11 @@ body{background:#f8f7f4}
 @media(max-width:600px){.teamSetupGrid{grid-template-columns:1fr}.generatedTeams{grid-template-columns:1fr}.teamOption{align-items:flex-start;flex-direction:column}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.46</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.47</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -821,7 +822,7 @@ body{background:#f8f7f4}
 
     <label class="importCard ready" id="groupSheetsCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
-      <span class="importText"><strong>Listes de groupes</strong><span>PDF ou CSV · un ou plusieurs groupes</span></span>
+      <span class="importText"><strong>Listes de groupes</strong><span>Photos, PDF ou CSV · sélection multiple permise</span></span>
       <span class="importState" id="groupSheetsState">Démo chargée</span>
       <input class="fileInput" id="groupSheetsFile" type="file" accept=".pdf,.csv,image/*" multiple onchange="handleSetupFile('groupSheets',this)">
     </label>
@@ -3150,7 +3151,7 @@ Object.keys(setupFiles).forEach(k=>setupFiles[k]=!!importedSetupData[k]);
 function normalizeImportText(text){
   return String(text||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\r/g,'\n').replace(/\n{2,}/g,'\n').trim();
 }
-async function readSetupFile(file){
+async function readSetupFile(file,onProgress){
   const name=(file.name||'').toLowerCase();
   if(name.endsWith('.pdf')){
     if(!window.pdfjsLib)throw new Error('Le lecteur PDF ne s’est pas chargé.');
@@ -3168,7 +3169,18 @@ async function readSetupFile(file){
   if(name.endsWith('.csv')||name.endsWith('.txt')||name.endsWith('.json')){
     return normalizeImportText(await file.text());
   }
-  throw new Error('Ce fichier est une image. Pour ce test, utilise le PDF original ou un CSV afin que Henri puisse lire le texte.');
+  if((file.type||'').startsWith('image/')){
+    if(!window.Tesseract)throw new Error('Le lecteur de photos ne s’est pas chargé.');
+    const result=await Tesseract.recognize(file,'fra+eng',{
+      logger:m=>{
+        if(m.status==='recognizing text'&&onProgress)onProgress(Math.round((m.progress||0)*100));
+      }
+    });
+    const text=normalizeImportText(result?.data?.text||'');
+    if(!text)throw new Error('Aucun texte lisible détecté dans '+(file.name||'la photo')+'.');
+    return text;
+  }
+  throw new Error('Format non pris en charge : '+(file.name||'fichier')+'.');
 }
 function normalizePersonName(s){
   return s.replace(/^\s*[0-9#.-]+\s*/,'').replace(/\s+/g,' ').trim();
@@ -3263,15 +3275,25 @@ async function handleSetupFile(type,input){
   updateGenerateState();
   if(!files.length){state.textContent='Importer';return}
   try{
+    if(type==='groupSheets'&&files.length>30)throw new Error('Maximum 30 listes à la fois.');
     const docs=[];
-    for(const file of files)docs.push({file,text:await readSetupFile(file)});
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      if(type==='groupSheets'){
+        state.textContent='Analyse '+(i+1)+' / '+files.length;
+      }
+      const text=await readSetupFile(file,p=>{
+        if(type==='groupSheets')state.textContent='Analyse '+(i+1)+' / '+files.length+' · '+p+' %';
+      });
+      docs.push({file,text});
+    }
     if(type==='groupSheets'){
       const groups=parseGroupDocuments(docs);
       if(!groups.length)throw new Error('Aucun élève détecté.');
       importedSetupData.groupSheets=groups;
       groupsData=groups;
       saveGroups();
-      state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves';
+      state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves · '+files.length+' fichier'+(files.length>1?'s':'');
       localStorage.setItem('henriImportedGroups',JSON.stringify(groups));
     }else if(type==='teacherSchedule'){
       const parsed=parseTeacherScheduleText(docs.map(d=>d.text).join('\n'));
