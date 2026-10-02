@@ -472,7 +472,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.37</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.38</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -660,6 +660,7 @@ body{background:#f8f7f4}
   <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
   <h1>Séance individuelle</h1>
   <p class="planIntro">Prépare un cours ponctuel rapidement. Il reste indépendant et n’est pas ajouté à une séquence sauf si tu décides de le faire plus tard.</p>
+  <div id="quickContext" class="quickScheduleSuccess" style="display:none;margin:0 0 12px"></div>
   <div class="planForm">
     <div class="planGrid">
       <div class="planField"><label>Sport</label><select id="quickSport" class="planControl"><option>Ultimate</option><option>Badminton</option><option>Flag football</option><option>Basketball</option><option>Volleyball</option><option>Conditionnement physique</option></select></div>
@@ -1014,6 +1015,10 @@ function openDayPlan(date){
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
+  if(!entry.annualPlan&&!entry.isIndividual){
+    openQuickSessionForCourse(date,index);
+    return;
+  }
   previousScreen=document.querySelector('.screen.active')?.id||'home';
   const sport=entry.annualPlan||entry.activity||'Cours';
   courseDetailTitle.textContent=sport;
@@ -1260,6 +1265,7 @@ let selectedAnnualGroupId=null;
 let activeSessionIndex=0;
 let sessionEditorSource='sequence';
 let quickSessionData=null;
+let quickPrefillDate=null;
 
 function fillPlanGroupSelects(){
   const opts=groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
@@ -2258,7 +2264,29 @@ function ignoreScheduleConflict(groupId){
   if(document.getElementById('quickSession')?.classList.contains('active')) renderQuickResult('Avis ignoré. Henri conserve le dépassement demandé.');
 }
 
-function openQuickSession(){fillPlanGroupSelects();go('quickSession')}
+function openQuickSession(){
+  quickPrefillDate=null;
+  fillPlanGroupSelects();
+  if(quickContext){quickContext.style.display='none';quickContext.textContent=''}
+  go('quickSession')
+}
+function openQuickSessionForCourse(date,index){
+  const entry=(scheduleEntries[date]||[])[index];
+  if(!entry)return;
+  const group=groupsData.find(g=>g.name===entry.group);
+  if(!group)return;
+  quickPrefillDate=date;
+  fillPlanGroupSelects();
+  if(quickGroup)quickGroup.value=group.id;
+  quickSessionData=null;
+  if(quickResult){quickResult.classList.remove('show');quickResult.innerHTML=''}
+  const d=new Date(date+'T12:00:00');
+  if(quickContext){
+    quickContext.style.display='block';
+    quickContext.textContent='Cours ciblé · '+dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()]+' · '+entry.time+' · '+entry.group;
+  }
+  go('quickSession');
+}
 function buildQuickSession(){
   const sport=quickSport.value;
   const group=groupsData.find(g=>g.id===quickGroup.value);
@@ -2280,7 +2308,7 @@ function getQuickDateOptions(){
     const current=entry?.annualPlan?(entry.annualPlan+(entry.session?' · '+entry.session:'')):'Libre';
     const d=new Date(date+'T12:00:00');
     const label=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()]+' · '+current;
-    return '<option value="'+date+'">'+label+'</option>';
+    return '<option value="'+date+'"'+(date===quickPrefillDate?' selected':'')+'>'+label+'</option>';
   }).join('');
 }
 function renderQuickResult(message=''){
