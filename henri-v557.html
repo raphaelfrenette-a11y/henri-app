@@ -1002,8 +1002,30 @@ function renderWeek(){
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
         let sport=entry.annualPlan||'À planifier';
         if(sport==='À choisir') sport='À planifier';
-        const groupColors=['#3b82f6','#34a853','#f59e0b','#8b5cf6'];
-        const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
+        const groupColors=[
+          '#3b82f6', // bleu
+          '#2fa36b', // vert
+          '#e6a23c', // ambre
+          '#8b5cf6', // violet
+          '#e76f51', // corail
+          '#14a6a6', // sarcelle
+          '#d95d8d', // rose
+          '#5b6fd8', // indigo
+          '#7a9a3b', // olive
+          '#2e9cca', // cyan
+          '#a66a3f', // terre cuite
+          '#b85aa3'  // prune
+        ];
+        const matchedGroup=entry.matchedGroupId
+          ? groupsData.find(g=>g.id===entry.matchedGroupId)
+          : matchImportedGroup(entry.groupCode||entry.group);
+        let groupIndex=matchedGroup?groupsData.findIndex(g=>g.id===matchedGroup.id):-1;
+        if(groupIndex<0){
+          const colorKey=normalizeGroupAlias(entry.groupCode||entry.group||'groupe');
+          let hash=0;
+          for(let i=0;i<colorKey.length;i++)hash=((hash*31)+colorKey.charCodeAt(i))>>>0;
+          groupIndex=hash;
+        }
         const groupColor=groupColors[groupIndex%groupColors.length];
         const sportLower=sport.toLowerCase();
         let sportIcon='●';
