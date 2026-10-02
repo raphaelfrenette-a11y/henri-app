@@ -3301,7 +3301,7 @@ function normalizeGroupAlias(value){
 }
 function extractEDUGroupCodes(text){
   const raw=String(text||'').toUpperCase();
-  const matches=[...raw.matchAll(/EDU\s*([1-5])\s*G\s*(\d)\s*[-–]?\s*(\d{1,2})/g)];
+  const matches=[...raw.matchAll(/EDU\s*([1-5])\s*[G6]\s*(\d)\s*[-–—_:.]?\s*(\d{1,2})/g)];
   return [...new Set(matches.map(m=>'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0')))];
 }
 function groupSignatureFromCode(code){
@@ -3345,27 +3345,25 @@ function inferGroupIdentity(text,fallbackName=''){
 }
 function matchImportedGroup(rawCodeOrName){
   const raw=String(rawCodeOrName||'');
-  const aliases=new Set([normalizeGroupAlias(raw)]);
-  extractEDUGroupCodes(raw).forEach(code=>{
-    aliases.add(normalizeGroupAlias(code));
-    const sig=groupSignatureFromCode(code);
-    if(sig)aliases.add(sig);
-  });
+  const normalized=normalizeGroupAlias(raw);
   const inferred=inferGroupIdentity(raw,raw);
-  inferred.aliases.forEach(a=>aliases.add(a));
+  const rawCodes=extractEDUGroupCodes(raw).map(normalizeEDUCode).filter(Boolean);
   let best=null,bestScore=0;
   for(const g of groupsData){
-    const gAliases=new Set([normalizeGroupAlias(g.name),...(g.aliases||[]).map(normalizeGroupAlias)]);
+    const name=normalizeGroupAlias(g.name);
+    const aliases=[name,...(g.aliases||[]).map(normalizeGroupAlias)].filter(Boolean);
+    const codes=(g.sourceCodes||[]).map(normalizeEDUCode).filter(Boolean);
     let score=0;
-    aliases.forEach(a=>{
-      if(gAliases.has(a))score=Math.max(score,100);
-      else for(const ga of gAliases){
-        if(a&&ga&&(a.includes(ga)||ga.includes(a))&&Math.min(a.length,ga.length)>=5)score=Math.max(score,70);
-      }
+    if(normalized&&name===normalized)score=120;
+    if(normalized&&aliases.includes(normalized))score=Math.max(score,115);
+    if(rawCodes.some(code=>codes.includes(code)))score=Math.max(score,120);
+    if(inferred.level&&inferred.number&&String(g.level||'')===String(inferred.level)&&String(g.groupNumber||'').padStart(2,'0')===String(inferred.number).padStart(2,'0'))score=Math.max(score,110);
+    inferred.aliases.forEach(a=>{
+      if(aliases.includes(normalizeGroupAlias(a)))score=Math.max(score,105);
     });
     if(score>bestScore){best=g;bestScore=score}
   }
-  return bestScore>=70?best:null;
+  return bestScore>=100?best:null;
 }
 function parseGroupDocuments(docs){
   const result=[];
@@ -3582,17 +3580,28 @@ function parseTeacherScheduleDocs(docs){
   const merged={};
   docs.forEach(doc=>{
     const grid=parseTeacherScheduleGrid(doc.words||[]);
-    const fallback=Object.keys(grid).length?grid:parseTeacherScheduleText(doc.text||'');
-    Object.entries(fallback).forEach(([day,lessons])=>{
+    const textParsed=parseTeacherScheduleText(doc.text||'');
+    // Merge both readings instead of discarding OCR text when the grid only found part of the 9-day cycle.
+    const days=new Set([...Object.keys(grid),...Object.keys(textParsed)]);
+    days.forEach(day=>{
       if(!merged[day])merged[day]=[];
-      lessons.forEach(lesson=>{
-        const matched=lesson.matchedGroupId?groupsData.find(g=>g.id===lesson.matchedGroupId):matchImportedGroup(lesson.groupCode||lesson.group);
-        const normalized={...lesson,group:matched?.name||lesson.group,matchedGroupId:matched?.id||lesson.matchedGroupId||null};
-        if(!merged[day].some(x=>x.time===normalized.time&&x.group===normalized.group))merged[day].push(normalized);
+      const combined=[...(grid[day]||[]),...(textParsed[day]||[])];
+      combined.forEach(lesson=>{
+        if(!lesson?.group)return;
+        const matched=matchImportedGroup(lesson.groupCode||lesson.group);
+        const normalized={...lesson,group:matched?.name||lesson.group,matchedGroupId:matched?.id||null};
+        const pi=periodIndex(normalized.period);
+        const existing=merged[day].findIndex(x=>periodIndex(x.period)===pi&&pi>=0);
+        if(existing<0)merged[day].push(normalized);
+        else if(!merged[day][existing].matchedGroupId&&normalized.matchedGroupId)merged[day][existing]=normalized;
       });
     });
   });
-  Object.keys(merged).forEach(day=>{merged[day]=normalizeTeacherDay(merged[day])});
+  // This teacher schedule is a 9-day cycle. Always keep Jour 1 through Jour 9.
+  for(let day=1;day<=9;day++){
+    const key='Jour '+day;
+    merged[key]=normalizeTeacherDay(merged[key]||[]);
+  }
   return merged;
 }
 const frenchMonths={janvier:0,'février':1,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,'août':7,aout:7,septembre:8,octobre:9,novembre:10,'décembre':11,decembre:11};
@@ -3851,11 +3860,19 @@ async function handleSetupFile(type,input){
       }
     }else if(type==='teacherSchedule'){
       const parsed=parseTeacherScheduleDocs(docs);
-      const lessons=Object.values(parsed).reduce((n,a)=>n+a.length,0);
-      if(!lessons)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
-      const linked=Object.values(parsed).flat().filter(x=>x.matchedGroupId).length;
+      const teaching=Object.values(parsed).flat().filter(x=>x.group);
+      if(!teaching.length)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
+      // Re-run linkage against the currently imported groups, using exact names/codes first.
+      Object.values(parsed).forEach(day=>day.forEach(x=>{
+        if(!x.group)return;
+        const g=matchImportedGroup(x.groupCode||x.group);
+        if(g){x.group=g.name;x.matchedGroupId=g.id}
+      }));
+      const uniqueScheduleGroups=new Map();
+      teaching.forEach(x=>uniqueScheduleGroups.set(normalizeGroupAlias(x.groupCode||x.group),x));
+      const linkedGroups=[...uniqueScheduleGroups.values()].filter(x=>x.matchedGroupId).length;
       importedSetupData.teacherSchedule=parsed;
-      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' cours · '+linked+' liés aux groupes';
+      state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedGroups+'/'+uniqueScheduleGroups.size+' groupes liés';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
