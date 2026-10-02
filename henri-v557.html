@@ -3327,13 +3327,18 @@ function normalizeGroupAlias(value){
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^A-Z0-9]/g,'');
 }
+function normalizeEDUText(raw){
+  return String(raw||'').toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[|IL]/g,m=>m==='|'?'1':m)
+    .replace(/[–—_:;.]/g,'-')
+    .replace(/\bED[O0]\b/g,'EDU');
+}
 function extractEDUGroupCodes(text){
-  const raw=String(text||'').toUpperCase()
-    .replace(/[O]/g,'0')
-    .replace(/[|]/g,'1');
+  const raw=normalizeEDUText(text);
   const found=[];
   const patterns=[
-    /EDU\s*([1-5])\s*[G6]\s*([0-9])\s*[-–—_:.]?\s*([0-9]{1,2})/g,
+    /E\s*D\s*U\s*([1-5])\s*[G6]\s*([0-9])\s*[-]?\s*([0-9]{1,2})/g,
     /EDU\s*([1-5])\s*[G6]\s*([0-9])\s+([0-9]{1,2})/g
   ];
   patterns.forEach(re=>{
@@ -3424,6 +3429,9 @@ function parseGroupDocuments(docs){
     if(groupMatch)groupName=groupMatch[0].replace(/\s+/g,' ').trim();
     if(!groupName)groupName=(file.name||('Groupe '+(fileIndex+1))).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
     const identity=inferGroupIdentity(String(text||'')+'\n'+String(file.name||''),groupName);
+    // Preserve every normalized course code found in the list/header/filename.
+    identity.codes=[...new Set([...identity.codes,...extractEDUGroupCodes(text),...extractEDUGroupCodes(file.name||'')])];
+    identity.codes.forEach(code=>{if(!identity.aliases.includes(code))identity.aliases.push(code)});
     groupName=identity.canonicalName;
     let candidates=[];
     if((file.name||'').toLowerCase().endsWith('.csv')){
@@ -3473,7 +3481,10 @@ function parseGroupDocuments(docs){
   return result;
 }
 function normalizeEDUCode(raw){
-  const m=String(raw||'').toUpperCase().replace(/\s+/g,'').match(/EDU([1-5])G(\d)[-–]?(\d{1,2})/);
+  const codes=extractEDUGroupCodes(raw);
+  if(codes[0])return codes[0];
+  const s=normalizeEDUText(raw).replace(/\s+/g,'');
+  const m=s.match(/E?D?U?([1-5])[G6]([0-9])-?([0-9]{1,2})/);
   return m?'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0'):'';
 }
 const HENRI_PERIODS=[
@@ -3524,7 +3535,27 @@ function parseTeacherScheduleGrid(words){
   if(!Array.isArray(words)||!words.length)return {};
   const usable=words.filter(w=>w.bbox&&w.confidence>=15);
   const center=w=>({x:(w.bbox.x0+w.bbox.x1)/2,y:(w.bbox.y0+w.bbox.y1)/2});
-  const codeWords=usable.map(w=>({...w,code:normalizeEDUCode(w.text)})).filter(w=>w.code);
+  let codeWords=usable.map(w=>({...w,code:normalizeEDUCode(w.text)})).filter(w=>w.code);
+  // Photos often split one code into several OCR tokens (ex. "ÉDU 4G2 - 01").
+  // Rebuild nearby tokens on the same visual line and normalize them through the exact same parser as group lists.
+  if(codeWords.length<8){
+    const rebuilt=[];
+    usable.forEach((w,i)=>{
+      const p=center(w);
+      const near=usable.filter(n=>{
+        const q=center(n);
+        return Math.abs(q.y-p.y)<28&&q.x>=p.x-8&&q.x<p.x+260;
+      }).sort((a,b)=>center(a).x-center(b).x).slice(0,6);
+      const joined=near.map(n=>n.text).join(' ');
+      const code=normalizeEDUCode(joined);
+      if(code)rebuilt.push({...w,text:joined,code});
+    });
+    const seen=new Set(codeWords.map(w=>w.code+'@'+Math.round(center(w).x/25)+'@'+Math.round(center(w).y/25)));
+    rebuilt.forEach(w=>{
+      const k=w.code+'@'+Math.round(center(w).x/25)+'@'+Math.round(center(w).y/25);
+      if(!seen.has(k)){seen.add(k);codeWords.push(w)}
+    });
+  }
   if(codeWords.length<3)return {};
 
   // ----- ROWS: read the actual Jour 1 ... Jour 9 labels -----
