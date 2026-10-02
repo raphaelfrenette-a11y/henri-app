@@ -3952,26 +3952,54 @@ async function parseSchoolCalendarDocs(docs){
   return out;
 }
 
+function teacherScheduleCodes(parsed){
+  return [...new Set(Object.values(parsed||{}).flat()
+    .map(x=>normalizeEDUCode(x.groupCode||x.group))
+    .filter(Boolean))];
+}
+function validTeacherCodeMap(parsed){
+  const stored=getPersistentGroupCodeMap(),out={};
+  teacherScheduleCodes(parsed).forEach(code=>{
+    const id=stored[code];
+    if(id&&groupsData.some(g=>g.id===id))out[code]=id;
+  });
+  return out;
+}
 function relinkTeacherSchedule(parsed){
   const codeMap=getPersistentGroupCodeMap();
-  Object.values(parsed||{}).forEach(day=>day.forEach(x=>{
-    if(!x.group)return;
-    const code=normalizeEDUCode(x.groupCode||x.group);
-    const mappedId=code&&codeMap[code];
-    let g=mappedId?groupsData.find(gr=>gr.id===mappedId):null;
-    if(!g)g=matchImportedGroup(code||x.group);
-    if(g){x.group=g.name;x.matchedGroupId=g.id;if(code)codeMap[code]=g.id;}
-  }));
+  const codes=teacherScheduleCodes(parsed);
+
+  // Resolve every UNIQUE schedule code independently. Never infer linkage from the number
+  // of repeated lessons, and never count a stale group id from an older import.
+  codes.forEach(code=>{
+    let g=null;
+    const mapped=codeMap[code];
+    if(mapped)g=groupsData.find(x=>x.id===mapped)||null;
+    if(!g)g=matchImportedGroup(code);
+    if(g)codeMap[code]=g.id;
+    else delete codeMap[code];
+  });
   savePersistentGroupCodeMap(codeMap);
+
+  Object.values(parsed||{}).forEach(day=>day.forEach(x=>{
+    const code=normalizeEDUCode(x.groupCode||x.group);
+    if(!code)return;
+    const g=groupsData.find(gr=>gr.id===codeMap[code]);
+    x.groupCode=code;
+    x.matchedGroupId=g?.id||null;
+    if(g)x.group=g.name;
+  }));
   return parsed;
+}
+function teacherLinkCount(parsed){
+  const codes=teacherScheduleCodes(parsed),map=validTeacherCodeMap(parsed);
+  return {linked:codes.filter(code=>map[code]).length,total:codes.length,codes,map};
 }
 function renderTeacherLinkReview(parsed){
   const box=document.getElementById('teacherLinkReview'),list=document.getElementById('teacherLinkReviewList');
   if(!box||!list)return;
-  const teaching=Object.values(parsed||{}).flat().filter(x=>x.group);
-  const codes=[...new Set(teaching.map(x=>normalizeEDUCode(x.groupCode||x.group)).filter(Boolean))];
-  const map=getPersistentGroupCodeMap();
-  const unresolved=codes.filter(code=>!groupsData.some(g=>g.id===map[code])&&!matchImportedGroup(code));
+  const info=teacherLinkCount(parsed);
+  const unresolved=info.codes.filter(code=>!info.map[code]);
   if(!unresolved.length){box.style.display='none';list.innerHTML='';return;}
   box.style.display='block';
   const esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -3985,14 +4013,16 @@ function renderTeacherLinkReview(parsed){
 }
 function assignTeacherGroupCode(code,groupId){
   if(!code||!groupId)return;
-  const map=getPersistentGroupCodeMap();map[code]=groupId;savePersistentGroupCodeMap(map);
+  const map=getPersistentGroupCodeMap();
+  // One schedule code = one class list. Prevent an accidental duplicate assignment.
+  Object.keys(map).forEach(k=>{if(k!==code&&map[k]===groupId&&teacherScheduleCodes(importedSetupData.teacherSchedule).includes(k))delete map[k]});
+  map[code]=groupId;savePersistentGroupCodeMap(map);
   const parsed=importedSetupData.teacherSchedule;
   relinkTeacherSchedule(parsed);
   localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
-  const teaching=Object.values(parsed||{}).flat().filter(x=>x.group);
-  const linkedIds=new Set(teaching.map(x=>x.matchedGroupId).filter(Boolean));
+  const info=teacherLinkCount(parsed);
   const state=document.getElementById('teacherScheduleState');
-  if(state)state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedIds.size+'/'+groupsData.length+' groupes liés';
+  if(state)state.textContent='9 jours-cycle · '+Object.values(parsed||{}).flat().filter(x=>x.groupCode).length+' cours · '+info.linked+'/'+info.total+' groupes liés';
   renderTeacherLinkReview(parsed);
 }
 async function handleSetupFile(type,input){
@@ -4066,9 +4096,9 @@ async function handleSetupFile(type,input){
       // Automatic exact/semantic linkage first. If a photo hides its class header,
       // expose only the genuinely ambiguous codes for a one-time teacher confirmation.
       relinkTeacherSchedule(parsed);
-      const linkedIds=new Set(teaching.map(x=>x.matchedGroupId).filter(Boolean));
+      const linkInfo=teacherLinkCount(parsed);
       importedSetupData.teacherSchedule=parsed;
-      state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedIds.size+'/'+groupsData.length+' groupes liés';
+      state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkInfo.linked+'/'+linkInfo.total+' groupes liés';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
       renderTeacherLinkReview(parsed);
     }else{
