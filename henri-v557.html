@@ -3456,7 +3456,7 @@ function parseGroupDocuments(docs){
     // Preserve every normalized course code found in the list/header/filename.
     identity.codes=[...new Set([...identity.codes,...extractEDUGroupCodes(text),...extractEDUGroupCodes(file.name||'')])];
     identity.codes.forEach(code=>{if(!identity.aliases.includes(code))identity.aliases.push(code)});
-    groupName=identity.canonicalName;
+    groupName=identity.codes[0]||identity.canonicalName||('Liste '+(fileIndex+1));
     let candidates=[];
     if((file.name||'').toLowerCase().endsWith('.csv')){
       const rows=text.split('\n').map(r=>r.split(/[;,]/).map(v=>v.trim()).filter(Boolean)).filter(r=>r.length);
@@ -4002,11 +4002,15 @@ function renderTeacherLinkReview(parsed){
   const unresolved=info.codes.filter(code=>!info.map[code]);
   if(!unresolved.length){box.style.display='none';list.innerHTML='';return;}
   box.style.display='block';
+  box.querySelector('div')?.replaceChildren(document.createTextNode('Il reste '+unresolved.length+' groupe'+(unresolved.length>1?'s':'')+' à associer'));
   const esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   list.innerHTML=unresolved.map(code=>{
-    const options=groupsData.map(g=>{
-      const sample=(g.students||[]).slice(0,2).map(s=>s.name).join(' · ');
-      return '<option value="'+esc(g.id)+'">'+esc(g.name)+(sample?' — '+esc(sample):'')+'</option>';
+    const used=new Set(Object.entries(info.map).filter(([k])=>k!==code).map(([,id])=>id));
+    const candidates=groupsData.filter(g=>!used.has(g.id));
+    const options=candidates.map(g=>{
+      const sample=(g.students||[]).slice(0,3).map(s=>s.name).join(' · ');
+      const label=(g.sourceCodes||[]).map(normalizeEDUCode).filter(Boolean)[0]||g.name||g.sourceFile||'Liste';
+      return '<option value="'+esc(g.id)+'">'+esc(label)+(sample?' — '+esc(sample):'')+'</option>';
     }).join('');
     return '<div style="display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:8px"><b style="font-size:12px">'+esc(code)+'</b><select style="width:100%;min-width:0;border:1px solid #dfe3e7;border-radius:10px;padding:9px;background:#fafbfc;font:inherit;font-size:12px" onchange="assignTeacherGroupCode(\''+esc(code)+'\',this.value)"><option value="">Choisir la liste…</option>'+options+'</select></div>';
   }).join('');
@@ -4082,6 +4086,9 @@ async function handleSetupFile(type,input){
       groupsData=merged;
       importedSetupData.groupSheets=groupsData;
       saveGroups();
+      const freshMap=getPersistentGroupCodeMap();
+      Object.keys(freshMap).forEach(code=>{if(!groupsData.some(g=>g.id===freshMap[code]))delete freshMap[code]});
+      savePersistentGroupCodeMap(freshMap);
       rebuildPersistentGroupCodeMap();
       state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' importé'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves'+(weak.length?' · '+weak.length+' à vérifier':'');
       localStorage.setItem('henriImportedGroups',JSON.stringify(groups));
