@@ -499,7 +499,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.48</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.49</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -917,7 +917,7 @@ body{background:#f8f7f4}
 </div>
 
 <script>
-const HENRI_FRESH_START_VERSION='fresh-real-test-v1';
+const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 if(localStorage.getItem('henriFreshStartVersion')!==HENRI_FRESH_START_VERSION){
   Object.keys(localStorage).filter(k=>k.startsWith('henri')).forEach(k=>localStorage.removeItem(k));
   localStorage.setItem('henriFreshStartVersion',HENRI_FRESH_START_VERSION);
