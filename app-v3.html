@@ -423,7 +423,11 @@ body{background:#f8f7f4}
 .attendanceChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
 .attendanceChip{border:1px solid var(--line);background:#f8f8f6;border-radius:999px;padding:7px 9px;font-size:10px;font-weight:700;color:#596166}
 .attendanceChip.absent{background:#f6ecea;color:#865045;border-color:#eedbd7;text-decoration:line-through}
-.teamGenerateBtn{width:100%;border:0;background:var(--accent);color:#fff;border-radius:14px;padding:13px 15px;font-weight:790;margin-top:14px;box-shadow:0 8px 18px rgba(49,74,91,.13)}
+.teamGenerateActions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:14px}
+.teamGenerateBtn{width:100%;border:0;background:var(--accent);color:#fff;border-radius:14px;padding:13px 15px;font-weight:790;margin:0;box-shadow:0 8px 18px rgba(49,74,91,.13)}
+.teamResetBtn{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:14px;padding:0 14px;font-size:11px;font-weight:760;white-space:nowrap}
+.teamResetBtn:hover{background:#f7f7f5}
+@media(max-width:520px){.teamGenerateActions{grid-template-columns:1fr}.teamResetBtn{min-height:44px}}
 .teamResult{display:none;margin-top:14px}
 .teamResult.show{display:block}
 .teamResultTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
@@ -447,7 +451,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.32</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.33</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -707,7 +711,10 @@ body{background:#f8f7f4}
       <div id="teamAttendanceChips" class="attendanceChips"></div>
     </div>
 
-    <button class="teamGenerateBtn" onclick="generateTeams()">Générer les équipes</button>
+    <div class="teamGenerateActions">
+      <button class="teamGenerateBtn" onclick="generateTeams()">Générer les équipes</button>
+      <button class="teamResetBtn" onclick="resetTeamBuilder()">Réinitialiser</button>
+    </div>
   </div>
 
   <div id="teamResult" class="teamResult"></div>
@@ -2503,6 +2510,29 @@ function toggleTeamSetting(key){
   teamBuilderSettings[key]=!teamBuilderSettings[key];
   const id=key==='skill'?'teamSkillToggle':key==='leaders'?'teamLeaderToggle':'teamNoveltyToggle';
   document.getElementById(id)?.classList.toggle('on',teamBuilderSettings[key]);
+}
+function resetTeamBuilder(){
+  teamBuilderSettings.genderMode='mixed';
+  teamBuilderSettings.skill=true;
+  teamBuilderSettings.leaders=true;
+  teamBuilderSettings.novelty=true;
+  teamBuilderAbsent=new Set();
+  generatedTeamData=[];
+  document.querySelectorAll('#genderModeSegment button').forEach(b=>b.classList.toggle('on',b.dataset.value==='mixed'));
+  document.getElementById('teamSkillToggle')?.classList.add('on');
+  document.getElementById('teamLeaderToggle')?.classList.add('on');
+  document.getElementById('teamNoveltyToggle')?.classList.add('on');
+  renderTeamAttendance();
+  const group=groupsData.find(g=>g.id===teamGroup?.value)||groupsData[0];
+  if(group&&teamCount){
+    const suggested=Math.max(2,Math.round(group.students.length/5));
+    if([...teamCount.options].some(o=>Number(o.value)===suggested)) teamCount.value=String(suggested);
+    else if(teamCount.options.length) teamCount.selectedIndex=0;
+  }
+  if(teamResult){
+    teamResult.classList.remove('show');
+    teamResult.innerHTML='';
+  }
 }
 function pairKey(a,b){return [a,b].sort().join('::')}
 function recentPartnerSet(groupId){
