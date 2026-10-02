@@ -872,8 +872,8 @@ body{background:#f8f7f4}
     <p class="dataNote">Les profils élèves sont conservés dans Henri et serviront plus tard automatiquement à l’outil de formation d’équipes.</p>
   </div>
   <div style="margin-top:42px;padding-top:18px;border-top:1px solid #eee;text-align:center">
-    <button type="button" onclick="resetHenriAsNewTeacher()" style="appearance:none;border:1px solid rgba(190,45,45,.28);background:rgba(190,45,45,.045);color:#b83a3a;border-radius:12px;padding:10px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer">Réinitialiser Henri</button>
-    <div style="margin-top:7px;color:#a0a0a0;font-size:11px">Effacer la configuration et repartir comme nouvel enseignant</div>
+    <button type="button" onclick="resetHenriAsNewTeacher()" style="appearance:none;border:1px solid rgba(190,45,45,.28);background:rgba(190,45,45,.045);color:#b83a3a;border-radius:12px;padding:10px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer">Réinitialiser mes données</button>
+    <div style="margin-top:7px;color:#a0a0a0;font-size:11px">Préparer une nouvelle année sans supprimer mes planifications</div>
   </div>
 </section>
 
@@ -3165,13 +3165,19 @@ function enrichDemoPlanning(entries){
 }
 
 function resetHenriAsNewTeacher(){
-  if(!confirm('Réinitialiser Henri comme pour un nouvel enseignant? Les groupes, imports, horaire et calendrier actuels seront effacés.'))return;
-  const keys=[
-    'henriGroupsData','henriImportedGroups','henriImportedTeacherSchedule','henriImportedSchoolCalendar',
-    'henriGroupCodeMap','henriScheduleEntries','henriSchoolDays','henriSetupComplete','henriDemoSchedule',
-    'henriAnnualPlans','henriSequences','henriIndividualSessions','henriCalendarExceptions','henriActiveSequence'
-  ];
-  keys.forEach(k=>localStorage.removeItem(k));
+  if(!confirm('Réinitialiser mes données pour une nouvelle année? Les groupes, élèves, horaire, calendrier et associations de dates seront effacés. Tes planifications et tes séquences seront conservées.'))return;
+  try{
+    const detach=o=>({...o,startDate:null,endDate:null,dateStart:null,dateEnd:null,group:null,groupId:null,assignedDates:[],dates:[],calendarDates:[],scheduleDates:[],cycleDays:[],calendarAssignments:[]});
+    const annual=JSON.parse(localStorage.getItem('henriAnnualPlans')||'[]');
+    if(Array.isArray(annual))localStorage.setItem('henriAnnualPlans',JSON.stringify(annual.map(detach)));
+    const seq=JSON.parse(localStorage.getItem('henriSequences')||'[]');
+    if(Array.isArray(seq))localStorage.setItem('henriSequences',JSON.stringify(seq.map(detach)));
+    const sessions=JSON.parse(localStorage.getItem('henriIndividualSessions')||'[]');
+    if(Array.isArray(sessions))localStorage.setItem('henriIndividualSessions',JSON.stringify(sessions.map(x=>({...x,date:null,scheduledDate:null,group:null,groupId:null,cycleDay:null}))));
+    const active=JSON.parse(localStorage.getItem('henriActiveSequence')||'null');
+    if(active)localStorage.setItem('henriActiveSequence',JSON.stringify(detach(active)));
+  }catch(e){}
+  ['henriGroupsData','henriImportedGroups','henriImportedTeacherSchedule','henriImportedSchoolCalendar','henriGroupCodeMap','henriScheduleEntries','henriSchoolDays','henriSetupComplete','henriDemoSchedule','henriCalendarExceptions'].forEach(k=>localStorage.removeItem(k));
   location.reload();
 }
 const setupFiles={teacherSchedule:false,schoolCalendar:false,groupSheets:false};
