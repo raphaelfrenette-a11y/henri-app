@@ -46,9 +46,9 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .today .dayName{color:var(--accent)}
 .todayBadge{display:inline-flex;align-items:center;gap:5px}
 .todayDot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.weekEvent{width:100%;border:0;background:#fff;padding:11px 14px;display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;text-align:left}
+.weekEvent{width:100%;border:0;background:#fff;padding:11px 14px;display:grid;grid-template-columns:86px 3px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left}
 .weekEvent+.weekEvent{border-top:1px solid #f1f1ef}
-.time{font-size:11px;color:var(--muted);font-weight:680}
+.time{font-size:11px;color:var(--muted);font-weight:720;white-space:nowrap;font-variant-numeric:tabular-nums}
 .course{font-weight:700;letter-spacing:-.01em;font-size:13px}
 .quickSport{color:var(--accent);font-size:12px;font-weight:760;white-space:nowrap}
 .chev{font-size:18px;color:#b0b4b6}
@@ -1068,7 +1068,7 @@ function openDayPlan(date){
     const sport=entry.annualPlan||'Sport à planifier';
     const session=entry.session||'Séance à planifier';
     cards.push('<div class="dayPlanCard">'+
-      '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
+      '<div class="dayPlanTop"><div><div class="dayPlanTime">'+periodDisplay(entry)+' · 70 min</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+sport+'</div>'+
       '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+originalIndex+')">'+session+'</button>'+
     '</div>');
@@ -3477,10 +3477,10 @@ function normalizeEDUCode(raw){
   return m?'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0'):'';
 }
 const HENRI_PERIODS=[
-  {period:'P1',time:'8 h 10 à 9 h 20'},
-  {period:'P2',time:'9 h 35 à 10 h 45'},
-  {period:'P3',time:'12 h 35 à 13 h 45'},
-  {period:'P4',time:'14 h 00 à 15 h 10'}
+  {period:'P1',time:'8 h 10',minutes:70},
+  {period:'P2',time:'9 h 35',minutes:70},
+  {period:'P3',time:'12 h 35',minutes:70},
+  {period:'P4',time:'14 h 00',minutes:70}
 ];
 function periodTimeFromColumn(index){return HENRI_PERIODS[index]?.time||''}
 function periodLabelFromColumn(index){return HENRI_PERIODS[index]?.period||''}
@@ -3490,7 +3490,8 @@ function periodIndex(value){
 }
 function periodDisplay(entry){
   const p=entry?.period||'';
-  const t=entry?.time||'';
+  const idx=periodIndex(p);
+  const t=idx>=0?periodTimeFromColumn(idx):String(entry?.time||'').split(/\s+(?:à|–|-)\s+/i)[0];
   return p+(p&&t?' · ':'')+t;
 }
 function emptyPeriodEntry(index){
