@@ -415,9 +415,34 @@ body{background:#f8f7f4}
 .teamCountButtons{display:flex;flex-wrap:wrap;gap:6px}
 .teamCountBtn{min-width:44px;height:44px;border:1px solid var(--line);background:#fafaf8;border-radius:12px;font-size:12px;font-weight:780;color:#596166}
 .teamCountBtn.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 5px 12px rgba(49,74,91,.12)}
-.pickerOverlay{position:fixed;inset:0;background:rgba(20,25,28,.24);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:18px}
+.pickerOverlay{position:fixed;inset:0;background:rgba(20,25,28,.24);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
 .pickerOverlay.show{display:flex}
-.pickerSheet{width:min(560px,100%);background:#fff;border-radius:24px;padding:14px;box-shadow:0 24px 70px rgba(0,0,0,.2)}
+.pickerSheet{width:min(560px,100%);max-height:min(72vh,620px);overflow:auto;background:#fff;border-radius:24px;padding:14px;box-shadow:0 24px 70px rgba(0,0,0,.2)}
+.henriSelectWrap{width:100%}
+.henriNativeSelect{display:none!important}
+.henriSelectButton{width:100%;min-height:46px;border:1px solid var(--line);background:#fafaf8;border-radius:13px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;color:var(--ink)}
+.henriSelectButton:hover{background:#f7f7f5}
+.henriSelectButton strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:720}
+.henriSelectChevron{color:#9aa0a3;font-size:18px;line-height:1;flex:0 0 auto}
+.henriPickerOverlay{position:fixed;inset:0;background:rgba(20,25,28,.24);backdrop-filter:blur(4px);z-index:180;display:none;align-items:center;justify-content:center;padding:18px}
+.henriPickerOverlay.show{display:flex}
+.henriPickerSheet{width:min(520px,calc(100vw - 28px));max-height:min(72vh,620px);background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:24px;box-shadow:0 26px 80px rgba(0,0,0,.22);overflow:hidden;display:flex;flex-direction:column}
+.henriPickerHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 17px 12px;border-bottom:1px solid #f0f1ef}
+.henriPickerHead strong{font-size:16px;letter-spacing:-.02em}
+.henriPickerClose{width:31px;height:31px;border:0;background:#f2f2f0;border-radius:50%;color:#747b7f;font-size:18px;display:grid;place-items:center}
+.henriPickerList{overflow:auto;padding:8px}
+.henriPickerChoice{width:100%;min-height:48px;border:0;background:#fff;border-radius:13px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left}
+.henriPickerChoice:hover{background:#f7f7f5}
+.henriPickerChoice.on{background:#f1f5f7;color:var(--accent)}
+.henriPickerChoice span:first-child{font-size:13px;font-weight:680}
+.henriPickerCheck{font-weight:850;opacity:0}
+.henriPickerChoice.on .henriPickerCheck{opacity:1}
+.henriPickerChoice:disabled{opacity:.4}
+.inlineCompSelect+.henriSelectWrap,.annualSportSelect+.henriSelectWrap{margin-top:0}
+@media(max-width:520px){
+  .henriPickerOverlay{padding:14px}
+  .henriPickerSheet{width:calc(100vw - 28px);max-height:68vh;border-radius:22px}
+}
 .pickerHandle{width:36px;height:4px;border-radius:999px;background:#d8dcde;margin:2px auto 12px}
 .pickerSheetHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px 10px}
 .pickerSheetHead strong{font-size:16px}
@@ -472,7 +497,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.38</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.39</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -2943,11 +2968,118 @@ if(localStorage.getItem('henriDemoSchedule')==='1'){
   }
   scheduleEntries=enrichDemoPlanning(scheduleEntries);
 }
+function getHenriSelectTitle(select){
+  const explicit=select.dataset.pickerTitle;
+  if(explicit)return explicit;
+  const field=select.closest('.planField');
+  const label=field?.querySelector('label')?.textContent?.trim();
+  if(label)return label;
+  const prev=select.parentElement?.querySelector('.premiumPickerLabel')?.textContent?.trim();
+  if(prev)return prev;
+  if(select.id==='quickScheduleDate')return 'Choisir la date';
+  if(select.id.includes('sport'))return 'Choisir un sport';
+  if(select.id.includes('comp'))return 'Choisir une compétence';
+  if(select.id.includes('group')||select.id.includes('Group'))return 'Choisir un groupe';
+  if(select.id.includes('duration')||select.id.includes('Duration'))return 'Choisir la durée';
+  return 'Choisir une option';
+}
+function ensureHenriPickerOverlay(){
+  let overlay=document.getElementById('henriUniversalPicker');
+  if(overlay)return overlay;
+  overlay=document.createElement('div');
+  overlay.id='henriUniversalPicker';
+  overlay.className='henriPickerOverlay';
+  overlay.innerHTML='<div class="henriPickerSheet" onclick="event.stopPropagation()"><div class="henriPickerHead"><strong id="henriPickerTitle">Choisir</strong><button class="henriPickerClose" type="button" onclick="closeHenriPicker()">×</button></div><div id="henriPickerList" class="henriPickerList"></div></div>';
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeHenriPicker()});
+  document.body.appendChild(overlay);
+  return overlay;
+}
+let henriPickerSelect=null;
+function syncHenriSelect(select){
+  if(!select||!select.dataset.henriEnhanced)return;
+  const btn=document.getElementById(select.dataset.henriButtonId);
+  if(!btn)return;
+  const option=select.options[select.selectedIndex]||select.options[0];
+  const label=option?.textContent?.trim()||'Choisir';
+  const strong=btn.querySelector('strong');
+  if(strong)strong.textContent=label;
+  btn.disabled=select.disabled;
+}
+function enhanceHenriSelect(select){
+  if(!select||select.dataset.henriEnhanced||select.id==='teamGroup'||select.id==='teamCount')return;
+  const computed=getComputedStyle(select);
+  if(computed.display==='none'&&select.style.display==='none')return;
+  const id='henri-select-btn-'+Math.random().toString(36).slice(2,9);
+  select.dataset.henriEnhanced='1';
+  select.dataset.henriButtonId=id;
+  select.classList.add('henriNativeSelect');
+  const wrap=document.createElement('div');
+  wrap.className='henriSelectWrap';
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.id=id;
+  btn.className='henriSelectButton';
+  btn.innerHTML='<strong>Choisir</strong><span class="henriSelectChevron">›</span>';
+  btn.addEventListener('click',()=>openHenriPicker(select));
+  select.insertAdjacentElement('afterend',wrap);
+  wrap.appendChild(btn);
+  select.addEventListener('change',()=>syncHenriSelect(select));
+  syncHenriSelect(select);
+}
+function enhanceAllHenriSelects(root=document){
+  root.querySelectorAll?.('select').forEach(enhanceHenriSelect);
+}
+function openHenriPicker(select){
+  if(!select)return;
+  henriPickerSelect=select;
+  const overlay=ensureHenriPickerOverlay();
+  document.getElementById('henriPickerTitle').textContent=getHenriSelectTitle(select);
+  const list=document.getElementById('henriPickerList');
+  list.innerHTML=[...select.options].map((o,i)=>
+    '<button type="button" class="henriPickerChoice'+(i===select.selectedIndex?' on':'')+'"'+(o.disabled?' disabled':'')+' data-index="'+i+'"><span>'+o.textContent+'</span><span class="henriPickerCheck">✓</span></button>'
+  ).join('');
+  list.querySelectorAll('.henriPickerChoice').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(btn.disabled)return;
+      const index=Number(btn.dataset.index);
+      select.selectedIndex=index;
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+      syncHenriSelect(select);
+      closeHenriPicker();
+    });
+  });
+  overlay.classList.add('show');
+  requestAnimationFrame(()=>{
+    list.querySelector('.henriPickerChoice.on')?.scrollIntoView({block:'center'});
+  });
+}
+function closeHenriPicker(){
+  document.getElementById('henriUniversalPicker')?.classList.remove('show');
+  henriPickerSelect=null;
+}
+const henriSelectObserver=new MutationObserver(mutations=>{
+  mutations.forEach(m=>{
+    if(m.type==='childList'){
+      m.addedNodes.forEach(node=>{
+        if(node.nodeType!==1)return;
+        if(node.matches?.('select'))enhanceHenriSelect(node);
+        enhanceAllHenriSelects(node);
+      });
+      const parent=m.target.closest?.('select')||((m.target.tagName==='SELECT')?m.target:null);
+      if(parent)syncHenriSelect(parent);
+    }
+    if(m.type==='attributes'&&m.target?.tagName==='SELECT')syncHenriSelect(m.target);
+  });
+});
+henriSelectObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
+enhanceAllHenriSelects();
+
 rebuildPlanningAssignments();
 renderGroups();
 fillTeamBuilderGroups();
 fillExceptionGroupOptions();
 renderCalendarExceptions();
+setTimeout(()=>enhanceAllHenriSelects(),0);
 </script>
 </body>
 </html>
