@@ -3357,8 +3357,8 @@ function inferGroupIdentity(text,fallbackName=''){
     if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0');break}
   }
   if(!level&&codes[0]){
-    const m=codes[0].match(/EDU([1-5])G\d-(\d{2})/);
-    if(m){level=m[1];num=m[2]}
+    const m=codes[0].match(/EDU([1-5])G(\d)-\d{2}/);
+    if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0')}
   }
   if(level&&num){
     aliases.add('S'+level+'G'+num);
@@ -3373,55 +3373,59 @@ function inferGroupIdentity(text,fallbackName=''){
     codes
   };
 }
-function canonicalGroupKey(value){
+function semanticGroupKey(value){
   const raw=String(value||'');
-  const full=normalizeEDUCode(raw);
-  if(full)return full;
-  return normalizeGroupAlias(raw);
+  const code=normalizeEDUCode(raw);
+  if(code){
+    const m=code.match(/EDU([1-5])G(\d)-\d{2}/);
+    if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
+  }
+  const n=normalizeGroupAlias(raw);
+  let m=n.match(/(?:SECONDAIRE|SEC|S)?([1-5])(?:GROUPE|GR|G)0?(\d{1,2})/);
+  if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
+  return '';
+}
+function canonicalGroupKey(value){
+  const full=normalizeEDUCode(value);
+  return full||semanticGroupKey(value)||normalizeGroupAlias(value);
 }
 function groupKeys(g){
   const keys=new Set();
-  // Preserve exact full EDU codes from the imported group sheet.
-  (g?.sourceCodes||[]).forEach(v=>{const code=normalizeEDUCode(v);if(code)keys.add(code)});
-  [g?.name,...(g?.aliases||[])].forEach(v=>{
-    const code=normalizeEDUCode(v);
-    if(code)keys.add(code);
-    const n=normalizeGroupAlias(v);
-    if(n)keys.add(n);
+  (g?.sourceCodes||[]).forEach(v=>{
+    const code=normalizeEDUCode(v);if(code)keys.add(code);
+    const semantic=semanticGroupKey(v);if(semantic)keys.add(semantic);
   });
+  [g?.name,...(g?.aliases||[])].forEach(v=>{
+    const n=normalizeGroupAlias(v);if(n)keys.add(n);
+    const semantic=semanticGroupKey(v);if(semantic)keys.add(semantic);
+  });
+  if(g?.level&&g?.groupNumber){
+    keys.add('S'+g.level+'G'+String(Number(g.groupNumber)).padStart(2,'0'));
+  }
   return [...keys];
 }
 function matchImportedGroup(rawCodeOrName){
   const raw=String(rawCodeOrName||'');
   const fullCode=normalizeEDUCode(raw);
+  const semantic=semanticGroupKey(raw);
   if(fullCode){
-    const exactCode=groupsData.find(g=>groupKeys(g).includes(fullCode));
-    if(exactCode)return exactCode;
-  }
-  if(fullCode){
+    const exact=groupsData.find(g=>groupKeys(g).includes(fullCode));
+    if(exact)return exact;
     const map=getPersistentGroupCodeMap();
-    const mappedId=map[fullCode];
-    const mapped=groupsData.find(g=>g.id===mappedId);
+    const mapped=groupsData.find(g=>g.id===map[fullCode]);
     if(mapped)return mapped;
   }
-  const normalized=normalizeGroupAlias(raw);
-  const exactName=groupsData.find(g=>groupKeys(g).includes(normalized));
-  if(exactName)return exactName;
-  // OCR-tolerant full-code comparison: one character error max after normalization.
-  if(fullCode){
-    const dist=(a,b)=>{
-      if(a.length!==b.length)return 99;
-      let d=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])d++;
-      return d;
-    };
-    let candidate=null;
-    groupsData.forEach(g=>(g.sourceCodes||[]).forEach(v=>{
-      const code=normalizeEDUCode(v);
-      if(code&&dist(code,fullCode)<=1&&!candidate)candidate=g;
-    }));
-    if(candidate)return candidate;
+  if(semantic){
+    const byGroup=groupsData.filter(g=>groupKeys(g).includes(semantic));
+    if(byGroup.length===1)return byGroup[0];
+    if(byGroup.length>1){
+      // Prefer a group whose saved name explicitly contains the same level/group identity.
+      const exact=byGroup.find(g=>semanticGroupKey(g.name)===semantic);
+      if(exact)return exact;
+    }
   }
-  return null;
+  const normalized=normalizeGroupAlias(raw);
+  return groupsData.find(g=>groupKeys(g).includes(normalized))||null;
 }
 function parseGroupDocuments(docs){
   const result=[];
