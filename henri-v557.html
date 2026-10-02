@@ -804,23 +804,11 @@ body{background:#f8f7f4}
   <button class="back" onclick="go('home')">‹ Retour</button>
   <h1>Configurer Henri</h1>
   <p class="settingsIntro">Importe tes documents une seule fois. Henri s’en sert pour construire ton horaire, placer les jours-cycle et pédagogiques, puis associer automatiquement tes groupes et tes élèves.</p>
+  <button type="button" class="exceptionCancel" style="margin:0 0 18px" onclick="resetHenriAsNewTeacher()">Réinitialiser comme nouvel enseignant</button>
 
   <div class="setupStack">
-    <label class="importCard" id="teacherScheduleCard">
-      <span class="importIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M4 9h16"/></svg></span>
-      <span class="importText"><strong>Horaire d’enseignant</strong><span>PDF, texte ou CSV · Henri détecte les jours-cycle, groupes et périodes</span></span>
-      <span class="importState" id="teacherScheduleState">Importer</span>
-      <input class="fileInput" id="teacherScheduleFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('teacherSchedule',this)">
-    </label>
-
-    <label class="importCard" id="schoolCalendarCard">
-      <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
-      <span class="importText"><strong>Calendrier scolaire</strong><span>Photo, PDF ou CSV · grande tolérance</span></span>
-      <span class="importState" id="schoolCalendarState">Importer</span>
-      <input class="fileInput" id="schoolCalendarFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('schoolCalendar',this)">
-    </label>
-
-    <label class="importCard" id="groupSheetsCard">
+    <div class="muted" style="font-weight:750;margin:0 2px 2px">1 · Importe tes groupes</div>
+<label class="importCard" id="groupSheetsCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
       <span class="importText"><strong>Listes de groupes</strong><span>Photos, PDF ou CSV · sélection multiple permise</span></span>
       <span class="importState" id="groupSheetsState">Importer</span>
@@ -830,6 +818,20 @@ body{background:#f8f7f4}
       <strong>Vérification IA</strong>
       <div id="groupAIReviewList" class="muted" style="margin-top:8px;display:grid;gap:6px"></div>
     </div>
+    <div class="muted" style="font-weight:750;margin:8px 2px 2px">2 · Importe ton horaire</div>
+<label class="importCard" id="teacherScheduleCard">
+      <span class="importIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M4 9h16"/></svg></span>
+      <span class="importText"><strong>Horaire d’enseignant</strong><span>PDF, texte ou CSV · Henri détecte les jours-cycle, groupes et périodes</span></span>
+      <span class="importState" id="teacherScheduleState">Importer</span>
+      <input class="fileInput" id="teacherScheduleFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('teacherSchedule',this)">
+    </label>
+    <div class="muted" style="font-weight:750;margin:8px 2px 2px">3 · Importe ton calendrier scolaire</div>
+<label class="importCard" id="schoolCalendarCard">
+      <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
+      <span class="importText"><strong>Calendrier scolaire</strong><span>Photo, PDF ou CSV · grande tolérance</span></span>
+      <span class="importState" id="schoolCalendarState">Importer</span>
+      <input class="fileInput" id="schoolCalendarFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('schoolCalendar',this)">
+    </label>
   </div>
 
   <div class="calendarExceptionSection">
@@ -3158,6 +3160,16 @@ function enrichDemoPlanning(entries){
   return entries;
 }
 
+function resetHenriAsNewTeacher(){
+  if(!confirm('Réinitialiser Henri comme pour un nouvel enseignant? Les groupes, imports, horaire et calendrier actuels seront effacés.'))return;
+  const keys=[
+    'henriGroupsData','henriImportedGroups','henriImportedTeacherSchedule','henriImportedSchoolCalendar',
+    'henriGroupCodeMap','henriScheduleEntries','henriSchoolDays','henriSetupComplete','henriDemoSchedule',
+    'henriAnnualPlans','henriSequences','henriIndividualSessions','henriCalendarExceptions','henriActiveSequence'
+  ];
+  keys.forEach(k=>localStorage.removeItem(k));
+  location.reload();
+}
 const setupFiles={teacherSchedule:false,schoolCalendar:false,groupSheets:false};
 const importedSetupData={
   teacherSchedule:JSON.parse(localStorage.getItem('henriImportedTeacherSchedule')||'null'),
@@ -3488,10 +3500,10 @@ function normalizeEDUCode(raw){
   return m?'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0'):'';
 }
 const HENRI_PERIODS=[
-  {period:'P1',time:'8 h 10'},
-  {period:'P2',time:'9 h 35'},
-  {period:'P3',time:'12 h 35'},
-  {period:'P4',time:'14 h 00'}
+  {period:'P1',time:'8 h 10 à 9 h 20'},
+  {period:'P2',time:'9 h 35 à 10 h 45'},
+  {period:'P3',time:'12 h 35 à 13 h 45'},
+  {period:'P4',time:'14 h 00 à 15 h 10'}
 ];
 function periodTimeFromColumn(index){return HENRI_PERIODS[index]?.time||''}
 function periodLabelFromColumn(index){return HENRI_PERIODS[index]?.period||''}
@@ -3908,6 +3920,16 @@ async function parseSchoolCalendarDocs(docs){
 }
 
 async function handleSetupFile(type,input){
+  if(type==='teacherSchedule'&&!setupFiles.groupSheets){
+    input.value='';
+    alert('Importe d’abord tes listes de groupes. Henri les utilisera ensuite pour relier correctement ton horaire.');
+    return;
+  }
+  if(type==='schoolCalendar'&&!setupFiles.teacherSchedule){
+    input.value='';
+    alert('Importe d’abord tes listes de groupes, puis ton horaire d’enseignant.');
+    return;
+  }
   const files=[...(input.files||[])];
   const state=document.getElementById(type+'State');
   const card=document.getElementById(type+'Card');
@@ -4025,13 +4047,17 @@ function generateMySchedule(){
   if(!groupsData.length&&Array.isArray(groups))groupsData=groups;
   schoolDays=calendar;
   scheduleEntries={};
-  Object.entries(schoolDays).forEach(([date,cycle])=>{
+  Object.entries(schoolDays).sort(([a],[b])=>a.localeCompare(b)).forEach(([date,cycle])=>{
     const d=new Date(date+'T12:00:00');
     const weekday=d.getDay();
     if(weekday<1||weekday>5)return;
-    if(!/^Jour\s+(?:[1-9]|10)$/i.test(String(cycle||'')))return;
-    // Calendar decides the cycle day; teacher schedule decides the group in each P1-P4.
-    scheduleEntries[date]=normalizeTeacherDay(teacher[cycle]||[]).map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
+    const cycleMatch=String(cycle||'').match(/^Jour\s+([1-9])$/i);
+    if(!cycleMatch)return;
+    const cycleKey='Jour '+Number(cycleMatch[1]);
+    // One source of truth: real date -> school calendar cycle day -> teacher P1/P2/P3/P4.
+    scheduleEntries[date]=normalizeTeacherDay(teacher[cycleKey]||[])
+      .sort((a,b)=>periodIndex(a.period)-periodIndex(b.period))
+      .map(lesson=>({...lesson,cycleDay:cycleKey,annualPlan:null,sequence:null,session:null}));
   });
   localStorage.removeItem('henriDemoSchedule');
   localStorage.setItem('henriSetupComplete','1');
