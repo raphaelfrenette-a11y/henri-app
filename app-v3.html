@@ -499,7 +499,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.47</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.48</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -806,24 +806,24 @@ body{background:#f8f7f4}
   <p class="settingsIntro">Importe tes documents une seule fois. Henri s’en sert pour construire ton horaire, placer les jours-cycle et pédagogiques, puis associer automatiquement tes groupes et tes élèves.</p>
 
   <div class="setupStack">
-    <label class="importCard ready" id="teacherScheduleCard">
+    <label class="importCard" id="teacherScheduleCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M4 9h16"/></svg></span>
       <span class="importText"><strong>Horaire d’enseignant</strong><span>PDF, texte ou CSV · Henri détecte les jours-cycle, groupes et périodes</span></span>
-      <span class="importState" id="teacherScheduleState">Démo chargée</span>
-      <input class="fileInput" id="teacherScheduleFile" type="file" accept=".pdf,image/*" onchange="handleSetupFile('teacherSchedule',this)">
+      <span class="importState" id="teacherScheduleState">Importer</span>
+      <input class="fileInput" id="teacherScheduleFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('teacherSchedule',this)">
     </label>
 
-    <label class="importCard ready" id="schoolCalendarCard">
+    <label class="importCard" id="schoolCalendarCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
       <span class="importText"><strong>Calendrier scolaire</strong><span>PDF, texte ou CSV · jours-cycle, pédagogiques et congés</span></span>
-      <span class="importState" id="schoolCalendarState">Démo chargée</span>
-      <input class="fileInput" id="schoolCalendarFile" type="file" accept=".pdf,image/*" onchange="handleSetupFile('schoolCalendar',this)">
+      <span class="importState" id="schoolCalendarState">Importer</span>
+      <input class="fileInput" id="schoolCalendarFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('schoolCalendar',this)">
     </label>
 
-    <label class="importCard ready" id="groupSheetsCard">
+    <label class="importCard" id="groupSheetsCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
       <span class="importText"><strong>Listes de groupes</strong><span>Photos, PDF ou CSV · sélection multiple permise</span></span>
-      <span class="importState" id="groupSheetsState">Démo chargée</span>
+      <span class="importState" id="groupSheetsState">Importer</span>
       <input class="fileInput" id="groupSheetsFile" type="file" accept=".pdf,.csv,image/*" multiple onchange="handleSetupFile('groupSheets',this)">
     </label>
   </div>
@@ -855,9 +855,9 @@ body{background:#f8f7f4}
   </div>
 
   <div class="generateBox">
-    <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()">Générer mon horaire</button>
-    <p class="generateHint">Henri vérifie chaque document avant de générer l’horaire. Les données démo restent disponibles tant qu’aucun vrai ensemble complet n’a été validé.</p>
-    <div id="setupSuccess" class="setupSuccess">Horaire généré. Ton calendrier Henri est maintenant prêt.</div>
+    <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()" disabled>Générer mon horaire</button>
+    <p class="generateHint">Ajoute tes trois sources. Henri activera la génération seulement lorsqu’elles auront été validées.</p>
+    <div id="setupSuccess" class="setupSuccess">Configuration terminée. Ton Henri est prêt.</div>
   </div>
 
   <div class="groupsSection">
@@ -917,6 +917,11 @@ body{background:#f8f7f4}
 </div>
 
 <script>
+const HENRI_FRESH_START_VERSION='fresh-real-test-v1';
+if(localStorage.getItem('henriFreshStartVersion')!==HENRI_FRESH_START_VERSION){
+  Object.keys(localStorage).filter(k=>k.startsWith('henri')).forEach(k=>localStorage.removeItem(k));
+  localStorage.setItem('henriFreshStartVersion',HENRI_FRESH_START_VERSION);
+}
 let previousScreen='home';
 function go(id){
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
@@ -943,20 +948,9 @@ function setCalendarView(view){
   weekBtn.classList.toggle('on',isWeek);
   monthBtn.classList.toggle('on',!isWeek);
 }
-let scheduleEntries={
-  '2026-09-28':[{time:'9 h 45',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}],
-  '2026-09-29':[{time:'8 h 15',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}],
-  '2026-09-30':[{time:'11 h 10',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}],
-  '2026-10-01':[{time:'13 h 30',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique',annualPlan:null,sequence:null,session:null}]
-};
+let scheduleEntries={};
 let calendarEvents={};
-let schoolDays={
-  '2026-09-28':'Jour 2',
-  '2026-09-29':'Jour 3',
-  '2026-09-30':'Jour 4',
-  '2026-10-01':'Jour 5',
-  '2026-10-02':'Pédagogique'
-};
+let schoolDays={};
 function rebuildCalendarEvents(){
   calendarEvents={};
   Object.keys(scheduleEntries).forEach(date=>{
@@ -2727,15 +2721,13 @@ function makeDefaultGroups(){
 }
 
 let storedGroups=JSON.parse(localStorage.getItem('henriGroupsData')||'null');
-const legacyDemoGroups=storedGroups&&storedGroups.some(g=>g.students?.some(s=>/^Élève \d+$/.test(s.name||'')));
-let groupsData=(!storedGroups||legacyDemoGroups)?makeDefaultGroups():storedGroups;
+let groupsData=Array.isArray(storedGroups)?storedGroups:[];
 groupsData.forEach(g=>g.students?.forEach(s=>{
-  if(!s.gender) s.gender=inferDemoGender(s.name);
+  if(!s.gender)s.gender='U';
   if(!Array.isArray(s.compatible))s.compatible=[];
   if(!Array.isArray(s.incompatible))s.incompatible=[];
 }));
-if(legacyDemoGroups) localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
-else localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
+localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
 let activeGroupId=null;
 setTimeout(fillPlanGroupSelects,0);
 function saveGroups(){
@@ -2743,7 +2735,11 @@ function saveGroups(){
   if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
 }
 function renderGroups(){
-  if(!groupList) return;
+  if(!groupList)return;
+  if(!groupsData.length){
+    groupList.innerHTML='<div class="placeholder"><strong>Aucun groupe importé</strong><p class="muted" style="margin:5px 0 0">Ajoute tes listes de groupes ci-dessus pour commencer.</p></div>';
+    return;
+  }
   groupList.innerHTML=groupsData.map(g=>'<button class="groupCard" onclick="openGroup(\''+g.id+'\')"><span><strong>'+g.name+'</strong><span>'+g.students.length+' élèves · profils modifiables</span></span><span class="groupArrow">›</span></button>').join('');
 }
 function openGroup(id){
@@ -3354,37 +3350,11 @@ function generateMySchedule(){
   renderMonth();renderWeek();
   setTimeout(()=>{goHome();setCalendarView('week')},350);
 }
-if(localStorage.getItem('henriSetupComplete')!=='1'&&localStorage.getItem('henriDemoDataVersion')!==DEMO_DATA_VERSION){
-  schoolDays=makeFullDemoSchoolDays();
-  scheduleEntries={};
-  Object.entries(schoolDays).forEach(([date,cycleName])=>{
-    const lessons=demoTeacherSchedule[cycleName]||[];
-    if(lessons.length) scheduleEntries[date]=lessons.map(lesson=>Object.assign({},lesson,demoPlanningByGroup[lesson.group]||{annualPlan:null,sequence:null,session:null}));
-  });
-  localStorage.setItem('henriDemoSchedule','1');
-  localStorage.setItem('henriDemoDataVersion',DEMO_DATA_VERSION);
-  localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
-  localStorage.setItem('henriSchoolDays',JSON.stringify(schoolDays));
-}
 const savedScheduleEntries=JSON.parse(localStorage.getItem('henriScheduleEntries')||'null');
 const savedSchoolDays=JSON.parse(localStorage.getItem('henriSchoolDays')||'null');
 if(savedScheduleEntries) scheduleEntries=savedScheduleEntries;
 if(savedSchoolDays) schoolDays=savedSchoolDays;
-if(localStorage.getItem('henriDemoSchedule')==='1'){
-  const demoKeys=Object.keys(schoolDays||{}).sort();
-  const demoSpan=demoKeys.length>1?Math.round((new Date(demoKeys[demoKeys.length-1]+'T12:00:00')-new Date(demoKeys[0]+'T12:00:00'))/86400000):0;
-  if(demoSpan<180){
-    schoolDays=makeFullDemoSchoolDays();
-    scheduleEntries={};
-    Object.entries(schoolDays).forEach(([date,cycle])=>{
-      const lessons=demoTeacherSchedule[cycle]||[];
-      if(lessons.length) scheduleEntries[date]=lessons.map(lesson=>({...lesson,...(demoPlanningByGroup[lesson.group]||{annualPlan:null,sequence:null,session:null})}));
-    });
-    localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
-    localStorage.setItem('henriSchoolDays',JSON.stringify(schoolDays));
-  }
-  scheduleEntries=enrichDemoPlanning(scheduleEntries);
-}
+
 function getHenriSelectTitle(select){
   const explicit=select.dataset.pickerTitle;
   if(explicit)return explicit;
