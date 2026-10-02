@@ -497,7 +497,7 @@ body{background:#f8f7f4}
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.43</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.44</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
 <main>
 <section id="home" class="screen active">
   <h1>Accueil</h1>
@@ -519,7 +519,10 @@ body{background:#f8f7f4}
       <div class="monthCard">
         <div class="monthTop">
           <span id="monthTitle" class="monthTitle"></span>
-          <div class="monthNav"><button aria-label="Mois précédent" onclick="changeMonth(-1)">‹</button><button aria-label="Mois suivant" onclick="changeMonth(1)">›</button></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="itemBtn" onclick="goHome()">Retour à l’accueil</button>
+            <div class="monthNav"><button aria-label="Mois précédent" onclick="changeMonth(-1)">‹</button><button aria-label="Mois suivant" onclick="changeMonth(1)">›</button></div>
+          </div>
         </div>
         <div class="weekLabels"><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
         <div id="monthGrid" class="monthGrid"></div>
@@ -896,7 +899,7 @@ body{background:#f8f7f4}
 
 <nav class="bottom">
   <div class="bottomin">
-    <button class="nav on" data-screen="home" onclick="go('home')">
+    <button class="nav on" data-screen="home" onclick="goHome()">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
       Accueil
     </button>
@@ -919,6 +922,12 @@ function go(id){
   document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.screen===id));
   if(id==='settings'){fillExceptionGroupOptions();renderCalendarExceptions()}
   scrollTo(0,0);
+}
+function goHome(){
+  go('home');
+  setCalendarView('week');
+  const home=document.getElementById('home');
+  if(home)home.scrollIntoView({block:'start'});
 }
 function openSession(title,meta){
   previousScreen=document.querySelector('.screen.active')?.id||'home';
