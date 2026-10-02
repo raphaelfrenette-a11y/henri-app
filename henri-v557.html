@@ -3343,24 +3343,43 @@ function inferGroupIdentity(text,fallbackName=''){
     codes
   };
 }
+function canonicalGroupKey(value){
+  const raw=String(value||'').toUpperCase();
+  const code=normalizeEDUCode(raw);
+  if(code){
+    const m=code.match(/EDU([1-5])G\d-(\d{2})/);
+    if(m)return 'S'+m[1]+'G'+m[2];
+  }
+  const n=normalizeGroupAlias(raw);
+  let m=n.match(/(?:SECONDAIRE|SEC|S)([1-5])(?:GROUPE|GR|G)?0?(\d{1,2})/);
+  if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
+  m=n.match(/^([1-5])G?0?(\d{1,2})$/);
+  if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
+  return '';
+}
+function groupKeys(g){
+  const keys=new Set();
+  [g?.name,...(g?.aliases||[]),...(g?.sourceCodes||[])].forEach(v=>{
+    const k=canonicalGroupKey(v); if(k)keys.add(k);
+  });
+  if(g?.level&&g?.groupNumber)keys.add('S'+g.level+'G'+String(Number(g.groupNumber)).padStart(2,'0'));
+  return [...keys];
+}
 function matchImportedGroup(rawCodeOrName){
   const raw=String(rawCodeOrName||'');
+  const wantedKey=canonicalGroupKey(raw);
+  if(wantedKey){
+    const exact=groupsData.find(g=>groupKeys(g).includes(wantedKey));
+    if(exact)return exact;
+  }
   const normalized=normalizeGroupAlias(raw);
   const inferred=inferGroupIdentity(raw,raw);
-  const rawCodes=extractEDUGroupCodes(raw).map(normalizeEDUCode).filter(Boolean);
   let best=null,bestScore=0;
   for(const g of groupsData){
-    const name=normalizeGroupAlias(g.name);
-    const aliases=[name,...(g.aliases||[]).map(normalizeGroupAlias)].filter(Boolean);
-    const codes=(g.sourceCodes||[]).map(normalizeEDUCode).filter(Boolean);
+    const aliases=[normalizeGroupAlias(g.name),...(g.aliases||[]).map(normalizeGroupAlias)].filter(Boolean);
     let score=0;
-    if(normalized&&name===normalized)score=120;
-    if(normalized&&aliases.includes(normalized))score=Math.max(score,115);
-    if(rawCodes.some(code=>codes.includes(code)))score=Math.max(score,120);
-    if(inferred.level&&inferred.number&&String(g.level||'')===String(inferred.level)&&String(g.groupNumber||'').padStart(2,'0')===String(inferred.number).padStart(2,'0'))score=Math.max(score,110);
-    inferred.aliases.forEach(a=>{
-      if(aliases.includes(normalizeGroupAlias(a)))score=Math.max(score,105);
-    });
+    if(aliases.includes(normalized))score=120;
+    inferred.aliases.forEach(a=>{if(aliases.includes(normalizeGroupAlias(a)))score=Math.max(score,110)});
     if(score>bestScore){best=g;bestScore=score}
   }
   return bestScore>=100?best:null;
@@ -3878,8 +3897,21 @@ async function handleSetupFile(type,input){
         throw new Error('Henri n’a pas reconnu une liste complète dans '+missing.length+' photo'+(missing.length>1?'s':'')+' : '+missing.slice(0,3).join(', ')+(missing.length>3?'…':'')+'.');
       }
       const weak=groups.filter(g=>g.importConfidence<70||g.students.length<8);
-      importedSetupData.groupSheets=groups;
-      groupsData=groups;
+      // Merge imports into Mes groupes; never replace the teacher's existing group library with a partial import.
+      const merged=[...groupsData];
+      groups.forEach(incoming=>{
+        const key=groupKeys(incoming)[0];
+        const idx=merged.findIndex(g=>(key&&groupKeys(g).includes(key))||normalizeGroupAlias(g.name)===normalizeGroupAlias(incoming.name));
+        if(idx>=0){
+          merged[idx]={...merged[idx],...incoming,id:merged[idx].id||incoming.id,
+            students:(incoming.students?.length?incoming.students:merged[idx].students),
+            aliases:[...new Set([...(merged[idx].aliases||[]),...(incoming.aliases||[])])],
+            sourceCodes:[...new Set([...(merged[idx].sourceCodes||[]),...(incoming.sourceCodes||[])])]
+          };
+        }else merged.push(incoming);
+      });
+      groupsData=merged;
+      importedSetupData.groupSheets=groupsData;
       saveGroups();
       state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' importé'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves'+(weak.length?' · '+weak.length+' à vérifier':'');
       localStorage.setItem('henriImportedGroups',JSON.stringify(groups));
@@ -3897,11 +3929,10 @@ async function handleSetupFile(type,input){
         const g=matchImportedGroup(x.groupCode||x.group);
         if(g){x.group=g.name;x.matchedGroupId=g.id}
       }));
-      const uniqueScheduleGroups=new Map();
-      teaching.forEach(x=>uniqueScheduleGroups.set(normalizeGroupAlias(x.groupCode||x.group),x));
-      const linkedGroups=[...uniqueScheduleGroups.values()].filter(x=>x.matchedGroupId).length;
+      const scheduleKeys=new Set(teaching.map(x=>canonicalGroupKey(x.groupCode||x.group)).filter(Boolean));
+      const linkedLibraryGroups=groupsData.filter(g=>groupKeys(g).some(k=>scheduleKeys.has(k))).length;
       importedSetupData.teacherSchedule=parsed;
-      state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedGroups+'/'+uniqueScheduleGroups.size+' groupes liés';
+      state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedLibraryGroups+'/'+groupsData.length+' groupes liés';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
@@ -3936,7 +3967,8 @@ function generateMySchedule(){
   const calendar=importedSetupData.schoolCalendar;
   const groups=importedSetupData.groupSheets;
   if(!teacher||!calendar||!groups)return;
-  groupsData=groups;
+  // groupsData is the persistent source of truth. Never replace it with a partial import.
+  if(!groupsData.length&&Array.isArray(groups))groupsData=groups;
   schoolDays=calendar;
   scheduleEntries={};
   Object.entries(schoolDays).forEach(([date,cycle])=>{
