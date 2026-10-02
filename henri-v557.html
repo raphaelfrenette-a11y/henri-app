@@ -804,7 +804,7 @@ body{background:#f8f7f4}
   <button class="back" onclick="go('home')">‹ Retour</button>
   <h1>Configurer Henri</h1>
   <p class="settingsIntro">Importe tes documents une seule fois. Henri s’en sert pour construire ton horaire, placer les jours-cycle et pédagogiques, puis associer automatiquement tes groupes et tes élèves.</p>
-  <button type="button" class="exceptionCancel" style="margin:0 0 18px" onclick="resetHenriAsNewTeacher()">Réinitialiser comme nouvel enseignant</button>
+
 
   <div class="setupStack">
     <div class="muted" style="font-weight:750;margin:0 2px 2px">1 · Importe tes groupes</div>
@@ -870,6 +870,10 @@ body{background:#f8f7f4}
     <h2>Mes groupes</h2>
     <div id="groupList" class="groupList"></div>
     <p class="dataNote">Les profils élèves sont conservés dans Henri et serviront plus tard automatiquement à l’outil de formation d’équipes.</p>
+  </div>
+  <div style="margin-top:42px;padding-top:18px;border-top:1px solid #eee;text-align:center">
+    <button type="button" onclick="resetHenriAsNewTeacher()" style="appearance:none;border:1px solid rgba(190,45,45,.28);background:rgba(190,45,45,.045);color:#b83a3a;border-radius:12px;padding:10px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer">Réinitialiser Henri</button>
+    <div style="margin-top:7px;color:#a0a0a0;font-size:11px">Effacer la configuration et repartir comme nouvel enseignant</div>
   </div>
 </section>
 
