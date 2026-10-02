@@ -3336,7 +3336,7 @@ function inferGroupIdentity(text,fallbackName=''){
   }
   if(fallbackName)aliases.add(normalizeGroupAlias(fallbackName));
   return {
-    canonicalName:level&&num?'Secondaire '+level+' · Groupe '+num:(fallbackName||codes[0]||'Groupe'),
+    canonicalName:fallbackName||codes[0]||(level&&num?'Secondaire '+level+' · Groupe '+num:'Groupe'),
     aliases:[...aliases].filter(Boolean),
     level,
     number:num,
@@ -3344,45 +3344,48 @@ function inferGroupIdentity(text,fallbackName=''){
   };
 }
 function canonicalGroupKey(value){
-  const raw=String(value||'').toUpperCase();
-  const code=normalizeEDUCode(raw);
-  if(code){
-    const m=code.match(/EDU([1-5])G\d-(\d{2})/);
-    if(m)return 'S'+m[1]+'G'+m[2];
-  }
-  const n=normalizeGroupAlias(raw);
-  let m=n.match(/(?:SECONDAIRE|SEC|S)([1-5])(?:GROUPE|GR|G)?0?(\d{1,2})/);
-  if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
-  m=n.match(/^([1-5])G?0?(\d{1,2})$/);
-  if(m)return 'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0');
-  return '';
+  const raw=String(value||'');
+  const full=normalizeEDUCode(raw);
+  if(full)return full;
+  return normalizeGroupAlias(raw);
 }
 function groupKeys(g){
   const keys=new Set();
-  [g?.name,...(g?.aliases||[]),...(g?.sourceCodes||[])].forEach(v=>{
-    const k=canonicalGroupKey(v); if(k)keys.add(k);
+  // Preserve exact full EDU codes from the imported group sheet.
+  (g?.sourceCodes||[]).forEach(v=>{const code=normalizeEDUCode(v);if(code)keys.add(code)});
+  [g?.name,...(g?.aliases||[])].forEach(v=>{
+    const code=normalizeEDUCode(v);
+    if(code)keys.add(code);
+    const n=normalizeGroupAlias(v);
+    if(n)keys.add(n);
   });
-  if(g?.level&&g?.groupNumber)keys.add('S'+g.level+'G'+String(Number(g.groupNumber)).padStart(2,'0'));
   return [...keys];
 }
 function matchImportedGroup(rawCodeOrName){
   const raw=String(rawCodeOrName||'');
-  const wantedKey=canonicalGroupKey(raw);
-  if(wantedKey){
-    const exact=groupsData.find(g=>groupKeys(g).includes(wantedKey));
-    if(exact)return exact;
+  const fullCode=normalizeEDUCode(raw);
+  if(fullCode){
+    const exactCode=groupsData.find(g=>groupKeys(g).includes(fullCode));
+    if(exactCode)return exactCode;
   }
   const normalized=normalizeGroupAlias(raw);
-  const inferred=inferGroupIdentity(raw,raw);
-  let best=null,bestScore=0;
-  for(const g of groupsData){
-    const aliases=[normalizeGroupAlias(g.name),...(g.aliases||[]).map(normalizeGroupAlias)].filter(Boolean);
-    let score=0;
-    if(aliases.includes(normalized))score=120;
-    inferred.aliases.forEach(a=>{if(aliases.includes(normalizeGroupAlias(a)))score=Math.max(score,110)});
-    if(score>bestScore){best=g;bestScore=score}
+  const exactName=groupsData.find(g=>groupKeys(g).includes(normalized));
+  if(exactName)return exactName;
+  // OCR-tolerant full-code comparison: one character error max after normalization.
+  if(fullCode){
+    const dist=(a,b)=>{
+      if(a.length!==b.length)return 99;
+      let d=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])d++;
+      return d;
+    };
+    let candidate=null;
+    groupsData.forEach(g=>(g.sourceCodes||[]).forEach(v=>{
+      const code=normalizeEDUCode(v);
+      if(code&&dist(code,fullCode)<=1&&!candidate)candidate=g;
+    }));
+    if(candidate)return candidate;
   }
-  return bestScore>=100?best:null;
+  return null;
 }
 function parseGroupDocuments(docs){
   const result=[];
@@ -3929,10 +3932,9 @@ async function handleSetupFile(type,input){
         const g=matchImportedGroup(x.groupCode||x.group);
         if(g){x.group=g.name;x.matchedGroupId=g.id}
       }));
-      const scheduleKeys=new Set(teaching.map(x=>canonicalGroupKey(x.groupCode||x.group)).filter(Boolean));
-      const linkedLibraryGroups=groupsData.filter(g=>groupKeys(g).some(k=>scheduleKeys.has(k))).length;
+      const linkedIds=new Set(teaching.map(x=>x.matchedGroupId).filter(Boolean));
       importedSetupData.teacherSchedule=parsed;
-      state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedLibraryGroups+'/'+groupsData.length+' groupes liés';
+      state.textContent='9 jours-cycle · '+teaching.length+' cours · '+linkedIds.size+'/'+groupsData.length+' groupes liés';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
