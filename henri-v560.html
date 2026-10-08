@@ -2574,6 +2574,7 @@ function saveSequence(){
   }
   henriSyncSharedData({skipSequenceEditor:true});
   henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode||'Créée dans Henri').catch(henriBankWarn);
+  if(activeSequence.annualBlockId)henriBankStoreAnnual(activeSequence.groupId,annualPlans[activeSequence.groupId]||[]).catch(henriBankWarn);
   alert(activeSequence.annualBlockId?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
 }
 function openSessionEditor(index,source){
