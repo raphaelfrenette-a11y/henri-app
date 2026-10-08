@@ -2588,13 +2588,14 @@ function openSessionEditor(index,source){
   go('sessionEditor');
 }
 function renderSessionBlocks(session){
-  editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+b.type+'</div><div class="editBlockTitle">'+b.title+'</div></div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
+  editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+henriBankHtml(b.type)+'</div><div class="editBlockTitle">'+henriBankHtml(b.title)+'</div>'+(b.notes?'<div class="editBlockNotes">'+henriBankHtml(b.notes)+'</div>':'')+'</div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
 }
 function currentEditableSession(){return sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[activeSessionIndex]}
 function editSessionBlock(i){
   const s=currentEditableSession(),b=s?.blocks[i];if(!b)return;
   const title=prompt('Titre de la section',b.title);if(title!==null&&title.trim())b.title=title.trim();
   const mins=prompt('Durée (minutes)',b.minutes);if(mins!==null&&Number(mins)>0)b.minutes=Number(mins);
+  if(b.notes!==undefined){const note=prompt('Description complète / notes PDF',b.notes);if(note!==null)b.notes=note;}
   renderSessionBlocks(s);
   henriSyncSequenceToAnnual();henriPersistSharedState();
 }
