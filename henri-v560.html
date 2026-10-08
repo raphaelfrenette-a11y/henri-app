@@ -479,7 +479,28 @@ body{background:#f8f7f4}
 .teamResetBtn{border:1px solid #e7c8c4;background:#f9ecea;color:#9a4f46;border-radius:14px;padding:0 14px;font-size:11px;font-weight:760;white-space:nowrap}
 .teamResetBtn:hover{background:#f5e2df}
 @media(max-width:520px){.teamGenerateActions{grid-template-columns:1fr}.teamResetBtn{min-height:44px}}
-.teamResult{display:none;margin-top:14px}
+.henriBankPanel,.henriResetPanel{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px}
+.henriResetPanel h2{font-size:17px;margin:0 0 8px}.henriResetPanel p{font-size:12px;line-height:1.6;color:var(--muted)}
+.henriYearResetButton{background:#c13f37;border:1px solid #ad302b;color:white;border-radius:12px;padding:13px 16px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.henriYearResetButton:disabled{opacity:.5;cursor:wait}
+.henriBankInfo{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;margin-bottom:14px}
+.henriBankInfo strong{font-size:14px}.henriBankInfo span{font-size:11px;line-height:1.5;color:var(--muted);max-width:320px}
+.henriBankToolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.henriBankUpload,.henriBankPdfImport{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-align:center}
+.henriBankPdfImport{width:100%;padding:13px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800}
+.henriBankList{display:grid;gap:11px;margin-top:16px}
+.henriBankCard{display:grid;gap:8px;padding:15px;background:#fff;border:1px solid var(--line);border-radius:15px}
+.henriBankCard strong{font-size:14px}
+.henriBankCardTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.henriBankCardTop small,.henriBankMeta{color:var(--muted);font-size:11px}
+.henriBankActions{display:flex;flex-wrap:wrap;gap:6px}
+.henriBankDetail{padding:15px;background:#f7f9f9;border:1px solid #dce5e9;border-radius:16px;margin-top:15px}
+.henriBankDetailHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.henriBankLesson{padding:12px 0;border-top:1px solid #e0e5e7}
+.henriBankLesson strong{display:block;font-size:12px}.henriBankLesson small{font-size:11px;color:var(--muted)}
+.henriBankLesson p{font-size:11px;line-height:1.6}.henriBankLesson p span,.editBlockNotes{display:block;white-space:pre-line;color:var(--muted);font-size:11px;margin-top:5px}
+@media(max-width:520px){.henriBankPanel,.henriResetPanel{padding:14px}}
+.teamResult{display:none;margin-top:14px>
 .teamResult.show{display:block}
 .teamResultTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
 .teamResultTop strong{font-size:15px}
@@ -952,6 +973,7 @@ function go(id){
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
   document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.screen===id));
   if(id==='settings'){fillExceptionGroupOptions();renderCalendarExceptions()}
+  if(id==='henriBank'&&typeof henriBankRefresh==='function')henriBankRefresh();
   scrollTo(0,0);
 }
 function goHome(){
@@ -1851,6 +1873,7 @@ function saveAnnual(){
     saveConflictIgnores();
   }
   if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+  if(typeof henriBankStoreAnnual==='function'&&annualGroup?.value)henriBankStoreAnnual(annualGroup.value,annualPlans[annualGroup.value]||[]).catch(henriBankWarn);
 }
 function addAnnualBlock(){
   const groupId=annualGroup.value;
@@ -2190,6 +2213,8 @@ function createSequenceFromMacro(useHenri){
     useHenri
   });
   activeSequence.objective=block.objective||getObjectiveSuggestions(block.sport,block.comp)[0]||'';
+  activeSequence.bankCreationMode=useHenri?'Planification Henri':'Création manuelle';
+  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(henriBankWarn);
   renderSequenceEditor();
   go('sequenceEditor');
 }
@@ -2423,6 +2448,8 @@ function buildStandaloneSequence(useHenri){
     comp:seqComp.value,sport:seqSport.value,groupId:standaloneSeqGroup.value,groupName:group?.name||'',
     count:Number(seqCount.value),duration:seqDuration.value,useHenri
   });
+  activeSequence.bankCreationMode=useHenri?'Planification Henri':'Création manuelle';
+  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(henriBankWarn);
   renderSequenceEditor();go('sequenceEditor');
 }
 function getSequenceDates(sequence){
@@ -2546,6 +2573,7 @@ function saveSequence(){
     if(annualGroup?.value===activeSequence.groupId) renderAnnualPlanner();
   }
   henriSyncSharedData({skipSequenceEditor:true});
+  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode||'Créée dans Henri').catch(henriBankWarn);
   alert(activeSequence.annualBlockId?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
 }
 function openSessionEditor(index,source){
@@ -2582,7 +2610,7 @@ function addSessionSection(){
   s.blocks.push({type,title,minutes:10});renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
 }
 function returnFromSessionEditor(){
-  if(sessionEditorSource==='quick'){renderQuickResult();go('quickSession')}else{renderSequenceEditor();go('sequenceEditor')}
+  if(sessionEditorSource==='quick'){henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);renderQuickResult();go('quickSession')}else{henriBankStoreSequence(activeSequence,'Séquence').catch(henriBankWarn);renderSequenceEditor();go('sequenceEditor')}
 }
 function getScheduleConflict(groupId){
   ensureAnnualPlan(groupId);
@@ -2679,6 +2707,7 @@ function buildQuickSession(){
     objective:quickObjective.value==='__custom__'?(quickObjectiveCustom.value.trim()||'Objectif à préciser.'):quickObjective.value,
     blocks:defaultBlockSet(quickComp?.value||'C2').map(b=>({...b}))
   };
+  henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);
   renderQuickResult();
 }
 function getQuickDateOptions(){
@@ -2723,6 +2752,7 @@ function scheduleQuickSession(){
   delete scheduleConflictIgnores[quickSessionData.groupId];
   saveConflictIgnores();
   saveIndividualSessions();
+  henriBankStoreSession(individualSessions.find(x=>x.groupId===quickSessionData.groupId&&x.date===date),'Séance individuelle planifiée').catch(henriBankWarn);
   rebuildPlanningAssignments();
   if(annualGroup?.value===quickSessionData.groupId) renderAnnualPlanner();
   const d=new Date(date+'T12:00:00');
