@@ -172,7 +172,8 @@ async function henriBankUse(id){
   if(henriBankUseContext==='annual'){
     const block=(annualPlans[selectedAnnualGroupId]||[]).find(x=>x.id===selectedAnnualBlockId);
     if(!block){alert('Sélectionne d’abord une séquence dans la planification annuelle.');return;}
-    if(block.sport!==sequence.sport&&!confirm('La séquence de la banque concerne '+sequence.sport+' plutôt que '+block.sport+'. Remplacer le sport dans le bloc annuel?'))return;
+    if(sequence.sport&&block.sport!==sequence.sport&&!confirm('La séquence de la banque concerne '+sequence.sport+' plutôt que '+block.sport+'. Remplacer le sport dans le bloc annuel?'))return;
+    if(!sequence.sport)sequence.sport=block.sport;
     if(!sequence.sessions.length)return;
     block.sport=sequence.sport||block.sport;block.comp=sequence.comp||block.comp;block.courses=sequence.sessions.length;
     block.objective=sequence.objective||'';
@@ -184,6 +185,7 @@ async function henriBankUse(id){
     rebuildPlanningAssignments();
   }else{
     const groupId=document.getElementById('standaloneSeqGroup')?.value||groupsData[0]?.id;
+    if(!sequence.sport)sequence.sport=document.getElementById('seqSport')?.value||'Sport à préciser';
     sequence.groupId=groupId;
     sequence.groupName=groupsData.find(g=>g.id===groupId)?.name||'';
     sequence.annualBlockId=null;
@@ -221,8 +223,9 @@ async function henriBankPdfOpen(id){
   const item=await henriBankGet(id);
   if(!item?.pdf){alert('PDF original introuvable.');return;}
   const url=URL.createObjectURL(item.pdf);
-  const win=window.open(url,'_blank','noopener');
-  if(!win)alert('Autorise les nouvelles fenêtres pour ouvrir le PDF.');
+  const win=window.open(url,'_blank');
+  if(win)win.opener=null;
+  else alert('Autorise les nouvelles fenêtres pour ouvrir le PDF.');
   setTimeout(()=>URL.revokeObjectURL(url),120000);
 }
 async function henriBankImportPdf(input){
@@ -257,7 +260,7 @@ function henriBankPdfToSequence(text,title){
   }
   if(current.length)chunks.push(current.join('\n'));
   if(!chunks.length)chunks=[raw];
-  return {id:henriBankNewId('seq'),sport:title||'À préciser',comp:'C2',
+  return {id:henriBankNewId('seq'),sport:'',comp:'C2',
     duration:'70 min',objective:'À personnaliser selon la PDA',
     sessions:chunks.map((chunk,i)=>{
       const matched=chunk.match(/^(?:cours|séance)\s*(?:n°\s*)?\d+[^\n]*/i);
@@ -283,10 +286,35 @@ function henriBankPdfToSequence(text,title){
       return {title:header.slice(0,130),objective:'À personnaliser',blocks};
     })};
 }
+async function henriBankOcrScannedPdf(blob){
+  if(!window.Tesseract||!window.pdfjsLib)throw new Error('OCR indisponible : le lecteur de photos ou de PDF ne s’est pas chargé.');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise;
+  if(pdf.numPages>30)throw new Error('Ce PDF numérisé dépasse 30 pages. Réduis sa taille pour une reconnaissance locale.');
+  const pages=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const status=document.getElementById('henriBankStatus');
+    if(status)status.textContent='Reconnaissance du PDF numérisé : page '+p+' / '+pdf.numPages;
+    const page=await pdf.getPage(p);
+    const viewport=page.getViewport({scale:1.75});
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
+    await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+    const result=await Tesseract.recognize(canvas,'fra+eng');
+    pages.push(String(result.data?.text||''));
+    canvas.width=0;canvas.height=0;
+  }
+  return pages.join('\n');
+}
 async function henriBankAdaptPdf(id){
   const item=await henriBankGet(id);
   if(!item||item.type!=='pdf')return;
-  if(!item.sourceText?.trim()){alert('Ce PDF ne contient pas de texte extractible. Le document original reste conservé. Une reconnaissance OCR des pages numérisées nécessitera une étape supplémentaire.');return;}
+  if(!item.sourceText?.trim()){
+    if(!confirm('PDF numérisé détecté. Tenter une reconnaissance de texte locale (OCR) avant adaptation? Le PDF original sera conservé.'))return;
+    try{item.sourceText=await henriBankOcrScannedPdf(item.pdf);await henriBankPut(item);}
+    catch(e){henriBankWarn(e);return;}
+  }
+  if(!item.sourceText?.trim()){alert('Aucun texte reconnu. Le PDF original reste conservé.');return;}
   if(!confirm('Créer une copie structurée au format Henri? Le PDF original sera conservé tel quel. La conversion automatique est indicative et devra être relue.'))return;
   item.sequence=henriBankPdfToSequence(item.sourceText,item.title);
   item.count=item.sequence.sessions.length;item.comp='C2';item.mode='PDF adapté automatiquement · à vérifier';
