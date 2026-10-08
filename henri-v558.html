@@ -1623,11 +1623,53 @@ function getAnnualSportOptions(comp){
   const values=suggestions[comp]||[];
   return '<option value="">Choisir un moyen d’action…</option>'+values.map(v=>'<option value="'+v+'">'+v+'</option>').join('')+'<option value="__other__">Autre…</option>';
 }
+function getAnnualObjectiveMarkup(block,saved){
+  if(!block.sport||block.sport==='À choisir')return '';
+  const list=getObjectiveSuggestions(block.sport,block.comp);
+  const current=block.objective||saved?.objective||list[0]||'';
+  const custom=!!current&&!list.includes(current);
+  return '<div class="annualPdaObjective"><label>Objectif · PDA · '+getPdaCategoryLabel(block.sport,block.comp)+'</label>'+
+    '<select aria-label="Objectif de la séquence" onchange="setAnnualBlockObjective(\''+block.id+'\',this.value)">'+
+    objectiveOptionsHTML(block.sport,block.comp,current)+'</select>'+
+    '<input id="annualObjectiveCustom-'+block.id+'" aria-label="Objectif personnalisé" placeholder="Écrire ton objectif" value="'+henriEscapeAttribute(custom?current:'')+'" style="display:'+(custom?'block':'none')+'" onchange="saveAnnualCustomObjective(\''+block.id+'\',this.value)"></div>';
+}
+function storeAnnualBlockObjective(block,objective){
+  block.objective=objective;
+  const saved=getSavedSequence(annualGroup.value,block.id);
+  if(saved){
+    saved.objective=objective;
+    setSavedSequence(annualGroup.value,block.id,saved);
+  }
+  if(activeSequence?.annualBlockId===block.id&&activeSequence?.groupId===annualGroup.value)activeSequence.objective=objective;
+  saveAnnual();
+}
+function setAnnualBlockObjective(id,value){
+  const block=(annualPlans[annualGroup.value]||[]).find(b=>b.id===id);
+  if(!block)return;
+  if(value==='__custom__'){
+    const input=document.getElementById('annualObjectiveCustom-'+id);
+    if(input){input.style.display='block';input.focus();}
+    return;
+  }
+  storeAnnualBlockObjective(block,value);
+  renderAnnualPlanner();
+}
+function saveAnnualCustomObjective(id,value){
+  const block=(annualPlans[annualGroup.value]||[]).find(b=>b.id===id);
+  if(!block)return;
+  storeAnnualBlockObjective(block,value.trim());
+}
+function updateAnnualObjectiveForSportOrComp(block,previous){
+  if(!block.objective||getObjectiveSuggestions(previous.sport,previous.comp).includes(block.objective))
+    block.objective=getObjectiveSuggestions(block.sport,block.comp)[0]||'';
+}
 function setAnnualBlockComp(id,value){
   const groupId=annualGroup.value;
   const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
   if(!block||!['C1','C2','C3'].includes(value))return;
+  const previous={sport:block.sport,comp:block.comp};
   block.comp=value;
+  updateAnnualObjectiveForSportOrComp(block,previous);
   saveAnnual();
   rebuildPlanningAssignments();
   renderAnnualPlanner();
@@ -1654,11 +1696,13 @@ function setAnnualBlockSport(id,value){
   const groupId=annualGroup.value;
   const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
   if(!block)return;
+  const previous={sport:block.sport,comp:block.comp};
   if(value==='__other__'){
     const custom=prompt('Sport / moyen d’action','');
     if(!custom||!custom.trim()){renderAnnualPlanner();return}
     block.sport=custom.trim();
   }else block.sport=value;
+  updateAnnualObjectiveForSportOrComp(block,previous);
   saveAnnual();
   rebuildPlanningAssignments();
   renderAnnualPlanner();
@@ -1728,7 +1772,7 @@ function renderAnnualPlanner(){
           '<div class="annualHeaderLine"><button id="annual-comp-'+b.id+'" class="compBadge editable" onclick="editAnnualCompInline(\''+b.id+'\')" aria-label="Modifier la compétence">'+b.comp+' · '+planCompetenceNames[b.comp]+'</button><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
           '<div class="annualSequenceLabel">'+(groupsData.find(g=>g.id===groupId)?.name||'Groupe')+' · Séquence '+(i+1)+'</div>'+
           (needsChoice?'<select id="annual-sport-'+b.id+'" class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<button id="annual-sport-'+b.id+'" class="annualSport editable" onclick="editAnnualSportInline(\''+b.id+'\')" aria-label="Modifier le moyen d’action">'+b.sport+'</button>')+
-          '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+
+          '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+getAnnualObjectiveMarkup(b,saved)+
           '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours'+(!b.lockedCourses?'<small class="annualAutoNote"> auto</small>':'')+'</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
           '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
         '</div>'+
@@ -1781,6 +1825,7 @@ function henriSyncSequenceToAnnual(){
   if(!block)return;
   block.comp=activeSequence.comp;
   block.sport=activeSequence.sport;
+  block.objective=activeSequence.objective||'';
   block.courses=activeSequence.sessions?.length||block.courses;
   savedSequences[sequenceStorageKey(activeSequence.groupId,activeSequence.annualBlockId)]=JSON.parse(JSON.stringify(activeSequence));
 }
@@ -1797,7 +1842,7 @@ function addAnnualBlock(){
   ensureAnnualPlan(groupId);
   const courses=Math.max(1,Number(annualCourses.value)||1);
   const id='a'+Date.now();
-  annualPlans[groupId].push({id,comp:annualComp.value,sport:annualSport.value,courses,lockedCourses:true});
+  annualPlans[groupId].push({id,comp:annualComp.value,sport:annualSport.value,objective:getObjectiveSuggestions(annualSport.value,annualComp.value)[0]||'',courses,lockedCourses:true});
   saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
 }
 function rebalanceAnnualDurations(groupId,changedId=null,requestedCourses=null){
@@ -1854,9 +1899,11 @@ function adjustAnnualCourses(id,delta){
 }
 function editAnnualBlock(id){
   const groupId=annualGroup.value, b=(annualPlans[groupId]||[]).find(x=>x.id===id);if(!b)return;
+  const previous={sport:b.sport,comp:b.comp};
   const sport=prompt('Sport / moyen d’action',b.sport==='À choisir'?'':b.sport);if(sport!==null&&sport.trim())b.sport=sport.trim();
   const comp=prompt('Compétence : C1, C2 ou C3',b.comp);
   if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
+  updateAnnualObjectiveForSportOrComp(b,previous);
   const n=prompt('Nombre de cours',b.courses);
   if(n!==null&&Number(n)>0){
     b.courses=Math.max(1,Math.min(20,Number(n)));
@@ -2127,6 +2174,7 @@ function createSequenceFromMacro(useHenri){
     annualBlockId:block.id,
     useHenri
   });
+  activeSequence.objective=block.objective||getObjectiveSuggestions(block.sport,block.comp)[0]||'';
   renderSequenceEditor();
   go('sequenceEditor');
 }
