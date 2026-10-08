@@ -248,6 +248,11 @@ main{max-width:860px;margin:auto;padding:25px 16px 55px}
 .seqSaveBar{position:sticky;bottom:78px;z-index:5;background:rgba(245,245,243,.88);backdrop-filter:blur(16px);padding:9px 0 2px}
 @media(max-width:520px){.seqLesson{grid-template-columns:36px minmax(0,1fr) auto}.seqLessonActions{gap:4px}.seqMiniBtn{width:29px;height:29px}}
 
+.pdaCategory{display:block;color:var(--muted);font-size:11px;line-height:1.45;margin:5px 0 7px}
+.annualPdaObjective{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.annualPdaObjective label{display:block;font-size:10px;font-weight:760;color:var(--muted);line-height:1.45;margin-bottom:7px}
+.annualPdaObjective select,.annualPdaObjective input{width:100%;min-height:39px;background:#fafbfb;border:1px solid #e0e5e7;border-radius:10px;padding:8px 10px;color:var(--accent);font:inherit;font-size:12px}
+.annualPdaObjective input{margin-top:7px}
 .sessionObjective{background:var(--accent-soft);border-radius:16px;padding:14px;margin:12px 0}
 .sessionObjective small{display:block;color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
 .sessionObjective p{margin:5px 0 0;line-height:1.4}
@@ -653,7 +658,7 @@ body{background:#f8f7f4}
   <div class="planForm">
     <div class="planGrid">
       <div class="planField"><label>Compétence</label><select id="seqComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
-      <div class="planField"><label>Sport</label><select id="seqSport" class="planControl"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Flag football</option><option>Handball</option><option>Ultimate</option><option>Volleyball</option></select></div>
+      <div class="planField"><label>Sport</label><select id="seqSport" class="planControl"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Dodgeball</option><option>Flag football</option><option>Futsal</option><option>Handball</option><option>Jeux de coopération</option><option>Judo</option><option>Kin-Ball</option><option>Lutte</option><option>Pickleball</option><option>Soccer</option><option>Tennis</option><option>Tennis de table</option><option>Ultimate</option><option>Volleyball</option></select></div>
       <div class="planField"><label>Groupe / niveau</label><select id="standaloneSeqGroup" class="planControl"></select></div>
       <div class="planField"><label>Nombre de cours</label><select id="seqCount" class="planControl"><option>3</option><option selected>5</option><option>4</option><option>6</option><option>7</option></select></div>
       <div class="planField"><label>Durée habituelle</label><select id="seqDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
@@ -678,7 +683,7 @@ body{background:#f8f7f4}
   </div>
   <div id="sequenceOverview" class="seqOverview"></div>
   <div class="planForm" style="margin-top:12px">
-    <div class="planField"><label>Objectif de la séquence</label><select id="sequenceObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('sequence',this.value)"></select></div>
+    <div class="planField"><label>Objectif de la séquence</label><small class="pdaCategory" id="sequencePdaCategory"></small><select id="sequenceObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('sequence',this.value)"></select></div>
     <div class="planField" id="sequenceObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sequenceObjectiveCustom" class="planControl" placeholder="Écrire l’objectif de la séquence" oninput="saveCustomObjective('sequence',this.value)"></div>
   </div>
   <div id="sequenceLessons" class="seqList"></div>
@@ -694,7 +699,7 @@ body{background:#f8f7f4}
   <div class="muted" id="editSessionMeta"></div>
   <h1 id="editSessionTitle">Séance</h1>
   <div class="planForm" style="margin-top:12px">
-    <div class="planField"><label>Objectif du cours</label><select id="sessionObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('session',this.value)"></select></div>
+    <div class="planField"><label>Objectif du cours</label><small class="pdaCategory" id="sessionPdaCategory"></small><select id="sessionObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('session',this.value)"></select></div>
     <div class="planField" id="sessionObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sessionObjectiveCustom" class="planControl" placeholder="Écrire l’objectif du cours" oninput="saveCustomObjective('session',this.value)"></div>
   </div>
   <div id="editBlocks" class="editBlocks" style="margin-top:12px"></div>
@@ -708,10 +713,11 @@ body{background:#f8f7f4}
   <div id="quickContext" class="quickScheduleSuccess" style="display:none;margin:0 0 12px"></div>
   <div class="planForm">
     <div class="planGrid">
-      <div class="planField"><label>Sport</label><select id="quickSport" class="planControl" onchange="refreshQuickObjectiveOptions()"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Flag football</option><option>Ultimate</option><option>Volleyball</option></select></div>
+      <div class="planField"><label>Sport</label><select id="quickSport" class="planControl" onchange="handleQuickSportChange()"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Dodgeball</option><option>Flag football</option><option>Futsal</option><option>Handball</option><option>Jeux de coopération</option><option>Judo</option><option>Kin-Ball</option><option>Lutte</option><option>Pickleball</option><option>Soccer</option><option>Tennis</option><option>Ultimate</option><option>Volleyball</option></select></div>
+       <div class="planField"><label>Compétence</label><select id="quickComp" class="planControl" onchange="refreshQuickObjectiveOptions()"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
       <div class="planField"><label>Groupe / niveau</label><select id="quickGroup" class="planControl"></select></div>
       <div class="planField"><label>Durée</label><select id="quickDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
-      <div class="planField"><label>Objectif</label><select id="quickObjective" class="planControl" onchange="handleObjectiveChoice('quick',this.value)"></select></div>
+      <div class="planField"><label>Objectif</label><small class="pdaCategory" id="quickPdaCategory"></small><select id="quickObjective" class="planControl" onchange="handleObjectiveChoice('quick',this.value)"></select></div>
       <div class="planField" id="quickObjectiveCustomWrap" style="display:none"><label>Objectif personnalisé</label><input id="quickObjectiveCustom" class="planControl" placeholder="Écrire l’objectif du cours" oninput="saveCustomObjective('quick',this.value)"></div>
     </div>
     <button class="planPrimary" onclick="buildQuickSession()">Créer la séance</button>
@@ -1611,7 +1617,7 @@ function applyAnnualStructure(useRecommended=false){
 function getAnnualSportOptions(comp){
   const suggestions={
     C1:['Athlétisme','Badminton','Course','Gymnastique','Natation','Patinage'],
-    C2:['Badminton','Basketball','Flag football','Handball','Kin-Ball','Pickleball','Soccer','Ultimate','Volleyball'],
+    C2:['Badminton','Basketball','Dodgeball','Flag football','Futsal','Handball','Jeux de coopération','Judo','Kin-Ball','Lutte','Pickleball','Soccer','Tennis','Tennis de table','Ultimate','Volleyball'],
     C3:['Conditionnement physique','Course / endurance','Musculation','Plein air']
   };
   const values=suggestions[comp]||[];
@@ -2126,83 +2132,99 @@ function createSequenceFromMacro(useHenri){
 }
 function openStandaloneSequence(){fillPlanGroupSelects();go('standaloneSequence')}
 function returnFromSequenceEditor(){go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
+// Objectifs élaborés à partir de la PDA EPS secondaire (MÉQ, 2010), C1, C2 et C3.
+// Source : https://cdn-contenu.quebec.ca/cdn-contenu/education/pfeq/secondaire/progressions-apprentissages/PFEQ-progression-apprentissages-education-physique-secondaire.pdf
+// Ce sont des formulations pédagogiques inspirées de la PDA, pas des citations officielles.
+const HENRI_PDA_FAMILIES={
+  cooperation:{label:'Activités de coopération',sports:['Jeux de coopération','Coopération','Relais','Course à relais','Acrosport','Parcours coopératif']},
+  combat:{label:'Activités de combat',sports:['Lutte','Judo','Autodéfense','Auto-défense','Combat de dos','Arts martiaux']},
+  duel:{label:'Activités de duel',sports:['Badminton','Pickleball','Tennis','Tennis de table','Ping-pong','Squash','Escrime','Racquetball']},
+  distinct:{label:'Activités collectives en espace distinct',sports:['Volleyball','Volley-ball','Volleyball de plage','Sepak takraw']},
+  commun:{label:'Activités collectives en espace commun',sports:['Ultimate','Ultimate frisbee','Frisbee ultime','Basketball','Basket-ball','Soccer','Futsal','Football','Flag football','Handball','Hockey','Hockey cosom','Hockey-balle','Floorball','Rugby','Kin-Ball','Kinball','Tchoukball','Dodgeball','Ballon chasseur','Poull Ball','Pool ball']}
+};
+function normalizeHenriSport(value){
+  return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+function getPdaSportFamily(sport){
+  const key=normalizeHenriSport(sport);
+  for(const [family,group] of Object.entries(HENRI_PDA_FAMILIES))
+    if(group.sports.some(name=>normalizeHenriSport(name)===key))return family;
+  return 'general';
+}
+function getPdaCategoryLabel(sport,comp){
+  if(comp==='C1')return 'C1 · Actions motrices';
+  if(comp==='C3')return 'C3 · Mode de vie sain et actif';
+  const family=getPdaSportFamily(sport);
+  return family==='general'?'C2 · Principes communs':HENRI_PDA_FAMILIES[family].label;
+}
+const HENRI_PDA_OBJECTIVES={
+  C1:[
+    'Exécuter des actions motrices avec une technique adaptée à l’activité pratiquée.',
+    'Maintenir ou rétablir son équilibre dans différentes situations motrices.',
+    'Coordonner ses mouvements et ajuster sa posture selon les contraintes de l’activité.',
+    'Enchaîner des actions de locomotion, de non-locomotion ou de manipulation avec contrôle.',
+    'Observer ses mouvements et apporter les ajustements techniques nécessaires.'
+  ],
+  C3:[
+    'Élaborer un plan personnel pour développer ou maintenir sa condition physique.',
+    'Adapter l’intensité et la durée de l’effort en fonction de ses capacités.',
+    'Exécuter des exercices de façon sécuritaire et reconnaître les effets de l’effort.',
+    'Décrire des moyens d’améliorer l’endurance, la force ou la flexibilité.',
+    'Identifier des stratégies pour adopter et maintenir un mode de vie physiquement actif.'
+  ],
+  C2:{
+    cooperation:[
+      'Se placer et se déplacer en fonction des actions de ses coéquipiers.',
+      'Adapter la force, la vitesse et la direction de ses mouvements à celles de ses partenaires.',
+      'Synchroniser ses actions avec ses partenaires pour réaliser une tâche commune.',
+      'Communiquer clairement et assumer un rôle de soutien dans l’action collective.'
+    ],
+    combat:[
+      'Déséquilibrer son adversaire en utilisant le placement et les déplacements.',
+      'Profiter du déséquilibre de l’adversaire pour réaliser une action offensive.',
+      'Maintenir son équilibre et réagir aux actions offensives de l’adversaire.',
+      'Varier la force, la vitesse et la direction de ses actions tout en respectant la sécurité.'
+    ],
+    duel:[
+      'Exploiter la largeur et la longueur du terrain pour déplacer l’adversaire.',
+      'Récupérer rapidement l’objet afin de poursuivre l’échange.',
+      'Se replacer dans l’espace stratégique pour préparer l’action suivante.',
+      'Attaquer au moment opportun en fonction du placement de l’adversaire.',
+      'Utiliser une feinte pour provoquer une réaction de l’adversaire.',
+      'Prendre l’adversaire à contre-pied en variant la direction de l’attaque.'
+    ],
+    distinct:[
+      'Se placer selon la trajectoire de l’objet pour le récupérer.',
+      'Protéger son territoire en se déplaçant selon l’attaquant et ses partenaires.',
+      'Faire circuler l’objet dans son territoire pour préparer une attaque.',
+      'Faire progresser l’objet vers le territoire adverse.',
+      'Varier la direction et la vitesse des projections pour exploiter les espaces libres.',
+      'Communiquer et se coordonner avec les partenaires pour assurer la continuité du jeu.'
+    ],
+    commun:[
+      'Se démarquer de l’adversaire pour offrir une option de passe.',
+      'Exploiter l’espace libre pour favoriser la progression vers la cible.',
+      'Faire circuler l’objet en adaptant la direction et la vitesse des passes.',
+      'Attaquer la cible adverse au moment opportun.',
+      'Récupérer l’objet et organiser une contre-attaque.',
+      'Marquer le porteur ou un non-porteur pour limiter les options adverses.',
+      'Effectuer un repli défensif et protéger la cible ou le but.',
+      'Ajuster ses déplacements selon les partenaires, les adversaires et l’objet.'
+    ],
+    general:[
+      'Émettre des messages clairs et adaptés à l’activité pratiquée.',
+      'Synchroniser ses actions avec celles des partenaires ou des adversaires.',
+      'Assumer son rôle et ajuster ses actions selon le plan établi.',
+      'Évaluer avec ses partenaires le plan d’action et les ajustements à apporter.'
+    ]
+  }
+};
 function getObjectiveSuggestions(sport,comp){
-  const base={
-    C1:[
-      'Exécuter et ajuster des actions motrices selon les contraintes de la situation.',
-      'Enchaîner des actions motrices avec contrôle, précision et efficacité.',
-      'Observer sa prestation et apporter des ajustements pour progresser.'
-    ],
-    C2:[
-      'Créer des options de jeu et soutenir efficacement les actions des partenaires.',
-      'Appliquer des principes d’action et de communication dans une situation collective.',
-      'Observer le jeu et ajuster une stratégie avec ses partenaires.'
-    ],
-    C3:[
-      'Planifier et réaliser une activité physique en fonction d’un objectif personnel.',
-      'Reconnaître les effets de l’effort et ajuster son engagement de façon sécuritaire.',
-      'Faire des choix favorisant une pratique régulière, saine et active.'
-    ]
-  };
-  const specific={
-    'Badminton':[
-      'Contrôler la trajectoire et le placement du volant pour maintenir ou construire l’échange.',
-      'Varier profondeur, largeur et rythme afin de déplacer l’adversaire.',
-      'Choisir une frappe pertinente selon sa position et celle de l’adversaire.'
-    ],
-    'Basketball':[
-      'Se démarquer et créer des lignes de passe pour soutenir la progression du ballon.',
-      'Enchaîner passe, déplacement et replacement dans une organisation collective.',
-      'Ajuster les choix offensifs et défensifs selon l’espace disponible.'
-    ],
-    'Flag football':[
-      'Créer une séparation avec son défenseur et offrir une cible au porteur.',
-      'Synchroniser les tracés et les passes dans une organisation offensive.',
-      'Protéger les corridors de passe et ajuster la couverture défensive.'
-    ],
-    'Ultimate':[
-      'Se rendre disponible et occuper l’espace libre pour maintenir la possession.',
-      'Enchaîner passes et déplacements afin de faire progresser le disque.',
-      'Ajuster le marquage et la stratégie selon les déplacements adverses.'
-    ],
-    'Volleyball':[
-      'Orienter les contacts pour assurer la continuité et construire l’attaque.',
-      'Se déplacer et se replacer pour soutenir les partenaires dans l’échange.',
-      'Communiquer et organiser collectivement la réception, la passe et l’attaque.'
-    ],
-    'Conditionnement physique':[
-      'Exécuter les mouvements avec une technique sécuritaire et adaptée à l’objectif d’entraînement.',
-      'Ajuster l’intensité, la charge ou le volume selon ses capacités et l’objectif visé.',
-      'Observer ses réactions à l’effort et utiliser ces informations pour réguler son entraînement.'
-    ],
-    'Musculation':[
-      'Exécuter les exercices avec une technique sécuritaire et un contrôle adéquat.',
-      'Choisir une charge et un volume cohérents avec l’objectif d’entraînement.',
-      'Analyser sa prestation afin d’ajuster progressivement l’entraînement.'
-    ],
-    'Course':[
-      'Adapter son allure et son effort afin de maintenir une intensité appropriée.',
-      'Utiliser des repères personnels pour gérer son rythme pendant l’effort.',
-      'Analyser ses sensations et ses résultats pour ajuster sa stratégie de course.'
-    ],
-    'Handball':[
-      'Se démarquer et créer des lignes de passe pour faire progresser le ballon.',
-      'Coordonner les déplacements offensifs avec ceux des partenaires.',
-      'Ajuster l’organisation défensive selon la position du ballon et des adversaires.'
-    ],
-    'Soccer':[
-      'Créer et utiliser des espaces libres pour soutenir la progression du ballon.',
-      'Coordonner passes, déplacements et soutien dans une organisation collective.',
-      'Ajuster les choix offensifs et défensifs selon l’évolution du jeu.'
-    ],
-    'Pickleball':[
-      'Contrôler le placement et la trajectoire de la balle pour construire l’échange.',
-      'Se replacer efficacement et exploiter les espaces disponibles.',
-      'Choisir une frappe pertinente selon la position de l’adversaire.'
-    ]
-  };
-  const list=[...(specific[sport]||[]),...(base[comp]||base.C2)];
-  return [...new Set(list)];
+  if(comp==='C1'||comp==='C3')return [...HENRI_PDA_OBJECTIVES[comp]];
+  return [...HENRI_PDA_OBJECTIVES.C2[getPdaSportFamily(sport)]];
+}
+function henriEscapeAttribute(value){
+  return String(value||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 function objectiveOptionsHTML(sport,comp,current=''){
   const suggestions=getObjectiveSuggestions(sport,comp);
@@ -2218,19 +2240,21 @@ function renderObjectiveSelector(kind,current=''){
   }else if(kind==='session'){
     select=document.getElementById('sessionObjectiveSelect');custom=document.getElementById('sessionObjectiveCustom');wrap=document.getElementById('sessionObjectiveCustomWrap');
     sport=sessionEditorSource==='quick'?quickSessionData?.sport:activeSequence?.sport;
-    comp=sessionEditorSource==='quick'?'C2':activeSequence?.comp;
+    comp=sessionEditorSource==='quick'?(quickSessionData?.comp||'C2'):activeSequence?.comp;
   }else{
     select=document.getElementById('quickObjective');custom=document.getElementById('quickObjectiveCustom');wrap=document.getElementById('quickObjectiveCustomWrap');
-    sport=quickSport?.value;comp='C2';
+    sport=quickSport?.value;comp=quickComp?.value||'C2';
   }
   if(!select)return;
   const suggestions=getObjectiveSuggestions(sport,comp);
   const matched=suggestions.includes(current);
   select.innerHTML=objectiveOptionsHTML(sport,comp,current);
   if(current&&matched)select.value=current;
-  else select.value='__custom__';
+  else select.value=current?'__custom__':(suggestions[0]||'__custom__');
   if(custom)custom.value=matched?'':(current||'');
   if(wrap)wrap.style.display=select.value==='__custom__'?'':'none';
+  const category=document.getElementById(kind+'PdaCategory');
+  if(category)category.textContent='PDA · '+getPdaCategoryLabel(sport,comp);
   syncHenriSelect(select);
 }
 function handleObjectiveChoice(kind,value){
@@ -2258,6 +2282,10 @@ function saveCustomObjective(kind,value){
   else if(kind==='session'){const s=currentEditableSession();if(s)s.objective=clean}
   henriSyncSequenceToAnnual();
   henriPersistSharedState();
+}
+function handleQuickSportChange(){
+  if(quickComp){quickComp.value=['Conditionnement physique','Musculation','Course / endurance'].includes(quickSport.value)?'C3':'C2';syncHenriSelect(quickComp);}
+  refreshQuickObjectiveOptions();
 }
 function refreshQuickObjectiveOptions(){
   renderObjectiveSelector('quick','');
@@ -2319,7 +2347,7 @@ function makeSequence({comp,sport,groupId,groupName,count,duration,annualBlockId
     sessions:
     Array.from({length:count},(_,i)=>({
       title:useHenri?suggested[i][0]:'Cours '+(i+1)+' · '+sport,
-      objective:useHenri?suggested[i][1]:'Objectif à préciser pour '+sport+'.',
+      objective:getObjectiveSuggestions(sport,comp)[i%getObjectiveSuggestions(sport,comp).length]||'Objectif à préciser.',
       blocks:defaultBlockSet(comp).map(b=>({...b}))
     }))
   };
@@ -2553,7 +2581,7 @@ function ignoreScheduleConflict(groupId){
 function openQuickSession(){
   quickPrefillDate=null;
   fillPlanGroupSelects();
-  refreshQuickObjectiveOptions();
+  handleQuickSportChange();
   if(quickContext){quickContext.style.display='none';quickContext.textContent=''}
   go('quickSession')
 }
@@ -2565,7 +2593,7 @@ function openQuickSessionForCourse(date,index){
   quickPrefillDate=date;
   fillPlanGroupSelects();
   if(quickGroup)quickGroup.value=group.id;
-  refreshQuickObjectiveOptions();
+  handleQuickSportChange();
   quickSessionData=null;
   if(quickResult){quickResult.classList.remove('show');quickResult.innerHTML=''}
   const d=new Date(date+'T12:00:00');
@@ -2581,11 +2609,12 @@ function buildQuickSession(){
   quickSessionData={
     title:sport+' · séance individuelle',
     sport,
+    comp:quickComp?.value||'C2',
     groupId:quickGroup.value,
     groupName:group?.name||'',
     duration:quickDuration.value,
     objective:quickObjective.value==='__custom__'?(quickObjectiveCustom.value.trim()||'Objectif à préciser.'):quickObjective.value,
-    blocks:defaultBlockSet().map(b=>({...b}))
+    blocks:defaultBlockSet(quickComp?.value||'C2').map(b=>({...b}))
   };
   renderQuickResult();
 }
