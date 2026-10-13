@@ -1,6 +1,8 @@
 # Henri
 
-Application statique : `index.html` ouvre `henri-v560.html`. L’identité visuelle est définie dans `henri-design.css` : palette ivoire/vert, titres sérif, navigation latérale sur ordinateur et navigation basse sur mobile. Les polices sont locales au système.
+Application statique : `index.html` ouvre `henri-v560.html`. La refonte utilise une palette bleu ardoise, une typographie système, une navigation latérale sur ordinateur et quatre accès sur mobile. `henri-layout.css` conserve les règles de structure et de visibilité; `henri-design.css` définit les tokens sémantiques, les composants et leurs variantes responsive. `henri-ux.js` ajoute le prochain cours, les libellés accessibles et la gestion clavier de la fenêtre de choix de groupe. Il ne modifie pas les modèles ni le stockage.
+
+Les groupes disposent de leur propre espace. Les paramètres regroupent les documents, les exceptions et la nouvelle année. Les sélecteurs sont natifs pour conserver les interactions clavier, tactile et lecteur d’écran. Aucun framework ni police distante supplémentaire n’est nécessaire.
 
 Depuis le dépôt, démarrer avec `python3 -m http.server 8000` et ouvrir le serveur dans un navigateur. Aucun build ni compte serveur n’est nécessaire.
 
@@ -21,6 +23,7 @@ Les données restent dans le stockage de ce navigateur. Les bibliothèques PDF.j
 ## Vérification
 
 - `node --test tests/import.test.js` : associations, dates, couverture annuelle et grilles d’horaire.
+- `python3 tests/design_browser.py` : prochain cours, exclusions des cours bloqués et interventions cognitives, accès aux groupes, conservation du groupe sélectionné, formulaires natifs, clavier et focus de la fenêtre de groupe, génération d’équipes, persistance, réduction des animations et absence de débordement sur cinq formats (320 à 1440 pixels).
 - `python3 tests/reference_calendar_browser.py` : calendrier de référence CSS, correspondances avec les onze groupes, cours et interventions distincts, jours de juin à préciser, journée flottante sans décalage du cycle.
 - `python3 tests/calendar_browser.py` : import de documents texte, génération annuelle, congés, périodes multiples, liens de planification, modifications, exceptions et rechargement. Nécessite Python Playwright et `/usr/bin/chromium`; les CDN sont exclus de ce test.
 - `python3 tests/photo_pdf_browser.py /tmp/henri-ocr-check` : photos lisibles générées, PDF texte multipage et PDF numérisé, avec le vrai moteur Tesseract. Nécessite également Pillow et reportlab. Ce test utilise un moteur OCR local pour le transport des tâches de reconnaissance, les mêmes traitements d’image et les mêmes parsers que l’application.
