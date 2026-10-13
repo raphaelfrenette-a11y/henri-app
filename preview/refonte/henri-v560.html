@@ -1,0 +1,3249 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Henri · Prévisualisation</title>
+<meta name="theme-color" content="#f7f8fa">
+<link rel="icon" href="henri-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="henri-layout.css">
+<link rel="stylesheet" href="henri-design.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="topin"><button class="brandHome" onclick="goHome()" aria-label="Henri, retour au calendrier"><span class="brandMark" aria-hidden="true">h</span><span><span class="brand">Henri</span><span class="brandCaption">Éducation physique</span></span></button><button id="settingsButton" class="pill" onclick="go('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 3 2 2v3l3 2 1 3h5l1-3 3-2v-3l2-2-2-3-3-1-1-3Z"/></svg><span>Paramètres</span></button></div></header>
+<a class="skipLink" href="#mainContent">Aller au contenu</a>
+<main id="mainContent" tabindex="-1"><div class="previewNotice" role="note"><strong>Prévisualisation de la refonte</strong><span>Les données de test sont séparées du site habituel.</span><a href="../../" target="_blank" rel="noopener">Ouvrir le site actuel ↗</a></div>
+<section id="home" class="screen active">
+  <div class="screenHeading"><div><p class="screenKicker">Mon horaire</p><h1>Calendrier</h1></div><span id="todayStamp" class="todayStamp"></span></div>
+  <div id="homeEmpty" class="homeEmpty"><div><h2>Votre année commence ici.</h2><p>Importez votre horaire, le calendrier scolaire et vos groupes.</p></div><button class="planPrimary" onclick="go('settings')">Configurer mon horaire</button></div>
+
+  <div id="nextCourse" class="nextCourse" hidden>
+    <div class="nextCourseContext"><span id="nextCourseEyebrow" class="screenKicker">Prochain cours</span><span id="nextCourseWhen"></span></div>
+    <div class="nextCourseMain"><div><h2 id="nextCourseGroup"></h2><p id="nextCoursePlan"></p></div><button id="nextCourseOpen" class="itemBtn primary">Ouvrir le cours <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
+  </div>
+  <div class="homeActions" aria-label="Accès rapides"><button class="itemBtn" onclick="openQuickSession()">Préparer une séance</button><button class="itemBtn" onclick="openAnnualPlanner()">Planification annuelle</button><button class="itemBtn" onclick="openTeamBuilder()">Former des équipes</button></div>
+  <div class="calendarPanel">
+    <div class="sectionHead">
+      <h2 id="calendarSectionTitle">Cette semaine</h2>
+      <div class="segment" aria-label="Vue du calendrier">
+        <button id="weekBtn" class="on" aria-pressed="true" onclick="setCalendarView('week')">Semaine</button>
+        <button id="monthBtn" aria-pressed="false" onclick="setCalendarView('month')">Mois</button>
+      </div>
+    </div>
+
+    <div id="weekView" class="calendarView on">
+      <div id="weekGrid" class="week"></div>
+    </div>
+
+        <div id="monthView" class="calendarView">
+      <div class="monthCard">
+        <div class="monthTop">
+          <span id="monthTitle" class="monthTitle"></span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="itemBtn" onclick="goHome()">Cette semaine</button>
+            <div class="monthNav"><button aria-label="Mois précédent" onclick="changeMonth(-1)">‹</button><button aria-label="Mois suivant" onclick="changeMonth(1)">›</button></div>
+          </div>
+        </div>
+        <div class="weekLabels"><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
+        <div id="monthGrid" class="monthGrid"></div>
+        <div id="monthDetails" class="monthDetails"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="plan" class="screen">
+  <h1>Planifier</h1>
+  <div class="planMenu">
+    <button class="planMenuCard" onclick="openAnnualPlanner()"><span class="planMenuIcon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="6" cy="6" r="1.8"/><circle cx="18" cy="6" r="1.8"/><circle cx="6" cy="18" r="1.8"/><circle cx="18" cy="18" r="1.8"/>
+    <path d="M7.8 6h8.4M6 7.8v8.4M18 7.8v8.4M7.8 18h8.4"/>
+  </svg>
+</span><span><strong>Planification annuelle</strong><small>Répartir les apprentissages sur l’année.</small></span><span class="groupArrow">›</span></button>
+    <button class="planMenuCard" onclick="openSequenceSetup()"><span class="planMenuIcon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/>
+    <path d="M7.3 12h2.9M13.8 12h2.9"/>
+    <path d="M12 7.2v3M12 13.8v3"/>
+  </svg>
+</span><span><strong>Planifier une séquence</strong><small>Construire une progression de plusieurs cours.</small></span><span class="groupArrow">›</span></button>
+    <button class="planMenuCard" onclick="openQuickSession()"><span class="planMenuIcon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5.1"/>
+    <circle cx="12" cy="12" r="1.8"/>
+    <path d="M12 4.2V7M12 17v2.8M4.2 12H7M17 12h2.8"/>
+  </svg>
+</span><span><strong>Séance individuelle</strong><small>Préparer un cours ponctuel.</small></span><span class="groupArrow">›</span></button>
+    <button class="planMenuCard" onclick="openHenriBank()"><span class="planMenuIcon" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16v13H4zM3 3h18v4H3zM9 11h6"/></svg></span><span><strong>Ma banque de planifications</strong><small>Retrouver et réutiliser les contenus enregistrés.</small></span><span class="groupArrow">›</span></button>
+  </div>
+</section>
+<section id="henriBank" class="screen">
+  <button id="henriBankBackBtn" class="back" onclick="henriBankBack()">‹ Retour à Planifier</button>
+  <h1>Ma banque de planifications</h1>
+  <p class="planIntro">Tes créations restent disponibles d’année en année. Réutiliser une séquence crée une copie sans modifier l’original.</p>
+  <div class="henriBankPanel">
+    <div class="henriBankInfo"><strong id="henriBankCount">Ma banque</strong><span>Stockage dans ce navigateur. Exporte une sauvegarde pour éviter les pertes en changeant d’appareil.</span></div>
+    <input id="henriBankSearch" class="planControl" placeholder="Rechercher une planification…" oninput="henriBankRefresh()" aria-label="Rechercher des planifications">
+    <div class="henriBankToolbar"><button class="itemBtn" onclick="henriBankExport(false).catch(henriBankWarn)">Exporter ma banque</button><label class="itemBtn henriBankUpload">Importer une sauvegarde<input type="file" accept=".json,application/json" onchange="henriBankImportBackup(this)" hidden></label></div>
+    <label class="henriBankPdfImport">+ Importer des planifications PDF<input type="file" accept=".pdf,application/pdf" multiple onchange="henriBankImportPdf(this)" hidden></label>
+    <p class="planHint">Les PDF originaux sont conservés. « Adapter pour Henri » produit une copie structurée et modifiable (conversion locale, sans IA générative connectée).</p>
+    <p class="planHint" id="henriBankStatus" role="status"></p>
+    <div id="henriBankList" class="henriBankList"></div>
+    <div id="henriBankDetail" class="henriBankDetail" style="display:none"></div>
+  </div>
+</section>
+<section id="annualPlanner" class="screen">
+  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <h1>Planification annuelle</h1>
+  <p class="planIntro">Répartis les séquences sur les cours disponibles. Les dates suivent ton calendrier.</p>
+  <div class="planForm">
+    <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="annualSequenceCount.dataset.manual='0';renderAnnualPlanner()"></select></div>
+  </div>
+  <div class="annualModeChoices">
+    <button id="annualHenriModeBtn" class="annualModeCard primary" onclick="organizeAnnualWithHenri()">
+      <span class="annualModeIcon">H</span>
+      <span><strong>Utiliser la recommandation Henri</strong><small>Recommandation pédagogique alignée sur le PFEQ et la Progression des apprentissages (PDA).</small></span>
+      <span class="groupArrow">›</span>
+    </button>
+    <button class="annualModeCard" onclick="toggleAnnualManualSetup()">
+      <span class="annualModeIcon">M</span>
+      <span><strong>Choisir ma répartition</strong><small>Définir les séquences et leur durée.</small></span>
+      <span class="groupArrow">›</span>
+    </button>
+  </div>
+  <div id="annualManualWrap" class="annualManualWrap">
+    <div class="annualSetup">
+      <button type="button" class="annualChangeMethod" onclick="toggleAnnualManualSetup(false)">‹ Changer de méthode</button>
+      <div class="annualSetupEyebrow">Organisation manuelle</div>
+      <h2>Construire ma structure</h2>
+      <p class="annualSetupText" id="annualSetupText">Le niveau est déterminé automatiquement à partir du groupe sélectionné. Choisis seulement la structure de départ que tu souhaites.</p>
+      <div class="annualSetupGrid">
+        <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
+        <div class="planField"><label>Nombre de cours cible par séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      </div>
+      <div id="annualRecommendation" class="annualRecommendation" style="display:none"></div>
+      <div id="annualDataWarning"></div>
+      <div class="annualSetupActions" style="grid-template-columns:1fr">
+        <button id="annualSuggestBtn" class="annualSuggestBtn" style="display:none!important" tabindex="-1" aria-hidden="true" onclick="organizeAnnualWithHenri()">Utiliser plutôt la recommandation Henri</button>
+        <button id="annualBuildBtn" class="annualBuildBtn" onclick="applyAnnualStructure(false)">Organiser mes séquences</button>
+      </div>
+    </div>
+  </div>
+  <div id="annualWorkspace" class="annualWorkspace">
+  <div class="planStats">
+    <div class="planStat"><small id="annualPossibleLabel">Cours possibles</small><strong id="annualPossible">0</strong></div>
+    <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
+    <div class="planStat"><small>Restants</small><strong id="annualRemaining">0</strong></div>
+  </div>
+  <div class="annualOverview">
+    <div class="annualOverviewTop"><strong id="annualCoverageText">Année synchronisée</strong><button class="annualOverviewBtn" onclick="openAnnualCalendar()">Voir le calendrier</button></div>
+    <div class="annualProgressTrack"><span id="annualProgressFill" class="annualProgressFill"></span></div>
+    <small id="annualSyncText">Les blocs utilisent automatiquement les périodes de ce groupe.</small>
+  </div>
+  <div id="annualConflict"></div>
+  <div id="annualList" class="annualList"></div>
+  <div id="annualSaveWrap" style="margin-top:16px">
+    <button class="planPrimary" onclick="saveAnnualAndPlanSequences()">Enregistrer ma planification annuelle</button>
+    <p class="planHint">Les séquences seront automatiquement créées dans Planifier une séquence avec leur groupe, compétence, moyen d’action, nombre de cours et dates.</p>
+  </div>
+  <div id="annualAddForm" class="planForm" style="margin-top:12px;display:none">
+    <div class="planGrid">
+      <div class="planField"><label>Compétence</label><select id="annualComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
+      <div class="planField"><label>Sport / moyen d’action</label><select id="annualSport" class="planControl"><option>À choisir</option><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Course</option><option>Flag football</option><option>Musculation</option><option>Ultimate</option><option>Volleyball</option></select></div>
+      <div class="planField"><label>Nombre de cours</label><input id="annualCourses" class="planControl" type="number" min="1" max="12" value="4"></div>
+    </div>
+    <button class="planPrimary" onclick="addAnnualBlock()">Ajouter à l’année</button>
+    <p class="planHint">Exemple : s’il reste 4 cours possibles, Henri te le montre immédiatement pour t’aider à terminer l’année avec une séquence de 4 cours.</p>
+  </div>
+  </div>
+</section>
+
+<section id="sequenceSetup" class="screen">
+  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <h1>Séquences</h1>
+  <p class="planIntro">Les sports viennent directement de ta planification annuelle. Choisis le bloc que tu veux maintenant détailler.</p>
+  <div class="planForm">
+    <div class="planField"><label>Groupe</label><select id="seqGroup" class="planControl" onchange="renderMacroSequences()"></select></div>
+  </div>
+  <div id="macroSequenceList" class="macroSeqList"></div>
+</section>
+
+<section id="sequenceChoice" class="screen">
+  <button class="back" onclick="go('sequenceSetup')">‹ Retour aux séquences</button>
+  <div id="sequenceChoiceHero" class="choiceHero"></div>
+  <div id="existingSequenceAction"></div>
+  <div class="choiceCards">
+    <button class="choiceCard" onclick="createSequenceFromMacro(false)"><span class="choiceIcon">M</span><span><strong>Construire ma séquence</strong><small>Henri crée les cours et leur structure de base selon la compétence. Tu remplis et modifies ensuite chaque bloc librement.</small></span><span class="groupArrow">›</span></button>
+    <button class="choiceCard" onclick="createSequenceFromMacro(true)"><span class="choiceIcon">H</span><span><strong>Utiliser la planification Henri</strong><small>Henri propose une progression complète adaptée au sport et au nombre de cours. Tout demeure modifiable.</small></span><span class="groupArrow">›</span></button><button class="choiceCard" onclick="openHenriBankForSequence()"><span class="choiceIcon">▣</span><span><strong>Choisir dans ma banque</strong><small>Réutiliser une séquence existante sans modifier l’original.</small></span><span class="groupArrow">›</span></button>
+  </div>
+</section>
+
+<section id="standaloneSequence" class="screen">
+  <button class="back" onclick="go('sequenceSetup')">‹ Retour aux séquences</button>
+  <h1>Séquence indépendante</h1>
+  <p class="planIntro">Pour créer une séquence qui n’est pas encore liée à la planification annuelle.</p>
+  <div class="planForm">
+    <div class="planGrid">
+      <div class="planField"><label>Compétence</label><select id="seqComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
+      <div class="planField"><label>Sport</label><select id="seqSport" class="planControl"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Dodgeball</option><option>Flag football</option><option>Futsal</option><option>Handball</option><option>Jeux de coopération</option><option>Judo</option><option>Kin-Ball</option><option>Lutte</option><option>Pickleball</option><option>Soccer</option><option>Tennis</option><option>Tennis de table</option><option>Ultimate</option><option>Volleyball</option></select></div>
+      <div class="planField"><label>Groupe / niveau</label><select id="standaloneSeqGroup" class="planControl"></select></div>
+      <div class="planField"><label>Nombre de cours</label><select id="seqCount" class="planControl"><option>3</option><option selected>5</option><option>4</option><option>6</option><option>7</option></select></div>
+      <div class="planField"><label>Durée habituelle</label><select id="seqDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
+    </div>
+    <button class="planPrimary" onclick="createSequenceFromTemplate()">Utiliser le gabarit par défaut</button>
+    <button class="planSecondary" onclick="generateSequenceDemo()">Utiliser la planification Henri</button>
+    <button class="planSecondary" onclick="openHenriBankForStandalone()">Choisir dans ma banque</button>
+  </div>
+</section>
+
+<section id="sequenceEditor" class="screen">
+  <button class="back" onclick="returnFromSequenceEditor()">‹ Retour</button>
+  <div id="sequenceHeader" class="seqHeader"></div>
+  <div class="planForm" style="margin-top:12px">
+    <div class="planField">
+      <label>Compétence</label>
+      <select id="sequenceCompSelect" class="planControl" onchange="changeActiveSequenceComp(this.value)">
+        <option value="C1">C1 · Agir</option>
+        <option value="C2">C2 · Interagir</option>
+        <option value="C3">C3 · Mode de vie sain et actif</option>
+      </select>
+    </div>
+  </div>
+  <div id="sequenceOverview" class="seqOverview"></div>
+  <div id="sequenceDatePlacement" class="planForm" hidden><label for="sequenceStartSlot">Placer cette séquence à partir d’un cours</label><select id="sequenceStartSlot" class="planControl"></select><button class="planPrimary" onclick="scheduleStandaloneSequence()">Placer dans le calendrier</button><p class="planHint">Les séances suivent les prochains cours de ce groupe. La planification annuelle se décale sur les périodes restantes.</p></div>
+  <div class="planForm" style="margin-top:12px">
+    <div class="planField"><label>Objectif de la séquence</label><small class="pdaCategory" id="sequencePdaCategory"></small><select id="sequenceObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('sequence',this.value)"></select></div>
+    <div class="planField" id="sequenceObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sequenceObjectiveCustom" class="planControl" placeholder="Écrire l’objectif de la séquence" oninput="saveCustomObjective('sequence',this.value)"></div>
+  </div>
+  <div id="sequenceLessons" class="seqList"></div>
+  <div class="seqAddRow">
+    <button class="addSection" style="margin-top:0" onclick="addSequenceLesson()">+ Ajouter un cours</button>
+    <button id="sequenceCalendarBtn" class="itemBtn" onclick="openSequenceCalendar()">Calendrier</button>
+  </div>
+  <div class="seqSaveBar"><button class="planPrimary" style="margin-top:0" onclick="saveSequence()">Enregistrer la séquence</button></div>
+</section>
+
+<section id="sessionEditor" class="screen">
+  <button class="back" onclick="returnFromSessionEditor()">‹ Retour</button>
+  <div class="muted" id="editSessionMeta"></div>
+  <h1 id="editSessionTitle">Séance</h1>
+  <div class="planForm" style="margin-top:12px">
+    <div class="planField"><label>Objectif du cours</label><small class="pdaCategory" id="sessionPdaCategory"></small><select id="sessionObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('session',this.value)"></select></div>
+    <div class="planField" id="sessionObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sessionObjectiveCustom" class="planControl" placeholder="Écrire l’objectif du cours" oninput="saveCustomObjective('session',this.value)"></div>
+  </div>
+  <div id="editBlocks" class="editBlocks" style="margin-top:12px"></div>
+  <button class="addSection" onclick="addSessionSection()">+ Ajouter une section</button>
+</section>
+
+<section id="quickSession" class="screen">
+  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <h1>Séance individuelle</h1>
+  <p class="planIntro">Prépare un cours ponctuel rapidement. Il reste indépendant et n’est pas ajouté à une séquence sauf si tu décides de le faire plus tard.</p>
+  <div id="quickContext" class="quickScheduleSuccess" style="display:none;margin:0 0 12px"></div>
+  <div class="planForm">
+    <div class="planGrid">
+      <div class="planField"><label>Sport</label><select id="quickSport" class="planControl" onchange="handleQuickSportChange()"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Dodgeball</option><option>Flag football</option><option>Futsal</option><option>Handball</option><option>Jeux de coopération</option><option>Judo</option><option>Kin-Ball</option><option>Lutte</option><option>Pickleball</option><option>Soccer</option><option>Tennis</option><option>Ultimate</option><option>Volleyball</option></select></div>
+       <div class="planField"><label>Compétence</label><select id="quickComp" class="planControl" onchange="refreshQuickObjectiveOptions()"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
+      <div class="planField"><label>Groupe / niveau</label><select id="quickGroup" class="planControl"></select></div>
+      <div class="planField"><label>Durée</label><select id="quickDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
+      <div class="planField"><label>Objectif</label><small class="pdaCategory" id="quickPdaCategory"></small><select id="quickObjective" class="planControl" onchange="handleObjectiveChoice('quick',this.value)"></select></div>
+      <div class="planField" id="quickObjectiveCustomWrap" style="display:none"><label>Objectif personnalisé</label><input id="quickObjectiveCustom" class="planControl" placeholder="Écrire l’objectif du cours" oninput="saveCustomObjective('quick',this.value)"></div>
+    </div>
+    <button class="planPrimary" onclick="buildQuickSession()">Créer la séance</button>
+  </div>
+  <div id="quickResult" class="quickResult"></div>
+</section>
+
+<section id="tools" class="screen">
+  <h1>Outils</h1>
+  <p class="planIntro">Pour le travail en classe et au gymnase.</p>
+  <div class="toolGrid">
+    <button class="toolCard" onclick="openTeamBuilder()">
+      <span class="toolIcon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="5.5" r="2.1"/>
+    <circle cx="6.2" cy="15.8" r="2.1"/>
+    <circle cx="17.8" cy="15.8" r="2.1"/>
+    <path d="M10.9 7.3 7.4 13.8M13.1 7.3l3.5 6.5M8.3 15.8h7.4"/>
+  </svg>
+</span>
+      <span><strong>Générer des équipes</strong><small>Créer des équipes équilibrées en quelques secondes à partir de tes listes de classe.</small></span>
+      <span class="groupArrow">›</span>
+    </button>
+  </div>
+</section>
+
+<section id="teamBuilder" class="screen">
+  <button class="back" onclick="go('tools')">‹ Retour aux outils</button>
+  <h1>Générer des équipes</h1>
+  <div class="teamSetup">
+    <div class="teamSetupGrid">
+      <div>
+        <span class="premiumPickerLabel">Groupe</span>
+        <button id="teamGroupPicker" class="premiumPickerButton" onclick="openTeamGroupPicker()"><strong>Choisir un groupe</strong><span class="pickerChevron">›</span></button>
+        <select id="teamGroup" style="display:none" onchange="teamBuilderGroupChanged()"></select>
+      </div>
+      <div>
+        <span class="premiumPickerLabel">Nombre d’équipes</span>
+        <div id="teamCountButtons" class="teamCountButtons"></div>
+        <select id="teamCount" style="display:none"></select>
+      </div>
+    </div>
+
+    <div class="teamOptions">
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Répartition gars / filles</strong><small>Choisis la structure souhaitée pour les équipes.</small></div>
+        <div class="teamSegment" id="genderModeSegment">
+          <button class="on" data-value="mixed" onclick="setTeamGenderMode('mixed')">Mixte</button>
+          <button data-value="separate" onclick="setTeamGenderMode('separate')">Séparés</button>
+          <button data-value="none" onclick="setTeamGenderMode('none')">Libre</button>
+        </div>
+      </div>
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Équilibrer les habiletés</strong><small>Répartir les niveaux sportifs le plus également possible.</small></div>
+        <button id="teamSkillToggle" class="switch on" onclick="toggleTeamSetting('skill')"></button>
+      </div>
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Répartir les leaders</strong><small>Éviter de concentrer les élèves leaders dans une même équipe.</small></div>
+        <button id="teamLeaderToggle" class="switch on" onclick="toggleTeamSetting('leaders')"></button>
+      </div>
+      <div class="teamOption">
+        <div class="teamOptionText"><strong>Varier les partenaires</strong><small>Éviter autant que possible de recréer les mêmes équipes que récemment.</small></div>
+        <button id="teamNoveltyToggle" class="switch on" onclick="toggleTeamSetting('novelty')"></button>
+      </div>
+    </div>
+
+    <div class="teamAttendance">
+      <div class="teamAttendanceHead"><strong>Présences aujourd’hui</strong><span>Clique un élève pour le retirer temporairement</span></div>
+      <div id="teamAttendanceChips" class="attendanceChips"></div>
+    </div>
+
+    <div class="teamGenerateActions">
+      <button class="teamGenerateBtn" onclick="generateTeams()">Générer les équipes</button>
+      <button class="teamResetBtn" onclick="resetTeamBuilder()">Réinitialiser</button>
+    </div>
+  </div>
+
+  <div id="teamResult" class="teamResult"></div>
+
+  <div id="teamGroupOverlay" class="pickerOverlay" onclick="closeTeamGroupPicker(event)">
+    <div class="pickerSheet" onclick="event.stopPropagation()">
+      <div class="pickerHandle"></div>
+      <div class="pickerSheetHead"><strong>Choisir un groupe</strong><button class="pickerClose" onclick="closeTeamGroupPicker()">×</button></div>
+      <div id="teamGroupChoices" class="pickerList"></div>
+    </div>
+  </div>
+</section>
+
+<section id="settings" class="screen">
+  <button class="back" onclick="go('home')">‹ Retour</button>
+  <h1>Paramètres</h1>
+  <nav class="settingsSections" aria-label="Sections des paramètres"><a href="#setupDocuments">Documents</a><a href="#calendarExceptions">Exceptions</a><a href="#schoolYearReset">Nouvelle année</a></nav>
+  <p class="settingsIntro">Les trois documents nécessaires pour relier tes cours, tes dates et tes élèves.</p>
+
+  <div class="setupStack" id="setupDocuments">
+    <label class="importCard" id="teacherScheduleCard">
+      <span class="importIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M4 9h16"/></svg></span>
+      <span class="importText"><strong>Horaire d’enseignant</strong><span>Photos, PDF, texte ou CSV · plusieurs pages permises</span></span>
+      <span class="importState" id="teacherScheduleState">Importer</span>
+      <input class="fileInput" id="teacherScheduleFile" type="file" multiple accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('teacherSchedule',this)">
+    </label>
+
+    <label class="importCard" id="schoolCalendarCard">
+      <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
+      <span class="importText"><strong>Calendrier scolaire</strong><span>Photos, PDF ou CSV · toute l’année, jours-cycle et congés</span></span>
+      <span class="importState" id="schoolCalendarState">Importer</span>
+      <input class="fileInput" id="schoolCalendarFile" type="file" multiple accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('schoolCalendar',this)">
+    </label>
+
+    <label class="importCard" id="groupSheetsCard">
+      <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
+      <span class="importText"><strong>Listes de groupes</strong><span>Photos, PDF ou CSV · sélection multiple permise</span></span>
+      <span class="importState" id="groupSheetsState">Importer</span>
+      <input class="fileInput" id="groupSheetsFile" type="file" accept=".pdf,.csv,.txt,image/*" multiple onchange="handleSetupFile('groupSheets',this)">
+    </label>
+    <div id="groupAIReview" class="placeholder" style="display:none;margin-top:-2px">
+      <strong>Vérifier les listes reconnues</strong>
+      <div id="groupAIReviewList" class="muted" style="margin-top:8px;display:grid;gap:6px"></div>
+    </div>
+  </div>
+
+  <div id="importLinksReview" class="placeholder" role="status" aria-live="polite"></div>
+  <div class="generateBox">
+    <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()" disabled>Générer mon horaire</button>
+    <p class="generateHint">Ajoute tes trois sources. Les jours-cycle inconnus restent visibles, sans groupe attribué.</p>
+    <div id="setupSuccess" class="setupSuccess">Configuration terminée. Ton Henri est prêt.</div>
+  </div>
+
+  <div class="calendarExceptionSection" id="calendarExceptions">
+    <div class="calendarExceptionHead">
+      <div>
+        <h2>Exceptions au calendrier</h2>
+        <p>Bloque une sortie, une activité spéciale ou une autre journée. Henri conserve l’horaire original et redistribue automatiquement les séances touchées.</p>
+      </div>
+      <button class="exceptionAddBtn" onclick="toggleExceptionForm(true)">+ Ajouter</button>
+    </div>
+
+    <div id="exceptionForm" class="exceptionForm">
+      <div class="exceptionGrid">
+        <div class="planField"><label>Date de début</label><input id="exceptionStart" type="date" class="planControl"></div>
+        <div class="planField"><label>Date de fin · optionnel</label><input id="exceptionEnd" type="date" class="planControl"></div>
+        <div class="planField"><label>Groupe concerné</label><select id="exceptionGroup" class="planControl"><option value="all">Tous les groupes</option></select></div>
+        <div class="planField"><label>Type</label><select id="exceptionType" class="planControl"><option>Sortie scolaire</option><option>Journée pédagogique</option><option>Journée pédagogique flottante</option><option>Activité spéciale</option><option>Examen</option><option>Gym indisponible</option><option>Absence enseignant</option><option>Autre</option></select></div>
+      </div>
+      <div class="planField" style="margin-top:9px"><label>Raison / note</label><input id="exceptionReason" class="planControl" placeholder="Ex. sortie au Musée de la civilisation"></div>
+      <div class="exceptionActions">
+        <button class="planPrimary" style="margin:0" onclick="addCalendarException()">Bloquer et redistribuer</button>
+        <button class="exceptionCancel" onclick="toggleExceptionForm(false)">Annuler</button>
+      </div>
+      <div id="exceptionImpact" class="exceptionImpact"></div>
+    </div>
+    <div id="exceptionList" class="exceptionList"></div>
+  </div>
+
+  <div class="henriResetPanel" id="schoolYearReset"><h2>Nouvelle année scolaire</h2><p>Réinitialiser les groupes, listes d’élèves, horaires et calendrier. Les planifications sont archivées et une sauvegarde est proposée avant de repartir.</p><button id="henriYearResetButton" class="henriYearResetButton" onclick="henriResetSchoolYear()">Réinitialiser pour la nouvelle année</button><p id="henriYearResetStatus" class="planHint" role="status">Ta banque de planifications sera conservée.</p></div>
+</section>
+
+<section id="groups" class="screen">
+  <div class="screenHeading"><div><p class="screenKicker">Mes classes</p><h1>Groupes et élèves</h1></div><button class="itemBtn" onclick="go('settings');document.getElementById('groupSheetsCard').scrollIntoView({block:'center'})">Importer des listes</button></div>
+  <div id="groupList" class="groupList"></div>
+  <p class="dataNote">Les profils et les compatibilités sont utilisés pour former les équipes.</p>
+</section>
+<section id="groupProfile" class="screen">
+  <button class="back" onclick="go('groups')">‹ Retour aux groupes</button>
+  <div class="muted" id="groupProfileMeta"></div>
+  <h1 id="groupProfileTitle">Groupe</h1>
+  <div id="studentList" class="studentList"></div>
+</section>
+
+<section id="dayPlan" class="screen">
+  <button class="back" onclick="go('home')">‹ Retour au calendrier</button>
+  <div class="muted" id="dayPlanMeta"></div>
+  <h1 id="dayPlanTitle">Journée</h1>
+  <div id="dayPlanCourses" class="dayPlanList"></div>
+</section>
+
+<section id="courseDetail" class="screen">
+  <button class="back" onclick="go(previousScreen)">‹ Retour</button>
+  <div class="muted" id="courseDetailMeta"></div>
+  <h1 id="courseDetailTitle">Cours</h1>
+  <div class="placeholder">
+    <strong id="courseDetailGroup"></strong>
+    <p class="muted" id="courseDetailCycle"></p>
+  </div>
+  <div class="placeholder" style="margin-top:10px">
+    <strong id="courseSessionTitle">Séance</strong>
+    <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
+    <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<section id="session" class="screen"><button class="back" onclick="go(previousScreen)">‹ Retour</button><div class="muted" id="sessionMeta"></div><h1 id="sessionTitle"></h1><div class="placeholder"><strong>Séance clé en main</strong><p class="muted">Le contenu pédagogique complet sera branché à la banque Henri. Ce lien confirme le circuit agenda → séance.</p></div></section>
+</main>
+
+<nav class="bottom" aria-label="Navigation principale">
+  <div class="bottomin">
+    <button class="nav on" aria-current="page" data-screen="home" onclick="goHome()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+      Calendrier
+    </button>
+    <button class="nav" data-screen="plan" onclick="go('plan')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+      Planifier
+    </button>
+    <button class="nav" data-screen="groups" onclick="go('groups')"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v2"/></svg>Groupes</button>
+    <button class="nav" data-screen="tools" onclick="go('tools')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.1M12 19.1v2.1M21.2 12h-2.1M4.9 12H2.8M18.5 5.5 17 7M7 17l-1.5 1.5M18.5 18.5 17 17M7 7 5.5 5.5"/></svg>
+      Outils
+    </button>
+  </div>
+</nav>
+</div>
+
+<script src="henri-import.js"></script>
+<script src="henri-calendar-links.js"></script>
+<script>
+const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
+// Ne jamais vider les données de l’enseignant lors d’une mise à jour.
+if(localStorage.getItem('previewHenriSlate:henriFreshStartVersion')!==HENRI_FRESH_START_VERSION)localStorage.setItem('previewHenriSlate:henriFreshStartVersion',HENRI_FRESH_START_VERSION);
+let previousScreen='home';
+function go(id){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
+  const section=['home','dayPlan','courseDetail'].includes(id)?'home':['tools','teamBuilder'].includes(id)?'tools':['groups','groupProfile'].includes(id)?'groups':id==='settings'?null:'plan';
+  document.querySelectorAll('.nav').forEach(x=>{const active=x.dataset.screen===section;x.classList.toggle('on',active);if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');});
+  const settings=document.getElementById('settingsButton');settings.classList.toggle('isCurrent',id==='settings');
+  if(id==='settings')settings.setAttribute('aria-current','page');else settings.removeAttribute('aria-current');
+  if(id==='settings'){fillExceptionGroupOptions();renderCalendarExceptions();refreshImportedLinks();renderImportLinksReview()}
+  if(id==='henriBank'&&typeof henriBankRefresh==='function')henriBankRefresh();
+  scrollTo(0,0);
+  window.HenriUX?.navigate(id);
+}
+function goHome(){
+  go('home');
+  setCalendarView('week');
+}
+function openSession(title,meta){
+  previousScreen=document.querySelector('.screen.active')?.id||'home';
+  sessionTitle.textContent=title;
+  sessionMeta.textContent=meta;
+  go('session');
+}
+function setCalendarView(view){
+  const isWeek=view==='week';
+  weekView.classList.toggle('on',isWeek);
+  monthView.classList.toggle('on',!isWeek);
+  weekBtn.classList.toggle('on',isWeek);
+  monthBtn.classList.toggle('on',!isWeek);
+  weekBtn.setAttribute('aria-pressed',String(isWeek));monthBtn.setAttribute('aria-pressed',String(!isWeek));
+  document.getElementById('calendarSectionTitle').textContent=isWeek?'Cette semaine':'Vue du mois';
+}
+let scheduleEntries={};
+let calendarEvents={};
+let schoolDays={};
+function rebuildCalendarEvents(){
+  calendarEvents={};
+  Object.keys(scheduleEntries).forEach(date=>{
+    const entries=getVisibleScheduleEntries(date);
+    if(entries.length){
+      const first=entries[0];
+      calendarEvents[date]=first.time+' · '+first.group+(entries.length>1?' · +'+(entries.length-1):'');
+    }
+  });
+  Object.entries(schoolDays).forEach(([date,type])=>{
+    if(!calendarEvents[date]&&(type==='Pédagogique'||type==='Congé')) calendarEvents[date]=type==='Pédagogique'?'Journée pédagogique':'Congé';
+  });
+  calendarExceptions.forEach(ex=>{
+    const start=ex.startDate||ex.date,end=ex.endDate||start;
+    if(ex.groupId==='all'&&start&&start===end&&!calendarEvents[start]) calendarEvents[start]=ex.type+(ex.reason?' · '+ex.reason:'');
+  });
+}
+const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const shortMonths=['janv.','févr.','mars','avr.','mai','juin','juill.','août','sept.','oct.','nov.','déc.'];
+function getLocalTodayKey(){
+  const now=new Date();
+  return dateKey(now.getFullYear(),now.getMonth(),now.getDate());
+}
+function getWeekMonday(base=new Date()){
+  const d=new Date(base.getFullYear(),base.getMonth(),base.getDate(),12);
+  const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  return d;
+}
+function renderWeek(){
+  if(!weekGrid) return;
+  document.getElementById('homeEmpty').hidden=Object.keys(scheduleEntries).length>0;
+  document.getElementById('todayStamp').textContent=new Intl.DateTimeFormat('fr-CA',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
+  const start=getWeekMonday();
+  let out='';
+  for(let i=0;i<5;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const key=dateKey(d.getFullYear(),d.getMonth(),d.getDate());
+    const entries=getVisibleScheduleEntries(key);
+    const blocked=getBlockedScheduleEntries(key);
+    const cycle=schoolDays[key];
+    const today=key===getLocalTodayKey();
+    out+='<div class="weekDay'+(today?' today':'')+'">'+
+      '<button class="dayHead" onclick="openDayPlan(\''+key+'\')"><span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span></button>';
+    if(entries.length){
+      entries.forEach((entry)=>{
+        const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
+        let sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'À planifier');
+        if(sport==='À choisir') sport='À planifier';
+        const groupColors=['#425d73','#647d8c','#697b73','#7b7488'];
+        const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
+        const groupColor=groupColors[groupIndex%groupColors.length];
+        const sportLower=sport.toLowerCase();
+        out+='<button class="weekEvent" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
+          '<span class="time">'+entry.time+'</span>'+
+          '<span class="groupBar" aria-hidden="true"></span>'+
+          '<span class="course">'+entry.group+'</span>'+
+          '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+sport+'</span>'+
+        '</button>';
+      });
+    }
+    blocked.forEach(({entry,exception})=>{
+      out+='<button class="weekEvent" style="--groupColor:#b28b56" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+entry.group+'</span><span class="quickSport">'+exception.type+'</span></button>';
+    });
+    if(!entries.length&&!blocked.length){
+      out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':/^Jour [xyz]$/.test(cycle||'')?'Jour-cycle à préciser · '+cycle:'Aucun cours prévu')+'</div>';
+    }
+    out+='</div>';
+  }
+  weekGrid.innerHTML=out;
+  window.HenriUX?.refresh();
+}
+
+function openDayPlan(date){
+  const entries=getVisibleScheduleEntries(date);
+  const blocked=getBlockedScheduleEntries(date);
+  const cycle=schoolDays[date]||'';
+  const d=new Date(date+'T12:00:00');
+  dayPlanTitle.textContent=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()];
+  dayPlanMeta.textContent=cycle;
+  const cards=[];
+  entries.forEach(entry=>{
+    const originalIndex=(scheduleEntries[date]||[]).indexOf(entry);
+    const sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'Sport à planifier');
+    const session=entry.session||(entry.kind==='cognitive'?'Intervention cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
+    cards.push('<div class="dayPlanCard">'+
+      '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
+      '<div class="dayPlanSport">'+sport+'</div>'+
+      '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+originalIndex+')">'+session+'</button>'+
+      (getEntryGroupId(entry)?'<button class="itemBtn" onclick="openGroup(\''+getEntryGroupId(entry)+'\')">Voir les élèves</button>':'')+
+    '</div>');
+  });
+  blocked.forEach(({entry,exception})=>{
+    cards.push('<div class="dayPlanCard blockedCourse">'+
+      '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
+      '<div class="dayPlanSport">'+exception.type+'</div>'+
+      '<div class="dayPlanPath">'+(exception.reason||'Cours bloqué dans les paramètres.')+'</div>'+
+      '<span class="exceptionBadge">Séance redistribuée automatiquement</span>'+
+    '</div>');
+  });
+  if(cards.length) dayPlanCourses.innerHTML=cards.join('');
+  else{
+    const allException=calendarExceptions.find(ex=>ex.groupId==='all'&&exceptionCoversDate(ex,date));
+    const label=allException?(allException.type+(allException.reason?' · '+allException.reason:'')):cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':/^Jour [xyz]$/.test(cycle||'')?'Jour-cycle à préciser · '+cycle:'Aucun cours prévu';
+    dayPlanCourses.innerHTML='<div class="placeholder">'+label+'</div>';
+  }
+  go('dayPlan');
+}
+
+function openCourseEntry(date,index){
+  const entry=(scheduleEntries[date]||[])[index];
+  if(!entry) return;
+  calendarCourseContext={date,index};
+  renderCoursePlanningActions(entry,date,index);
+  if(!entry.annualPlan&&!entry.isIndividual&&entry.kind!=='cognitive'){
+    openQuickSessionForCourse(date,index);
+    return;
+  }
+  previousScreen=document.querySelector('.screen.active')?.id||'home';
+  const sport=entry.annualPlan||entry.activity||'Cours';
+  courseDetailTitle.textContent=sport;
+  courseDetailMeta.textContent=date+' · '+entry.time;
+  courseDetailGroup.textContent=entry.group;
+  courseDetailCycle.textContent=schoolDays[date]||'';
+  courseSessionTitle.textContent=entry.planData?.title||entry.session||(entry.kind==='cognitive'?'Intervention cognitive':'Séance à planifier');
+  if(entry.kind==='cognitive'){
+    coursePlanContent.textContent='Intervention cognitive · '+entry.time+(entry.endTime?' à '+entry.endTime:'')+(entry.durationMinutes?' · '+entry.durationMinutes+' min':'')+'. Ce bloc est affiché dans ton horaire et ne compte pas comme une séance d’éducation physique.';
+    go('courseDetail');return;
+  }
+
+  if(entry.planData){
+    const session=entry.planData;
+    const rows=[['Objectif',session.objective||'Objectif à préciser.']]
+      .concat((session.blocks||[]).map(b=>[b.type,b.title+(b.minutes?' · '+b.minutes+' min':'')]));
+    coursePlanContent.innerHTML=rows.map(([label,text])=>'<div style="padding:9px 0;border-top:1px solid #f0f1f1"><strong style="display:block;color:var(--ink);font-size:12px;margin-bottom:3px">'+henriBankHtml(label)+'</strong>'+henriBankHtml(text)+'</div>').join('');
+    go('courseDetail');
+    return;
+  }
+
+  coursePlanContent.textContent='Cette période est réservée dans l’année. La séance reste à préparer.';
+  go('courseDetail');
+}
+
+const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const initialCalendarDate=new Date();
+let shownYear=initialCalendarDate.getFullYear(),shownMonth=initialCalendarDate.getMonth();
+function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function renderMonth(){
+  const escape=value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  monthTitle.textContent=monthNames[shownMonth]+' '+shownYear;
+  const first=new Date(shownYear,shownMonth,1);
+  const offset=(first.getDay()+6)%7;
+  const days=new Date(shownYear,shownMonth+1,0).getDate();
+  const prevDays=new Date(shownYear,shownMonth,0).getDate();
+  let out='';
+  for(let i=0;i<42;i++){
+    let y=shownYear,m=shownMonth,d,muted=false;
+    if(i<offset){d=prevDays-offset+i+1;m--;muted=true;if(m<0){m=11;y--}}
+    else if(i>=offset+days){d=i-(offset+days)+1;m++;muted=true;if(m>11){m=0;y++}}
+    else d=i-offset+1;
+    const key=dateKey(y,m,d);
+    const entries=getVisibleScheduleEntries(key);
+    const blocked=getBlockedScheduleEntries(key);
+    const schoolDay=schoolDays[key];
+    const pedago=schoolDay==='Pédagogique'||schoolDay==='Congé';
+    const hasException=calendarExceptions.some(ex=>exceptionCoversDate(ex,key));
+    const today=key===getLocalTodayKey();
+    const hasSomething=entries.length||blocked.length||pedago||hasException||/^Jour [xyz]$/.test(schoolDay||'');
+    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'">'+
+      '<button class="monthDayButton" aria-label="'+escape(d+' '+monthNames[m]+' '+y+(schoolDay?' · '+schoolDay:'')+(entries.length?' · '+entries.length+' créneaux':''))+'" onclick="openDayPlan(\''+key+'\')">'+
+        '<span class="dayNum">'+d+'</span>'+
+        (hasSomething?'<span class="eventDot"></span>':'')+
+        (entries.length?'<span class="monthDayMeta"><strong>'+escape(entries[0].groupCode||entries[0].group)+'</strong>'+escape(entries[0].time)+(entries.length>1?' · +'+(entries.length-1):'')+'</span>':schoolDay?'<span class="monthDayMeta">'+escape(schoolDay)+'</span>':'')+
+      '</button>'+
+    '</div>';
+  }
+  monthGrid.innerHTML=out;
+}
+function changeMonth(delta){
+  shownMonth+=delta;
+  if(shownMonth<0){shownMonth=11;shownYear--}
+  if(shownMonth>11){shownMonth=0;shownYear++}
+  renderMonth();
+}
+
+const planCompetenceNames={C1:'Agir',C2:'Interagir',C3:'Mode de vie sain et actif'};
+let annualPlans=JSON.parse(localStorage.getItem('previewHenriSlate:henriAnnualPlans')||'{}');
+let activeSequence=JSON.parse(localStorage.getItem('previewHenriSlate:henriActiveSequence')||'null');
+let savedSequences=JSON.parse(localStorage.getItem('previewHenriSlate:henriSequences')||'{}');
+function sequenceStorageKey(groupId,blockId){return groupId+'::'+blockId}
+function getSavedSequence(groupId,blockId){
+  return savedSequences[sequenceStorageKey(groupId,blockId)]||savedSequences[blockId]||null;
+}
+function setSavedSequence(groupId,blockId,sequence){
+  savedSequences[sequenceStorageKey(groupId,blockId)]=JSON.parse(JSON.stringify(sequence));
+  if(savedSequences[blockId]?.groupId===groupId) delete savedSequences[blockId];
+  localStorage.setItem('previewHenriSlate:henriSequences',JSON.stringify(savedSequences));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+}
+let individualSessions=JSON.parse(localStorage.getItem('previewHenriSlate:henriIndividualSessions')||'[]');
+let calendarExceptions=JSON.parse(localStorage.getItem('previewHenriSlate:henriCalendarExceptions')||'[]');
+let scheduleConflictIgnores=JSON.parse(localStorage.getItem('previewHenriSlate:henriScheduleConflictIgnores')||'{}');
+
+function saveCalendarExceptions(){
+  localStorage.setItem('previewHenriSlate:henriCalendarExceptions',JSON.stringify(calendarExceptions));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+}
+function exceptionCoversDate(ex,date){
+  const start=ex.startDate||ex.date;
+  const end=ex.endDate||start;
+  return !!start&&date>=start&&date<=end;
+}
+function getCalendarException(date,groupId){
+  return calendarExceptions.find(ex=>exceptionCoversDate(ex,date)&&(ex.groupId==='all'||ex.groupId===groupId))||null;
+}
+function getEntryGroupId(entry){return groupsData.find(g=>g.id===entry.matchedGroupId)?.id||matchImportedGroup(entry.groupCode||entry.group)?.id||null;}
+
+function scheduleTimeMinutes(value){
+  const raw=String(value||'').trim().toLowerCase();
+  let m=raw.match(/(\d{1,2})\s*[h:]\s*(\d{2})/);
+  if(m)return Number(m[1])*60+Number(m[2]);
+  m=raw.match(/p[eé]riode\s*(\d+)/i);
+  if(m){
+    const periodStarts=[490,575,655,755,840];
+    return periodStarts[Number(m[1])-1]??9999;
+  }
+  return 9999;
+}
+function sortScheduleEntries(entries){
+  return [...entries].sort((a,b)=>{
+    const diff=scheduleTimeMinutes(a.time)-scheduleTimeMinutes(b.time);
+    return diff||String(a.group||'').localeCompare(String(b.group||''),'fr');
+  });
+}
+function getVisibleScheduleEntries(date){
+  const visible=(scheduleEntries[date]||[]).filter(entry=>{
+    const groupId=getEntryGroupId(entry);
+    return !groupId||!getCalendarException(date,groupId);
+  });
+  return sortScheduleEntries(visible);
+}
+function getBlockedScheduleEntries(date){
+  return (scheduleEntries[date]||[]).map(entry=>{
+    const groupId=getEntryGroupId(entry);
+    const exception=groupId?getCalendarException(date,groupId):null;
+    return exception?{entry,exception,groupId}:null;
+  }).filter(Boolean).sort((a,b)=>scheduleTimeMinutes(a.entry.time)-scheduleTimeMinutes(b.entry.time));
+}
+function fillExceptionGroupOptions(){
+  const select=document.getElementById('exceptionGroup');
+  if(!select||typeof groupsData==='undefined')return;
+  const current=select.value||'all';
+  select.innerHTML='<option value="all">Tous les groupes</option>'+groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
+  if([...select.options].some(o=>o.value===current))select.value=current;
+}
+function toggleExceptionForm(show){
+  const form=document.getElementById('exceptionForm');
+  if(!form)return;
+  form.classList.toggle('show',!!show);
+  if(show){
+    fillExceptionGroupOptions();
+    if(!exceptionStart.value){
+      const now=new Date();
+      exceptionStart.value=dateKey(now.getFullYear(),now.getMonth(),now.getDate());
+    }
+  }
+}
+function formatExceptionRange(ex){
+  const start=ex.startDate||ex.date;
+  const end=ex.endDate||start;
+  if(!start)return '';
+  return start===end?formatPlanDate(start):formatPlanDate(start)+' au '+formatPlanDate(end);
+}
+function getExceptionAffectedGroupIds(ex){
+  const ids=new Set();
+  Object.entries(scheduleEntries).forEach(([date,entries])=>{
+    if(!exceptionCoversDate(ex,date))return;
+    entries.forEach(entry=>{
+      const id=getEntryGroupId(entry);
+      if(id&&(ex.groupId==='all'||ex.groupId===id))ids.add(id);
+    });
+  });
+  return [...ids];
+}
+function snapshotGroupPlanEnds(groupIds){
+  const out={};
+  groupIds.forEach(id=>{
+    const ranges=getAnnualRanges(id,annualPlans[id]||[]);
+    const dates=ranges.map(r=>r.end).filter(Boolean);
+    out[id]=dates[dates.length-1]||null;
+  });
+  return out;
+}
+function addCalendarException(){
+  const start=exceptionStart?.value;
+  if(!start){alert('Choisis une date de début.');return}
+  const end=exceptionEnd?.value||start;
+  if(end<start){alert('La date de fin doit être après la date de début.');return}
+  const ex={
+    id:'exc-'+Date.now(),
+    startDate:start,
+    endDate:end,
+    groupId:exceptionGroup?.value||'all',
+    type:exceptionType?.value||'Autre',
+    reason:(exceptionReason?.value||'').trim()
+  };
+  const affected=getExceptionAffectedGroupIds(ex);
+  const before=snapshotGroupPlanEnds(affected);
+  calendarExceptions.push(ex);
+  calendarExceptions.sort((a,b)=>(a.startDate||a.date||'').localeCompare(b.startDate||b.date||''));
+  affected.forEach(id=>delete scheduleConflictIgnores[id]);
+  saveConflictIgnores();
+  saveCalendarExceptions();
+  rebuildPlanningAssignments();
+  const after=snapshotGroupPlanEnds(affected);
+  const moved=affected.filter(id=>before[id]!==after[id]);
+  const blockedCount=Object.entries(scheduleEntries).reduce((n,[date,entries])=>{
+    if(!exceptionCoversDate(ex,date))return n;
+    return n+entries.filter(entry=>{
+      const id=getEntryGroupId(entry);
+      return id&&(ex.groupId==='all'||ex.groupId===id);
+    }).length;
+  },0);
+  const impact=document.getElementById('exceptionImpact');
+  if(impact){
+    const moveText=moved.length?moved.length+' groupe'+(moved.length>1?'s':'')+' redistribué'+(moved.length>1?'s':''):'aucune séquence annuelle à déplacer';
+    impact.textContent=blockedCount+' cours bloqué'+(blockedCount>1?'s':'')+' · '+moveText+'. Le calendrier et les dates de planification ont été recalculés.';
+    impact.classList.add('show');
+  }
+  exceptionReason.value='';
+  exceptionEnd.value='';
+  renderCalendarExceptions();
+}
+function deleteCalendarException(id){
+  const ex=calendarExceptions.find(x=>x.id===id);
+  if(!ex)return;
+  const affected=getExceptionAffectedGroupIds(ex);
+  calendarExceptions=calendarExceptions.filter(x=>x.id!==id);
+  affected.forEach(id=>delete scheduleConflictIgnores[id]);
+  saveConflictIgnores();
+  saveCalendarExceptions();
+  rebuildPlanningAssignments();
+  renderCalendarExceptions();
+}
+function renderCalendarExceptions(){
+  const list=document.getElementById('exceptionList');
+  if(!list)return;
+  if(!calendarExceptions.length){
+    list.innerHTML='<div class="exceptionEmpty">Aucune exception ajoutée. Ton horaire suit le calendrier scolaire normal.</div>';
+    return;
+  }
+  list.innerHTML=calendarExceptions.map(ex=>{
+    const group=ex.groupId==='all'?'Tous les groupes':(groupsData.find(g=>g.id===ex.groupId)?.name||'Groupe');
+    const detail=[group,ex.type,ex.reason].filter(Boolean).join(' · ');
+    return '<div class="exceptionItem"><div><strong>'+formatExceptionRange(ex)+'</strong><small>'+detail+'</small></div><button class="exceptionDelete" onclick="deleteCalendarException(\''+ex.id+'\')">Retirer</button></div>';
+  }).join('');
+}
+let selectedAnnualBlockId=null;
+let selectedAnnualGroupId=null;
+let activeSessionIndex=0;
+let sessionEditorSource='sequence';
+let quickSessionData=null;
+let quickPrefillDate=null;
+
+function fillPlanGroupSelects(){
+  [annualGroup,seqGroup,standaloneSeqGroup,quickGroup].forEach(select=>{
+    if(!select)return;
+    const previous=select.value;
+    select.replaceChildren(...groupsData.map(group=>new Option(group.name,group.id)));
+    if(groupsData.some(group=>group.id===previous))select.value=previous;
+  });
+}
+function openAnnualPlanner(){
+  fillPlanGroupSelects();
+  if(annualManualWrap) annualManualWrap.classList.remove('show');
+  setAnnualWorkspaceVisible(false);
+  go('annualPlanner');
+  updateAnnualRecommendation(false);
+}
+function setAnnualWorkspaceVisible(show){
+  if(annualWorkspace) annualWorkspace.classList.toggle('show',!!show);
+}
+function toggleAnnualManualSetup(force){
+  if(!annualManualWrap)return;
+  const show=typeof force==='boolean'?force:!annualManualWrap.classList.contains('show');
+  annualManualWrap.classList.toggle('show',show);
+  setAnnualWorkspaceVisible(false);
+  if(show){
+    annualSequenceCount.dataset.manual='0';
+    updateAnnualRecommendation(false);
+    annualManualWrap.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+function organizeAnnualWithHenri(){
+  if(!annualGroup)return;
+  const groupId=annualGroup.value||groupsData[0]?.id;
+  if(!groupId)return;
+  const coverage=getAnnualCoverageStatus(groupId);
+  if(!coverage.complete){
+    toggleAnnualManualSetup(true);
+    updateAnnualRecommendation(false);
+    return;
+  }
+  const rec=getAnnualRecommendation(groupId,5);
+  annualTargetLength.value=5;
+  annualSequenceCount.value=rec.recommended;
+  annualSequenceCount.dataset.manual='0';
+  useAnnualRecommendation();
+  if(annualManualWrap) annualManualWrap.classList.remove('show');
+  setAnnualWorkspaceVisible(true);
+}
+function getGroupCourseDates(groupId){return getGroupCourseOccurrences(groupId).map(slot=>slot.date);}
+
+function getGroupSequenceDates(groupId){return getGroupAnnualOccurrences(groupId).map(slot=>slot.date);}
+
+function getGroupCourseSlots(groupId){
+  return getGroupSequenceDates(groupId).length;
+}
+function formatPlanDate(date){
+  if(!date) return '';
+  const d=new Date(date+'T12:00:00');
+  return d.getDate()+' '+shortMonths[d.getMonth()];
+}
+function getAnnualRanges(groupId,blocks){
+  const dates=getGroupSequenceDates(groupId);
+  let cursor=0;
+  return blocks.map(block=>{
+    const need=Math.max(0,Number(block.courses)||0);
+    const slice=dates.slice(cursor,cursor+need);
+    cursor+=need;
+    return {
+      start:slice[0]||null,
+      end:slice[slice.length-1]||null,
+      allocated:slice.length,
+      needed:need
+    };
+  });
+}
+function ensureAnnualPlan(groupId){
+  if(!Array.isArray(annualPlans[groupId])) annualPlans[groupId]=[];
+}
+function getAnnualCoverageStatus(groupId){
+  const courseDates=getGroupCourseDates(groupId);
+  const calendarDates=Object.keys(schoolDays||{}).sort();
+  const first=calendarDates[0]||courseDates[0]||null;
+  const last=calendarDates[calendarDates.length-1]||courseDates[courseDates.length-1]||null;
+  let spanDays=0;
+  if(first&&last) spanDays=Math.round((new Date(last+'T12:00:00')-new Date(first+'T12:00:00'))/86400000);
+  const complete=courseDates.length>=10&&spanDays>=180;
+  return {complete,courseDates,first,last,spanDays};
+}
+function inferGroupSchoolLevel(groupId){
+  const group=groupsData.find(g=>g.id===groupId);
+  const raw=(group?.name||'').toLowerCase();
+  let m=raw.match(/secondaire\s*([1-5])/);
+  if(m) return {key:'S'+m[1],label:'Secondaire '+m[1],type:'secondary',grade:Number(m[1])};
+  m=raw.match(/primaire\s*([1-6])/);
+  if(m) return {key:'P'+m[1],label:'Primaire '+m[1],type:'primary',grade:Number(m[1])};
+  m=raw.match(/([1-6])(?:re|er|e)?\s*ann[ée]e/);
+  if(m&&!raw.includes('secondaire')) return {key:'P'+m[1],label:'Primaire '+m[1],type:'primary',grade:Number(m[1])};
+  if(/maternelle|préscolaire|prescolaire|4\s*ans|5\s*ans/.test(raw)) return {key:'K',label:'Préscolaire',type:'preschool',grade:0};
+  return {key:'GEN',label:'Niveau à préciser',type:'generic',grade:null};
+}
+function getHenriCompetenceProfile(groupId){
+  const level=inferGroupSchoolLevel(groupId);
+  const profiles={
+    K:{C1:.80,C2:.15,C3:.05},
+    P1:{C1:.70,C2:.20,C3:.10},
+    P2:{C1:.60,C2:.30,C3:.10},
+    P3:{C1:.50,C2:.40,C3:.10},
+    P4:{C1:.40,C2:.50,C3:.10},
+    P5:{C1:.30,C2:.60,C3:.10},
+    P6:{C1:.25,C2:.65,C3:.10},
+    S1:{C1:.20,C2:.70,C3:.10},
+    S2:{C1:.15,C2:.75,C3:.10},
+    S3:{C1:.10,C2:.80,C3:.10},
+    S4:{C1:.10,C2:.80,C3:.10},
+    S5:{C1:.10,C2:.80,C3:.10},
+    GEN:{C1:.30,C2:.60,C3:.10}
+  };
+  return {level,weights:profiles[level.key]||profiles.GEN};
+}
+function allocateCompetenceCounts(total,weights){
+  total=Math.max(1,Number(total)||1);
+  const keys=['C1','C2','C3'];
+  const rows=keys.map(key=>({key,raw:weights[key]*total}));
+  const counts={C1:0,C2:0,C3:0};
+  rows.forEach(x=>counts[x.key]=Math.floor(x.raw));
+  let used=keys.reduce((sum,k)=>sum+counts[k],0);
+  rows.slice().sort((a,b)=>(b.raw-Math.floor(b.raw))-(a.raw-Math.floor(a.raw))).forEach(x=>{
+    if(used<total){counts[x.key]++;used++}
+  });
+  if(total>=3){
+    keys.forEach(k=>{
+      if(counts[k]===0){
+        const donor=keys.slice().sort((a,b)=>counts[b]-counts[a]).find(x=>counts[x]>1);
+        if(donor){counts[donor]--;counts[k]++}
+      }
+    });
+  }
+  return counts;
+}
+function buildCompetenceOrder(counts){
+  return [
+    ...Array(counts.C1).fill('C1'),
+    ...Array(counts.C2).fill('C2'),
+    ...Array(counts.C3).fill('C3')
+  ];
+}
+function getAnnualRecommendation(groupId,targetLength){
+  const coverage=getAnnualCoverageStatus(groupId);
+  const possible=getGroupCourseSlots(groupId);
+  const target=Math.max(1,Number(targetLength)||5);
+  const recommended=Math.max(1,Math.round(possible/target)||1);
+  const profile=getHenriCompetenceProfile(groupId);
+  const competenceCounts=allocateCompetenceCounts(recommended,profile.weights);
+  return {possible,target,recommended,coverage,profile,competenceCounts};
+}
+function distributeAnnualCourses(total,count){
+  count=Math.max(1,Number(count)||1);
+  total=Math.max(0,Number(total)||0);
+  const base=Math.floor(total/count);
+  const extra=total%count;
+  return Array.from({length:count},(_,i)=>Math.max(1,base+(i<extra?1:0)));
+}
+function updateAnnualRecommendation(forceCount=false){
+  if(!annualGroup||!annualTargetLength||!annualSequenceCount||!annualRecommendation)return;
+  const groupId=annualGroup.value||groupsData[0]?.id;
+  if(!groupId)return;
+  const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
+  const coverage=rec.coverage;
+  const loaded=rec.possible;
+  if(!coverage.complete){
+    annualPossible.textContent=loaded;
+    if(annualPossibleLabel) annualPossibleLabel.textContent='Périodes chargées';
+    annualSetupText.textContent='Les données chargées ne couvrent pas encore une année scolaire complète pour ce groupe.';
+    const range=coverage.first&&coverage.last?(formatPlanDate(coverage.first)+' au '+formatPlanDate(coverage.last)):'aucune plage annuelle complète';
+    annualRecommendation.classList.add('warning');
+    annualRecommendation.innerHTML='<strong>Calendrier annuel incomplet</strong><span>Henri voit actuellement '+loaded+' période'+(loaded>1?'s':'')+' pour ce groupe ('+range+'). Il ne fera pas de recommandation annuelle à partir de données partielles.</span>';
+    if(annualDataWarning) annualDataWarning.innerHTML='<div class="annualDataWarning"><span class="annualDataWarningDot"></span><span>Complète le calendrier scolaire et l’horaire maître dans Paramètres. Dès que l’année complète est chargée, Henri calculera automatiquement le nombre de séquences recommandé.</span></div>';
+    if(annualSuggestBtn){annualSuggestBtn.disabled=true;annualSuggestBtn.style.display='none'}
+    if(annualBuildBtn){
+      annualBuildBtn.disabled=false;
+      annualBuildBtn.textContent='Compléter dans Paramètres';
+      annualBuildBtn.onclick=()=>go('settings');
+    }
+    return;
+  }
+  annualRecommendation.classList.remove('warning');
+  if(annualDataWarning) annualDataWarning.innerHTML='';
+  if(annualPossibleLabel) annualPossibleLabel.textContent='Cours possibles';
+  if(annualSuggestBtn){annualSuggestBtn.disabled=false;annualSuggestBtn.style.display='none';annualSuggestBtn.onclick=useAnnualRecommendation}
+  if(annualBuildBtn){annualBuildBtn.disabled=false;annualBuildBtn.onclick=()=>applyAnnualStructure(false)}
+  if(forceCount||annualSequenceCount.dataset.manual!=='1') annualSequenceCount.value=rec.recommended;
+  const requested=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
+  const chosen=Math.min(requested,Math.max(1,rec.possible));
+  if(requested!==chosen) annualSequenceCount.value=chosen;
+  const distribution=distributeAnnualCourses(rec.possible,chosen);
+  const avg=chosen?(rec.possible/chosen):0;
+  const chosenCounts=allocateCompetenceCounts(chosen,rec.profile.weights);
+  const note=rec.profile.level.type==='preschool'
+    ? '<span class="annualRecNote">Au préscolaire, C1/C2/C3 servent ici de repères Henri pour structurer les activités motrices; ce ne sont pas les compétences officielles du programme-cycle.</span>'
+    : '<span class="annualRecNote">Répartition pédagogique Henri alignée au PFEQ/PDA. Le Ministère ne fixe pas un nombre officiel de séquences par compétence.</span>';
+  annualSetupText.textContent='Ce groupe a '+rec.possible+' période'+(rec.possible>1?'s':'')+' disponible'+(rec.possible>1?'s':'')+' dans l’année. Henri propose une structure adaptée à '+rec.profile.level.label+'.';
+  annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.profile.level.label+' · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+'</strong>'+
+    '<span>Durée cible : environ '+rec.target+' cours. Avec '+chosen+' séquence'+(chosen>1?'s':'')+', les '+rec.possible+' périodes sont utilisées (moyenne '+avg.toFixed(1).replace('.',',')+').</span>'+
+    '<span class="annualRecBreakdown"><span class="annualRecChip">C1 · '+chosenCounts.C1+'</span><span class="annualRecChip">C2 · '+chosenCounts.C2+'</span><span class="annualRecChip">C3 · '+chosenCounts.C3+'</span></span>'+note;
+  if(annualBuildBtn){
+    annualBuildBtn.textContent='Organiser mes séquences';
+  }
+}
+function useAnnualRecommendation(){
+  if(!annualGroup)return;
+  const rec=getAnnualRecommendation(annualGroup.value,annualTargetLength.value);
+  if(!rec.coverage.complete)return;
+  annualSequenceCount.value=rec.recommended;
+  annualSequenceCount.dataset.manual='0';
+  applyAnnualStructure(true);
+}
+function applyAnnualStructure(useRecommended=false){
+  const groupId=annualGroup?.value;
+  if(!groupId)return;
+  const existingBlocks=annualPlans[groupId]||[];
+  if(existingBlocks.length){
+    const requested=useRecommended?'la recommandation Henri':Math.max(1,Number(annualSequenceCount.value)||1)+' séquence'+(Number(annualSequenceCount.value)>1?'s':'');
+    const ok=confirm('Recréer la planification annuelle avec '+requested+' ?\n\nLes blocs actuels de ce groupe seront remplacés.');
+    if(!ok)return;
+  }
+  ensureAnnualPlan(groupId);
+  const coverage=getAnnualCoverageStatus(groupId);
+  if(!coverage.complete){go('settings');return}
+  const possible=getGroupCourseSlots(groupId);
+  if(possible<=0){alert('Aucune période disponible pour ce groupe. Vérifie d’abord l’horaire et le calendrier scolaire.');return}
+  const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
+  const count=Math.min(possible,Math.max(1,useRecommended?rec.recommended:(Number(annualSequenceCount.value)||1)));
+  annualSequenceCount.value=count;
+  const distribution=distributeAnnualCourses(possible,count);
+  const profile=getHenriCompetenceProfile(groupId);
+  const counts=allocateCompetenceCounts(count,profile.weights);
+  const competenceOrder=useRecommended?buildCompetenceOrder(counts):Array(count).fill('C2');
+  annualPlans[groupId]=distribution.map((courses,i)=>({
+    id:'a'+Date.now()+'-'+i,
+    comp:competenceOrder[i]||'C2',
+    sport:'À choisir',
+    courses,
+    lockedCourses:false,
+    henriRecommended:useRecommended
+  }));
+  delete scheduleConflictIgnores[groupId];
+  saveConflictIgnores();
+  saveAnnual();
+  rebuildPlanningAssignments();
+  if(annualManualWrap) annualManualWrap.classList.remove('show');
+  setAnnualWorkspaceVisible(true);
+  renderAnnualPlanner();
+}
+function getAnnualSportOptions(comp){
+  const suggestions={
+    C1:['Athlétisme','Badminton','Course','Gymnastique','Natation','Patinage'],
+    C2:['Badminton','Basketball','Dodgeball','Flag football','Futsal','Handball','Jeux de coopération','Judo','Kin-Ball','Lutte','Pickleball','Soccer','Tennis','Tennis de table','Ultimate','Volleyball'],
+    C3:['Conditionnement physique','Course / endurance','Musculation','Plein air']
+  };
+  const values=suggestions[comp]||[];
+  return '<option value="">Choisir un moyen d’action…</option>'+values.map(v=>'<option value="'+v+'">'+v+'</option>').join('')+'<option value="__other__">Autre…</option>';
+}
+function getAnnualObjectiveMarkup(block,saved){
+  if(!block.sport||block.sport==='À choisir')return '';
+  const list=getObjectiveSuggestions(block.sport,block.comp);
+  const current=block.objective||saved?.objective||list[0]||'';
+  const custom=!!current&&!list.includes(current);
+  return '<div class="annualPdaObjective"><label>Objectif · PDA · '+getPdaCategoryLabel(block.sport,block.comp)+'</label>'+
+    '<select aria-label="Objectif de la séquence" onchange="setAnnualBlockObjective(\''+block.id+'\',this.value)">'+
+    objectiveOptionsHTML(block.sport,block.comp,current)+'</select>'+
+    '<input id="annualObjectiveCustom-'+block.id+'" aria-label="Objectif personnalisé" placeholder="Écrire ton objectif" value="'+henriEscapeAttribute(custom?current:'')+'" style="display:'+(custom?'block':'none')+'" onchange="saveAnnualCustomObjective(\''+block.id+'\',this.value)"></div>';
+}
+function storeAnnualBlockObjective(block,objective){
+  block.objective=objective;
+  const saved=getSavedSequence(annualGroup.value,block.id);
+  if(saved){
+    saved.objective=objective;
+    setSavedSequence(annualGroup.value,block.id,saved);
+  }
+  if(activeSequence?.annualBlockId===block.id&&activeSequence?.groupId===annualGroup.value)activeSequence.objective=objective;
+  saveAnnual();
+}
+function setAnnualBlockObjective(id,value){
+  const block=(annualPlans[annualGroup.value]||[]).find(b=>b.id===id);
+  if(!block)return;
+  if(value==='__custom__'){
+    const input=document.getElementById('annualObjectiveCustom-'+id);
+    if(input){input.style.display='block';input.focus();}
+    return;
+  }
+  storeAnnualBlockObjective(block,value);
+  renderAnnualPlanner();
+}
+function saveAnnualCustomObjective(id,value){
+  const block=(annualPlans[annualGroup.value]||[]).find(b=>b.id===id);
+  if(!block)return;
+  storeAnnualBlockObjective(block,value.trim());
+}
+function updateAnnualObjectiveForSportOrComp(block,previous){
+  if(!block.objective||getObjectiveSuggestions(previous.sport,previous.comp).includes(block.objective))
+    block.objective=getObjectiveSuggestions(block.sport,block.comp)[0]||'';
+}
+function setAnnualBlockComp(id,value){
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!block||!['C1','C2','C3'].includes(value))return;
+  const previous={sport:block.sport,comp:block.comp};
+  block.comp=value;
+  updateAnnualObjectiveForSportOrComp(block,previous);
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+}
+function editAnnualCompInline(id){
+  const el=document.getElementById('annual-comp-'+id);
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!el||!block)return;
+  el.outerHTML='<select id="annual-comp-'+id+'" class="inlineCompSelect" onchange="setAnnualBlockComp(\''+id+'\',this.value)" onblur="renderAnnualPlanner()">'+
+    ['C1','C2','C3'].map(c=>'<option value="'+c+'"'+(c===block.comp?' selected':'')+'>'+c+' · '+planCompetenceNames[c]+'</option>').join('')+'</select>';
+  document.getElementById('annual-comp-'+id)?.focus();
+}
+function editAnnualSportInline(id){
+  const el=document.getElementById('annual-sport-'+id);
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!el||!block)return;
+  el.outerHTML='<select id="annual-sport-'+id+'" class="annualSportSelect editing" onchange="setAnnualBlockSport(\''+id+'\',this.value)" onblur="renderAnnualPlanner()">'+getAnnualSportOptions(block.comp)+'</select>';
+  document.getElementById('annual-sport-'+id)?.focus();
+}
+function setAnnualBlockSport(id,value){
+  if(!value)return;
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
+  if(!block)return;
+  const previous={sport:block.sport,comp:block.comp};
+  if(value==='__other__'){
+    const custom=prompt('Sport / moyen d’action','');
+    if(!custom||!custom.trim()){renderAnnualPlanner();return}
+    block.sport=custom.trim();
+  }else block.sport=value;
+  updateAnnualObjectiveForSportOrComp(block,previous);
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+}
+function renderAnnualPlanner(){
+  if(!annualGroup) return;
+  const groupId=annualGroup.value||groupsData[0]?.id;
+  if(!groupId) return;
+  ensureAnnualPlan(groupId);
+  updateAnnualRecommendation(false);
+  const possible=getGroupCourseSlots(groupId);
+  const blocks=annualPlans[groupId];
+  const ranges=getAnnualRanges(groupId,blocks);
+  const planned=blocks.reduce((n,b)=>n+Number(b.courses||0),0);
+  const balance=possible-planned;
+  const remaining=Math.max(0,balance);
+  const overflow=Math.max(0,-balance);
+  if(annualAddForm){
+    annualAddForm.style.display=remaining>0?'block':'none';
+    if(remaining>0&&annualCourses) annualCourses.value=Math.min(12,remaining);
+  }
+  const placed=Math.min(planned,possible);
+  const coverage=possible?Math.min(100,Math.round((placed/possible)*100)):0;
+  annualPossible.textContent=possible;
+  annualPlanned.textContent=planned;
+  annualRemaining.textContent=balance>0?'+'+balance:String(balance);
+  const remainingCard=annualRemaining.closest('.planStat');
+  if(remainingCard){
+    remainingCard.classList.remove('balance-positive','balance-negative','balance-zero');
+    remainingCard.classList.add(balance>0?'balance-positive':balance<0?'balance-negative':'balance-zero');
+  }
+  if(annualCoverageText) annualCoverageText.textContent=overflow
+    ? planned+' / '+possible+' planifiés · '+overflow+' période'+(overflow>1?'s':'')+' de trop'
+    : balance>0
+      ? planned+' / '+possible+' planifiés · '+balance+' période'+(balance>1?'s':'')+' à attribuer'
+      : planned+' / '+possible+' planifiés · année complète';
+  if(annualProgressFill) annualProgressFill.style.width=coverage+'%';
+  const overview=annualCoverageText?.closest('.annualOverview');
+  const track=annualProgressFill?.closest('.annualProgressTrack');
+  if(overview) overview.classList.toggle('over-budget',overflow>0);
+  if(track) track.classList.toggle('over-budget',overflow>0);
+  if(annualSyncText){
+    annualSyncText.textContent=overflow
+      ? 'La planification dépasse de '+overflow+' cours les périodes disponibles. Henri conserve l’ordre et te montre quoi ajuster.'
+      : remaining
+        ? remaining+' cours restent disponibles. Déplace un bloc et toutes les dates suivantes se recalculent.'
+        : 'Toute l’année disponible est placée. Déplace un bloc et toutes les dates suivantes se recalculent.';
+  }
+  if(annualConflict) annualConflict.innerHTML=renderScheduleConflict(groupId);
+  annualList.innerHTML=blocks.map((b,i)=>{
+    const r=ranges[i];
+    const saved=getSavedSequence(groupId,b.id);
+    const isOverflow=r.allocated<r.needed;
+    const pct=r.needed?Math.round((r.allocated/r.needed)*100):100;
+    let datesText='À placer';
+    if(r.start&&r.end){
+      datesText=r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end);
+      if(isOverflow) datesText+=' · '+(r.needed-r.allocated)+' sans date';
+    }
+    const needsChoice=b.sport==='À choisir';
+    const status=isOverflow?'Sans date':needsChoice?'À compléter':saved?'Séquence prête':'À planifier';
+    const statusClass=isOverflow?' warn':saved?' ready':'';
+    return '<div class="annualItem'+(isOverflow?' overflow':'')+'" draggable="true" data-id="'+b.id+'">'+
+      '<div class="annualTop">'+
+        '<button class="dragHandle" type="button" aria-label="Glisser '+b.sport+'" data-drag-id="'+b.id+'">≡</button>'+
+        '<div class="annualMain">'+
+          '<div class="annualHeaderLine"><button id="annual-comp-'+b.id+'" class="compBadge editable" onclick="editAnnualCompInline(\''+b.id+'\')" aria-label="Modifier la compétence">'+b.comp+' · '+planCompetenceNames[b.comp]+'</button><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
+          '<div class="annualSequenceLabel">'+(groupsData.find(g=>g.id===groupId)?.name||'Groupe')+' · Séquence '+(i+1)+'</div>'+
+          (needsChoice?'<select id="annual-sport-'+b.id+'" class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<button id="annual-sport-'+b.id+'" class="annualSport editable" onclick="editAnnualSportInline(\''+b.id+'\')" aria-label="Modifier le moyen d’action">'+b.sport+'</button>')+
+          '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+getAnnualObjectiveMarkup(b,saved)+
+          '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours'+(!b.lockedCourses?'<small class="annualAutoNote"> auto</small>':'')+'</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
+          '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
+        '</div>'+
+        '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
+      '</div>'+
+      '<div class="itemActions">'+
+        (needsChoice?'':'<button class="itemBtn primary" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+(saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>')+
+        '<button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button>'+
+        '<button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  setupAnnualDrag();
+}
+let henriSyncBusy=false;
+function henriPersistSharedState(){
+  try{
+    localStorage.setItem('previewHenriSlate:henriAnnualPlans',JSON.stringify(annualPlans));
+    localStorage.setItem('previewHenriSlate:henriSequences',JSON.stringify(savedSequences));
+    localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
+    localStorage.setItem('previewHenriSlate:henriCalendarExceptions',JSON.stringify(calendarExceptions));
+    if(typeof groupsData!=='undefined')localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
+    if(activeSequence)localStorage.setItem('previewHenriSlate:henriActiveSequence',JSON.stringify(activeSequence));
+  }catch(e){}
+}
+function henriSyncSharedData(options={}){
+  if(henriSyncBusy)return;
+  henriSyncBusy=true;
+  try{
+    henriPersistSharedState();
+    if(typeof rebuildPlanningAssignments==='function')rebuildPlanningAssignments();
+    if(typeof fillPlanGroupSelects==='function')fillPlanGroupSelects();
+    if(typeof fillExceptionGroupOptions==='function')fillExceptionGroupOptions();
+    if(typeof renderGroups==='function')renderGroups();
+    if(typeof renderCalendarExceptions==='function')renderCalendarExceptions();
+    if(typeof fillTeamBuilderGroups==='function')fillTeamBuilderGroups();
+    if(typeof renderTeamAttendance==='function'&&document.getElementById('teamBuilder')?.classList.contains('active'))renderTeamAttendance();
+    if(typeof renderMacroSequences==='function'&&document.getElementById('sequenceSetup')?.classList.contains('active'))renderMacroSequences();
+    if(typeof renderAnnualPlanner==='function'&&document.getElementById('annualPlanner')?.classList.contains('active'))renderAnnualPlanner();
+    if(typeof renderSequenceEditor==='function'&&activeSequence&&document.getElementById('sequenceEditor')?.classList.contains('active')&&!options.skipSequenceEditor)renderSequenceEditor();
+    if(typeof renderMonth==='function')renderMonth();
+    if(typeof renderWeek==='function')renderWeek();
+  }finally{
+    henriSyncBusy=false;
+  }
+}
+function henriSyncSequenceToAnnual(){
+  if(activeSequence?.startCourseKey){savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));return}
+  if(!activeSequence?.annualBlockId)return;
+  const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
+  if(!block)return;
+  block.comp=activeSequence.comp;
+  block.sport=activeSequence.sport;
+  block.objective=activeSequence.objective||'';
+  block.courses=activeSequence.sessions?.length||block.courses;
+  savedSequences[sequenceStorageKey(activeSequence.groupId,activeSequence.annualBlockId)]=JSON.parse(JSON.stringify(activeSequence));
+}
+function saveAnnual(){
+  localStorage.setItem('previewHenriSlate:henriAnnualPlans',JSON.stringify(annualPlans));
+  if(annualGroup?.value){
+    delete scheduleConflictIgnores[annualGroup.value];
+    saveConflictIgnores();
+  }
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+  if(typeof henriBankStoreAnnual==='function'&&annualGroup?.value)henriBankStoreAnnual(annualGroup.value,annualPlans[annualGroup.value]||[]).catch(henriBankWarn);
+}
+function addAnnualBlock(){
+  const groupId=annualGroup.value;
+  ensureAnnualPlan(groupId);
+  const courses=Math.max(1,Number(annualCourses.value)||1);
+  const id='a'+Date.now();
+  annualPlans[groupId].push({id,comp:annualComp.value,sport:annualSport.value,objective:getObjectiveSuggestions(annualSport.value,annualComp.value)[0]||'',courses,lockedCourses:true});
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
+}
+function rebalanceAnnualDurations(groupId,changedId=null,requestedCourses=null){
+  const blocks=annualPlans[groupId]||[];
+  const total=getGroupCourseSlots(groupId);
+  if(!blocks.length||total<=0)return false;
+
+  const snapshot=blocks.map(b=>({courses:b.courses,lockedCourses:b.lockedCourses}));
+  const changed=changedId?blocks.find(b=>b.id===changedId):null;
+  if(changed&&requestedCourses!==null){
+    changed.courses=Math.max(1,Math.min(20,Number(requestedCourses)||1));
+    changed.lockedCourses=true;
+  }
+
+  let locked=blocks.filter(b=>b.lockedCourses);
+  let unlocked=blocks.filter(b=>!b.lockedCourses);
+
+  if(!unlocked.length&&blocks.length>1){
+    const fallback=blocks.slice().reverse().find(b=>b.id!==changedId)||blocks[0];
+    fallback.lockedCourses=false;
+    locked=blocks.filter(b=>b.lockedCourses);
+    unlocked=blocks.filter(b=>!b.lockedCourses);
+  }
+
+  const lockedTotal=locked.reduce((sum,b)=>sum+Number(b.courses||0),0);
+  const remaining=total-lockedTotal;
+  if(remaining<unlocked.length||remaining<0){
+    blocks.forEach((b,i)=>{
+      b.courses=snapshot[i].courses;
+      b.lockedCourses=snapshot[i].lockedCourses;
+    });
+    return false;
+  }
+
+  if(unlocked.length){
+    const distribution=distributeAnnualCourses(remaining,unlocked.length);
+    unlocked.forEach((b,i)=>b.courses=distribution[i]);
+  }else if(blocks.length===1){
+    blocks[0].courses=total;
+  }
+  return true;
+}
+function adjustAnnualCourses(id,delta){
+  const groupId=annualGroup.value;
+  const b=(annualPlans[groupId]||[]).find(x=>x.id===id);
+  if(!b)return;
+  b.courses=Math.max(1,Math.min(20,Number(b.courses||1)+delta));
+  b.lockedCourses=true;
+  delete scheduleConflictIgnores[groupId];
+  saveConflictIgnores();
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+}
+function editAnnualBlock(id){
+  const groupId=annualGroup.value, b=(annualPlans[groupId]||[]).find(x=>x.id===id);if(!b)return;
+  const previous={sport:b.sport,comp:b.comp};
+  const sport=prompt('Sport / moyen d’action',b.sport==='À choisir'?'':b.sport);if(sport!==null&&sport.trim())b.sport=sport.trim();
+  const comp=prompt('Compétence : C1, C2 ou C3',b.comp);
+  if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
+  updateAnnualObjectiveForSportOrComp(b,previous);
+  const n=prompt('Nombre de cours',b.courses);
+  if(n!==null&&Number(n)>0){
+    b.courses=Math.max(1,Math.min(20,Number(n)));
+    b.lockedCourses=true;
+  }
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
+}
+function deleteAnnualBlock(id){
+  const groupId=annualGroup.value;
+  const block=(annualPlans[groupId]||[]).find(x=>x.id===id);
+  if(!block)return;
+  if(!confirm('Supprimer cette séquence de la planification annuelle?'))return;
+  annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
+  delete savedSequences[sequenceStorageKey(groupId,id)];
+  if(savedSequences[id]?.groupId===groupId) delete savedSequences[id];
+  localStorage.setItem('previewHenriSlate:henriSequences',JSON.stringify(savedSequences));
+  if(activeSequence?.annualBlockId===id&&activeSequence?.groupId===groupId){
+    activeSequence=null;
+    localStorage.removeItem('previewHenriSlate:henriActiveSequence');
+  }
+  saveAnnual();
+  rebuildPlanningAssignments();
+  renderAnnualPlanner();
+}
+
+function moveAnnualBlock(id,delta){
+  const groupId=annualGroup.value;
+  const blocks=annualPlans[groupId]||[];
+  const i=blocks.findIndex(b=>b.id===id), j=i+delta;
+  if(i<0||j<0||j>=blocks.length) return;
+  [blocks[i],blocks[j]]=[blocks[j],blocks[i]];
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
+}
+function commitAnnualDomOrder(){
+  const groupId=annualGroup.value;
+  const blocks=annualPlans[groupId]||[];
+  const ids=[...annualList.querySelectorAll('.annualItem')].map(el=>el.dataset.id);
+  annualPlans[groupId]=ids.map(id=>blocks.find(b=>b.id===id)).filter(Boolean);
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
+}
+function setupAnnualDrag(){
+  if(!annualList) return;
+  let dragged=null;
+
+  annualList.querySelectorAll('.annualItem').forEach(item=>{
+    item.addEventListener('dragstart',e=>{
+      if(e.target.closest('button')&&!e.target.closest('.dragHandle')){e.preventDefault();return}
+      dragged=item;
+      item.classList.add('dragging');
+      if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',item.dataset.id)}
+    });
+    item.addEventListener('dragover',e=>{
+      if(!dragged||dragged===item)return;
+      e.preventDefault();
+      const rect=item.getBoundingClientRect();
+      const before=e.clientY<rect.top+rect.height/2;
+      annualList.insertBefore(dragged,before?item:item.nextSibling);
+    });
+    item.addEventListener('drop',e=>e.preventDefault());
+    item.addEventListener('dragend',()=>{
+      if(!dragged)return;
+      dragged.classList.remove('dragging');
+      dragged=null;
+      commitAnnualDomOrder();
+    });
+  });
+
+  annualList.querySelectorAll('.dragHandle').forEach(handle=>{
+    let activeItem=null;
+    let pointerId=null;
+    const onMove=e=>{
+      if(!activeItem||e.pointerId!==pointerId)return;
+      const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.annualItem');
+      if(!target||target===activeItem||target.parentElement!==annualList)return;
+      const rect=target.getBoundingClientRect();
+      const before=e.clientY<rect.top+rect.height/2;
+      annualList.insertBefore(activeItem,before?target:target.nextSibling);
+    };
+    const onUp=e=>{
+      if(!activeItem||e.pointerId!==pointerId)return;
+      activeItem.classList.remove('dragging');
+      try{handle.releasePointerCapture(pointerId)}catch(_){}
+      activeItem=null;pointerId=null;
+      handle.removeEventListener('pointermove',onMove);
+      handle.removeEventListener('pointerup',onUp);
+      handle.removeEventListener('pointercancel',onUp);
+      commitAnnualDomOrder();
+    };
+    handle.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='mouse'&&e.button!==0)return;
+      activeItem=handle.closest('.annualItem');
+      pointerId=e.pointerId;
+      activeItem.classList.add('dragging');
+      handle.setPointerCapture(pointerId);
+      handle.addEventListener('pointermove',onMove);
+      handle.addEventListener('pointerup',onUp);
+      handle.addEventListener('pointercancel',onUp);
+    });
+  });
+}
+
+function openCalendarAtDate(date){
+  if(date){
+    const d=new Date(date+'T12:00:00');
+    shownYear=d.getFullYear();
+    shownMonth=d.getMonth();
+  }
+  renderMonth();
+  renderWeek();
+  go('home');
+  setCalendarView('month');
+}
+function openAnnualCalendar(){
+  const groupId=annualGroup?.value||groupsData[0]?.id;
+  const first=getGroupCourseDates(groupId)[0]||null;
+  openCalendarAtDate(first);
+}
+function openAnnualBlockCalendar(groupId,blockId){
+  ensureAnnualPlan(groupId);
+  const blocks=annualPlans[groupId]||[];
+  const index=blocks.findIndex(b=>b.id===blockId);
+  const range=getAnnualRanges(groupId,blocks)[index];
+  openCalendarAtDate(range?.start||getGroupCourseDates(groupId)[0]||null);
+}
+function saveIndividualSessions(){
+  localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+}
+function rebuildPlanningAssignments(){rebuildCalendarPlanning();}
+
+function saveAnnualAndPlanSequences(){
+  const groupId=annualGroup?.value;
+  if(!groupId)return;
+  const blocks=annualPlans[groupId]||[];
+  if(!blocks.length)return;
+  if(blocks.some(b=>!b.sport||b.sport==='À choisir')){
+    alert('Choisis un moyen d’action pour chaque séquence avant d’enregistrer la planification annuelle.');
+    return;
+  }
+  saveAnnual();
+  rebuildPlanningAssignments();
+  fillPlanGroupSelects();
+  if(seqGroup) seqGroup.value=groupId;
+  renderMacroSequences();
+  go('sequenceSetup');
+}
+function openSequenceSetup(){
+  fillPlanGroupSelects();
+  renderMacroSequences();
+  go('sequenceSetup');
+}
+function renderMacroSequences(){
+  if(!seqGroup||!macroSequenceList) return;
+  const groupId=seqGroup.value||groupsData[0]?.id;
+  if(!groupId) return;
+  ensureAnnualPlan(groupId);
+  const blocks=annualPlans[groupId]||[];
+  const ranges=getAnnualRanges(groupId,blocks);
+  if(!blocks.length){
+    macroSequenceList.innerHTML='<div class="placeholder">Aucun sport dans la planification annuelle de ce groupe.</div>';
+    return;
+  }
+  macroSequenceList.innerHTML=blocks.map((b,i)=>{
+    const r=ranges[i];
+    const range=r.start&&r.end?(r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end)):'Dates à venir';
+    const saved=getSavedSequence(groupId,b.id);
+    return '<button class="macroSeqCard" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+
+      '<span><span class="compBadge">'+b.comp+'</span><span class="macroSeqSport">'+b.sport+'</span><span class="macroSeqMeta">'+b.courses+' cours · '+range+'</span><span class="seqStatus'+(saved?' ready':'')+'">'+(saved?'Séquence enregistrée':'À planifier')+'</span></span>'+
+      '<span class="groupArrow">›</span>'+
+    '</button>';
+  }).join('');
+}
+function openMacroSequence(groupId,blockId){
+  selectedAnnualGroupId=groupId;
+  selectedAnnualBlockId=blockId;
+  const blocks=annualPlans[groupId]||[];
+  const block=blocks.find(b=>b.id===blockId);
+  if(!block) return;
+  const i=blocks.findIndex(b=>b.id===blockId);
+  const range=getAnnualRanges(groupId,blocks)[i];
+  const group=groupsData.find(g=>g.id===groupId);
+  const rangeText=range?.start&&range?.end?(range.start===range.end?formatPlanDate(range.start):formatPlanDate(range.start)+' au '+formatPlanDate(range.end)):'Dates à venir';
+  sequenceChoiceHero.innerHTML='<small>'+block.comp+' · '+planCompetenceNames[block.comp]+'</small><h2>'+block.sport+'</h2><p>'+group.name+' · '+block.courses+' cours · '+rangeText+'</p>';
+  const saved=getSavedSequence(groupId,blockId);
+  existingSequenceAction.innerHTML=saved?'<button class="planPrimary" onclick="continueSavedSequence()">Continuer / modifier ma séquence</button>':'';
+  go('sequenceChoice');
+}
+function continueSavedSequence(){
+  const saved=getSavedSequence(selectedAnnualGroupId,selectedAnnualBlockId);
+  if(!saved) return;
+  activeSequence=JSON.parse(JSON.stringify(saved));
+  renderSequenceEditor();
+  go('sequenceEditor');
+}
+function createSequenceFromMacro(useHenri){
+  const blocks=annualPlans[selectedAnnualGroupId]||[];
+  const block=blocks.find(b=>b.id===selectedAnnualBlockId);
+  const group=groupsData.find(g=>g.id===selectedAnnualGroupId);
+  if(!block||!group) return;
+  activeSequence=makeSequence({
+    comp:block.comp,
+    sport:block.sport,
+    groupId:selectedAnnualGroupId,
+    groupName:group.name,
+    count:Number(block.courses),
+    duration:'70 min',
+    annualBlockId:block.id,
+    useHenri
+  });
+  activeSequence.objective=block.objective||getObjectiveSuggestions(block.sport,block.comp)[0]||'';
+  activeSequence.bankCreationMode=useHenri?'Planification Henri':'Création manuelle';
+  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(henriBankWarn);
+  renderSequenceEditor();
+  go('sequenceEditor');
+}
+function openStandaloneSequence(){fillPlanGroupSelects();go('standaloneSequence')}
+function returnFromSequenceEditor(){if(calendarPlanEditing){calendarPlanEditing=false;openDayPlan(calendarCourseContext.date);return}go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
+// Objectifs élaborés à partir de la PDA EPS secondaire (MÉQ, 2010), C1, C2 et C3.
+// Source : https://cdn-contenu.quebec.ca/cdn-contenu/education/pfeq/secondaire/progressions-apprentissages/PFEQ-progression-apprentissages-education-physique-secondaire.pdf
+// Ce sont des formulations pédagogiques inspirées de la PDA, pas des citations officielles.
+const HENRI_PDA_FAMILIES={
+  cooperation:{label:'Activités de coopération',sports:['Jeux de coopération','Coopération','Relais','Course à relais','Acrosport','Parcours coopératif']},
+  combat:{label:'Activités de combat',sports:['Lutte','Judo','Autodéfense','Auto-défense','Combat de dos','Arts martiaux']},
+  duel:{label:'Activités de duel',sports:['Badminton','Pickleball','Tennis','Tennis de table','Ping-pong','Squash','Escrime','Racquetball']},
+  distinct:{label:'Activités collectives en espace distinct',sports:['Volleyball','Volley-ball','Volleyball de plage','Sepak takraw']},
+  commun:{label:'Activités collectives en espace commun',sports:['Ultimate','Ultimate frisbee','Frisbee ultime','Basketball','Basket-ball','Soccer','Futsal','Football','Flag football','Handball','Hockey','Hockey cosom','Hockey-balle','Floorball','Rugby','Kin-Ball','Kinball','Tchoukball','Dodgeball','Ballon chasseur','Poull Ball','Pool ball']}
+};
+function normalizeHenriSport(value){
+  return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+function getPdaSportFamily(sport){
+  const key=normalizeHenriSport(sport);
+  for(const [family,group] of Object.entries(HENRI_PDA_FAMILIES))
+    if(group.sports.some(name=>normalizeHenriSport(name)===key))return family;
+  return 'general';
+}
+function getPdaCategoryLabel(sport,comp){
+  if(comp==='C1')return 'C1 · Actions motrices';
+  if(comp==='C3')return 'C3 · Mode de vie sain et actif';
+  const family=getPdaSportFamily(sport);
+  return family==='general'?'C2 · Principes communs':HENRI_PDA_FAMILIES[family].label;
+}
+const HENRI_PDA_OBJECTIVES={
+  C1:[
+    'Exécuter des actions motrices avec une technique adaptée à l’activité pratiquée.',
+    'Maintenir ou rétablir son équilibre dans différentes situations motrices.',
+    'Coordonner ses mouvements et ajuster sa posture selon les contraintes de l’activité.',
+    'Enchaîner des actions de locomotion, de non-locomotion ou de manipulation avec contrôle.',
+    'Observer ses mouvements et apporter les ajustements techniques nécessaires.'
+  ],
+  C3:[
+    'Élaborer un plan personnel pour développer ou maintenir sa condition physique.',
+    'Adapter l’intensité et la durée de l’effort en fonction de ses capacités.',
+    'Exécuter des exercices de façon sécuritaire et reconnaître les effets de l’effort.',
+    'Décrire des moyens d’améliorer l’endurance, la force ou la flexibilité.',
+    'Identifier des stratégies pour adopter et maintenir un mode de vie physiquement actif.'
+  ],
+  C2:{
+    cooperation:[
+      'Se placer et se déplacer en fonction des actions de ses coéquipiers.',
+      'Adapter la force, la vitesse et la direction de ses mouvements à celles de ses partenaires.',
+      'Synchroniser ses actions avec ses partenaires pour réaliser une tâche commune.',
+      'Communiquer clairement et assumer un rôle de soutien dans l’action collective.'
+    ],
+    combat:[
+      'Déséquilibrer son adversaire en utilisant le placement et les déplacements.',
+      'Profiter du déséquilibre de l’adversaire pour réaliser une action offensive.',
+      'Maintenir son équilibre et réagir aux actions offensives de l’adversaire.',
+      'Varier la force, la vitesse et la direction de ses actions tout en respectant la sécurité.'
+    ],
+    duel:[
+      'Exploiter la largeur et la longueur du terrain pour déplacer l’adversaire.',
+      'Récupérer rapidement l’objet afin de poursuivre l’échange.',
+      'Se replacer dans l’espace stratégique pour préparer l’action suivante.',
+      'Attaquer au moment opportun en fonction du placement de l’adversaire.',
+      'Utiliser une feinte pour provoquer une réaction de l’adversaire.',
+      'Prendre l’adversaire à contre-pied en variant la direction de l’attaque.'
+    ],
+    distinct:[
+      'Se placer selon la trajectoire de l’objet pour le récupérer.',
+      'Protéger son territoire en se déplaçant selon l’attaquant et ses partenaires.',
+      'Faire circuler l’objet dans son territoire pour préparer une attaque.',
+      'Faire progresser l’objet vers le territoire adverse.',
+      'Varier la direction et la vitesse des projections pour exploiter les espaces libres.',
+      'Communiquer et se coordonner avec les partenaires pour assurer la continuité du jeu.'
+    ],
+    commun:[
+      'Se démarquer de l’adversaire pour offrir une option de passe.',
+      'Exploiter l’espace libre pour favoriser la progression vers la cible.',
+      'Faire circuler l’objet en adaptant la direction et la vitesse des passes.',
+      'Attaquer la cible adverse au moment opportun.',
+      'Récupérer l’objet et organiser une contre-attaque.',
+      'Marquer le porteur ou un non-porteur pour limiter les options adverses.',
+      'Effectuer un repli défensif et protéger la cible ou le but.',
+      'Ajuster ses déplacements selon les partenaires, les adversaires et l’objet.'
+    ],
+    general:[
+      'Émettre des messages clairs et adaptés à l’activité pratiquée.',
+      'Synchroniser ses actions avec celles des partenaires ou des adversaires.',
+      'Assumer son rôle et ajuster ses actions selon le plan établi.',
+      'Évaluer avec ses partenaires le plan d’action et les ajustements à apporter.'
+    ]
+  }
+};
+function getObjectiveSuggestions(sport,comp){
+  if(comp==='C1'||comp==='C3')return [...HENRI_PDA_OBJECTIVES[comp]];
+  return [...HENRI_PDA_OBJECTIVES.C2[getPdaSportFamily(sport)]];
+}
+function henriEscapeAttribute(value){
+  return String(value||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function objectiveOptionsHTML(sport,comp,current=''){
+  const suggestions=getObjectiveSuggestions(sport,comp);
+  const isSuggested=suggestions.includes(current);
+  return '<option value="__custom__"'+(!isSuggested&&current?' selected':'')+'>Personnaliser…</option>'+
+    suggestions.map(v=>'<option value="'+v.replace(/"/g,'&quot;')+'"'+(v===current?' selected':'')+'>'+v+'</option>').join('');
+}
+function renderObjectiveSelector(kind,current=''){
+  let select,custom,wrap,sport,comp;
+  if(kind==='sequence'){
+    select=document.getElementById('sequenceObjectiveSelect');custom=document.getElementById('sequenceObjectiveCustom');wrap=document.getElementById('sequenceObjectiveCustomWrap');
+    sport=activeSequence?.sport;comp=activeSequence?.comp;
+  }else if(kind==='session'){
+    select=document.getElementById('sessionObjectiveSelect');custom=document.getElementById('sessionObjectiveCustom');wrap=document.getElementById('sessionObjectiveCustomWrap');
+    sport=sessionEditorSource==='quick'?quickSessionData?.sport:activeSequence?.sport;
+    comp=sessionEditorSource==='quick'?(quickSessionData?.comp||'C2'):activeSequence?.comp;
+  }else{
+    select=document.getElementById('quickObjective');custom=document.getElementById('quickObjectiveCustom');wrap=document.getElementById('quickObjectiveCustomWrap');
+    sport=quickSport?.value;comp=quickComp?.value||'C2';
+  }
+  if(!select)return;
+  const suggestions=getObjectiveSuggestions(sport,comp);
+  const matched=suggestions.includes(current);
+  select.innerHTML=objectiveOptionsHTML(sport,comp,current);
+  if(current&&matched)select.value=current;
+  else select.value=current?'__custom__':(suggestions[0]||'__custom__');
+  if(custom)custom.value=matched?'':(current||'');
+  if(wrap)wrap.style.display=select.value==='__custom__'?'':'none';
+  const category=document.getElementById(kind+'PdaCategory');
+  if(category)category.textContent='PDA · '+getPdaCategoryLabel(sport,comp);
+}
+function handleObjectiveChoice(kind,value){
+  let wrap,custom;
+  if(kind==='sequence'){wrap=sequenceObjectiveCustomWrap;custom=sequenceObjectiveCustom}
+  else if(kind==='session'){wrap=sessionObjectiveCustomWrap;custom=sessionObjectiveCustom}
+  else{wrap=quickObjectiveCustomWrap;custom=quickObjectiveCustom}
+  if(value==='__custom__'){
+    wrap.style.display='';
+    setTimeout(()=>custom?.focus(),50);
+    return;
+  }
+  wrap.style.display='none';
+  if(kind==='sequence'&&activeSequence)activeSequence.objective=value;
+  else if(kind==='session'){const s=currentEditableSession();if(s)s.objective=value}
+  if(kind==='sequence'||kind==='session'){
+    henriSyncSequenceToAnnual();
+    henriPersistSharedState();
+    if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+  }
+}
+function saveCustomObjective(kind,value){
+  const clean=value.trim();
+  if(kind==='sequence'&&activeSequence)activeSequence.objective=clean;
+  else if(kind==='session'){const s=currentEditableSession();if(s)s.objective=clean}
+  henriSyncSequenceToAnnual();
+  henriPersistSharedState();
+}
+function handleQuickSportChange(){
+  if(quickComp){quickComp.value=['Conditionnement physique','Musculation','Course / endurance'].includes(quickSport.value)?'C3':'C2';}
+  refreshQuickObjectiveOptions();
+}
+function refreshQuickObjectiveOptions(){
+  renderObjectiveSelector('quick','');
+}
+function defaultBlockSet(comp){
+  if(comp==='C1') return [
+    {type:'Échauffement',title:'Activation liée au thème',minutes:7},
+    {type:'Éducatif 1',title:'À planifier',minutes:12},
+    {type:'Éducatif 2',title:'À planifier',minutes:15},
+    {type:'Prestation / enchaînement moteur',title:'À planifier',minutes:30}
+  ];
+  if(comp==='C2') return [
+    {type:'Échauffement',title:'Activation liée au thème',minutes:7},
+    {type:'Éducatif 1',title:'À planifier',minutes:10},
+    {type:'Éducatif 2',title:'À planifier',minutes:15},
+    {type:'Situation de partie',title:'À planifier',minutes:32}
+  ];
+  return [
+    {type:'Échauffement',title:'Activation liée au thème',minutes:7},
+    {type:'Éducatif 1',title:'À planifier',minutes:12},
+    {type:'Éducatif 2',title:'À planifier',minutes:15},
+    {type:'Situation d’intégration',title:'À planifier',minutes:30}
+  ];
+}
+function henriSequencePlan(sport,count){
+  const plans={
+    'Ultimate':[
+      ['Créer des options de passe','Se rendre disponible et occuper l’espace libre.'],
+      ['Se démarquer efficacement','Créer une séparation avant de recevoir.'],
+      ['Enchaîner passes et déplacements','Synchroniser les actions avec les partenaires.'],
+      ['Défendre les espaces','Marquer et protéger les corridors de passe.'],
+      ['Élaborer une stratégie','Observer, décider et ajuster collectivement.']
+    ],
+    'Badminton':[
+      ['Contrôler l’échange','Stabiliser les frappes et le replacement.'],
+      ['Créer de la profondeur','Utiliser le dégagement pour repousser l’adversaire.'],
+      ['Déplacer l’adversaire','Alterner profondeur et largeur.'],
+      ['Construire le point','Choisir une frappe selon la position adverse.'],
+      ['Réinvestir en match','Adapter ses choix dans une opposition réelle.']
+    ],
+    'Flag football':[
+      ['Occuper l’espace libre','Offrir une solution au porteur.'],
+      ['Se démarquer','Créer une séparation avec son défenseur.'],
+      ['Synchroniser les tracés','Coordonner les déplacements offensifs.'],
+      ['Défendre les corridors','Fermer les options de passe.'],
+      ['Ajuster une stratégie','Lire le jeu et modifier les choix collectifs.']
+    ]
+  };
+  return Array.from({length:count},(_,i)=>{
+    const source=plans[sport]?.[i%Math.min(plans[sport]?.length||1,count)];
+    return source||['Cours '+(i+1)+' · '+sport,'Progresser dans le principe ciblé de la séquence.'];
+  });
+}
+function makeSequence({comp,sport,groupId,groupName,count,duration,annualBlockId=null,useHenri=false}){
+  const suggested=henriSequencePlan(sport,count);
+  return {
+    id:'seq-'+Date.now(),annualBlockId,comp,sport,groupId,groupName,duration,
+    objective:getObjectiveSuggestions(sport,comp)[0]||'',
+    sessions:
+    Array.from({length:count},(_,i)=>({
+      title:useHenri?suggested[i][0]:'Cours '+(i+1)+' · '+sport,
+      objective:getObjectiveSuggestions(sport,comp)[i%getObjectiveSuggestions(sport,comp).length]||'Objectif à préciser.',
+      blocks:defaultBlockSet(comp).map(b=>({...b}))
+    }))
+  };
+}
+function createSequenceFromTemplate(){buildStandaloneSequence(false)}
+function generateSequenceDemo(){buildStandaloneSequence(true)}
+function buildStandaloneSequence(useHenri){
+  const group=groupsData.find(g=>g.id===standaloneSeqGroup.value);
+  activeSequence=makeSequence({
+    comp:seqComp.value,sport:seqSport.value,groupId:standaloneSeqGroup.value,groupName:group?.name||'',
+    count:Number(seqCount.value),duration:seqDuration.value,useHenri
+  });
+  activeSequence.bankCreationMode=useHenri?'Planification Henri':'Création manuelle';
+  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(henriBankWarn);
+  renderSequenceEditor();go('sequenceEditor');
+}
+function getSequenceDates(sequence){return getSequenceOccurrences(sequence).map(slot=>slot.date);}
+
+function formatSequenceDate(date){
+  if(!date) return 'Sans date';
+  const d=new Date(date+'T12:00:00');
+  return dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()];
+}
+function openSequenceCalendar(){
+  if(!activeSequence) return;
+  const dates=getSequenceDates(activeSequence);
+  openCalendarAtDate(dates[0]||null);
+}
+function changeActiveSequenceComp(value){
+  if(!activeSequence||!['C1','C2','C3'].includes(value))return;
+  activeSequence.comp=value;
+  const currentObjective=activeSequence.objective||'';
+  const suggestions=getObjectiveSuggestions(activeSequence.sport,value);
+  if(!currentObjective||getObjectiveSuggestions(activeSequence.sport,'C1').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C2').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C3').includes(currentObjective)){
+    activeSequence.objective=suggestions[0]||currentObjective;
+  }
+  henriSyncSequenceToAnnual();
+  henriSyncSharedData({skipSequenceEditor:true});
+  renderSequenceEditor();
+}
+function renderSequenceEditor(){
+  if(!activeSequence)return;
+  const occurrences=getSequenceOccurrences(activeSequence);
+  const dates=occurrences.map(slot=>slot.date);
+  renderSequenceDatePlacement();
+  const isScheduled=Boolean(activeSequence.annualBlockId||activeSequence.startCourseKey);
+  const placed=isScheduled?Math.min(dates.length,activeSequence.sessions.length):activeSequence.sessions.length;
+  const total=activeSequence.sessions.length;
+  const pct=total?Math.round((placed/total)*100):0;
+  const first=dates[0]||null;
+  const last=dates[Math.min(dates.length,total)-1]||null;
+  const rangeText=first&&last?(first===last?formatPlanDate(first):formatPlanDate(first)+' au '+formatPlanDate(last)):'Hors calendrier';
+  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+total+' cours · '+activeSequence.duration+' · '+rangeText+'</p>';
+  if(sequenceCompSelect){
+    sequenceCompSelect.value=activeSequence.comp;
+  }
+  sequenceOverview.innerHTML=
+    '<div class="seqOverviewTop"><strong>Progression de la séquence</strong><span>'+(isScheduled?placed+' / '+total+' cours placés':total+' cours')+'</span></div>'+
+    '<div class="seqProgressTrack"><span style="width:'+pct+'%"></span></div>'+
+    '<div class="seqOverviewFoot"><span>'+(isScheduled?(placed===total?'Toutes les séances ont une date dans le calendrier.':(total-placed)+' séance'+(total-placed>1?'s':'')+' sans date.'):'Séquence indépendante · les dates seront attribuées lorsqu’elle sera intégrée à l’année.')+'</span>'+
+    (isScheduled?'<button onclick="openSequenceCalendar()">Voir dans le calendrier</button>':'')+'</div>';
+  if(sequenceCalendarBtn) sequenceCalendarBtn.style.display=isScheduled?'':'none';
+  renderObjectiveSelector('sequence',activeSequence.objective||'');
+  sequenceLessons.innerHTML=activeSequence.sessions.map((session,i)=>{
+    const date=dates[i]||null;
+    const objective=session.objective||'Objectif à préciser.';
+    const structure=(session.blocks||[]).map(b=>b.type).join(' · ');
+    return '<div class="seqLesson'+(!date&&(activeSequence.annualBlockId||activeSequence.startCourseKey)?' unscheduled':'')+'">'+
+      '<button class="seqNum" onclick="openSessionEditor('+i+',\'sequence\')" aria-label="Ouvrir le cours '+(i+1)+'">'+(i+1)+'</button>'+
+      '<button class="seqLessonBody" style="border:0;background:transparent;padding:0;text-align:left" onclick="openSessionEditor('+i+',\'sequence\')">'+
+        '<span class="seqLessonTop"><span class="seqLessonDate'+(!date&&(activeSequence.annualBlockId||activeSequence.startCourseKey)?' unscheduled':'')+'">'+formatSequenceDate(date)+(occurrences[i]?' · '+occurrences[i].entry.time:'')+'</span></span>'+
+        '<strong>'+session.title+'</strong>'+
+        '<span class="seqLessonObjective">'+objective+'</span>'+
+        '<span class="seqLessonStructure">'+structure+'</span>'+
+      '</button>'+
+      '<span class="seqLessonActions">'+
+        '<button class="seqMiniBtn" onclick="moveSequenceLesson('+i+',-1)" aria-label="Monter ce cours">↑</button>'+
+        '<button class="seqMiniBtn" onclick="moveSequenceLesson('+i+',1)" aria-label="Descendre ce cours">↓</button>'+
+        '<button class="seqMiniBtn danger" onclick="deleteSequenceLesson('+i+')" aria-label="Supprimer ce cours">×</button>'+
+      '</span>'+
+    '</div>';
+  }).join('');
+}
+function normalizeGenericSequenceTitles(){
+  if(!activeSequence)return;
+  activeSequence.sessions.forEach((session,i)=>{
+    if(/^Cours \d+ · /.test(session.title||'')) session.title='Cours '+(i+1)+' · '+activeSequence.sport;
+  });
+}
+function addSequenceLesson(){
+  if(!activeSequence)return;
+  activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:getObjectiveSuggestions(activeSequence.sport,activeSequence.comp)[0]||'Objectif à préciser.',blocks:defaultBlockSet(activeSequence.comp).map(b=>({...b}))});
+  normalizeGenericSequenceTitles();
+  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
+  renderSequenceEditor();
+}
+function moveSequenceLesson(index,delta){
+  if(!activeSequence)return;
+  const next=index+delta;
+  if(next<0||next>=activeSequence.sessions.length)return;
+  [activeSequence.sessions[index],activeSequence.sessions[next]]=[activeSequence.sessions[next],activeSequence.sessions[index]];
+  normalizeGenericSequenceTitles();
+  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
+  renderSequenceEditor();
+}
+function deleteSequenceLesson(index){
+  if(!activeSequence||activeSequence.sessions.length<=1)return;
+  if(!confirm('Supprimer ce cours de la séquence?'))return;
+  activeSequence.sessions.splice(index,1);
+  normalizeGenericSequenceTitles();
+  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
+  renderSequenceEditor();
+}
+function saveSequence(){
+  if(!activeSequence)return;
+  henriSyncSequenceToAnnual();
+  localStorage.setItem('previewHenriSlate:henriActiveSequence',JSON.stringify(activeSequence));
+  if(activeSequence.annualBlockId){
+    const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
+    if(block&&Number(block.courses)!==activeSequence.sessions.length){
+      if(!rebalanceAnnualDurations(activeSequence.groupId,block.id,activeSequence.sessions.length)){
+        alert('Cette séquence est trop longue pour les périodes restantes de l’année.');
+        return;
+      }
+      saveAnnual();
+    }
+    setSavedSequence(activeSequence.groupId,activeSequence.annualBlockId,activeSequence);
+    rebuildPlanningAssignments();
+    if(annualGroup?.value===activeSequence.groupId) renderAnnualPlanner();
+  }
+  if(activeSequence.startCourseKey)savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));
+  henriSyncSharedData({skipSequenceEditor:true});
+  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode||'Créée dans Henri').catch(henriBankWarn);
+  if(activeSequence.annualBlockId)henriBankStoreAnnual(activeSequence.groupId,annualPlans[activeSequence.groupId]||[]).catch(henriBankWarn);
+  alert(activeSequence.annualBlockId||activeSequence.startCourseKey?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
+}
+function openSessionEditor(index,source){
+  sessionEditorSource=source||'sequence';
+  activeSessionIndex=index;
+  const session=sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[index];
+  if(!session)return;
+  editSessionMeta.textContent=sessionEditorSource==='quick'?'Séance individuelle':'Séance '+(index+1)+' sur '+activeSequence.sessions.length;
+  editSessionTitle.textContent=session.title;
+  renderObjectiveSelector('session',session.objective||'');
+  renderSessionBlocks(session);
+  go('sessionEditor');
+}
+function renderSessionBlocks(session){
+  editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+henriBankHtml(b.type)+'</div><div class="editBlockTitle">'+henriBankHtml(b.title)+'</div>'+(b.notes?'<div class="editBlockNotes">'+henriBankHtml(b.notes)+'</div>':'')+'</div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
+}
+function currentEditableSession(){return sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[activeSessionIndex]}
+function editSessionBlock(i){
+  const s=currentEditableSession(),b=s?.blocks[i];if(!b)return;
+  const title=prompt('Titre de la section',b.title);if(title!==null&&title.trim())b.title=title.trim();
+  const mins=prompt('Durée (minutes)',b.minutes);if(mins!==null&&Number(mins)>0)b.minutes=Number(mins);
+  if(b.notes!==undefined){const note=prompt('Description complète / notes PDF',b.notes);if(note!==null)b.notes=note;}
+  renderSessionBlocks(s);
+  henriSyncSequenceToAnnual();henriPersistSharedState();
+}
+function moveSessionBlock(i,delta){
+  const s=currentEditableSession();if(!s)return;const j=i+delta;if(j<0||j>=s.blocks.length)return;
+  [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
+}
+function deleteSessionBlock(i){const s=currentEditableSession();if(!s)return;s.blocks.splice(i,1);renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState()}
+function addSessionSection(){
+  const s=currentEditableSession();if(!s)return;
+  const type=prompt('Type de section','Éducatif');if(!type)return;
+  const title=prompt('Titre','Nouvelle activité')||'Nouvelle activité';
+  s.blocks.push({type,title,minutes:10});renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
+}
+function returnFromSessionEditor(){
+  if(calendarPlanEditing){persistCalendarIndividual();henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();calendarPlanEditing=false;calendarIndividualEditing=null;openDayPlan(calendarCourseContext.date);return}
+  if(sessionEditorSource==='quick'){henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);renderQuickResult();go('quickSession')}else{henriBankStoreSequence(activeSequence,'Séquence').catch(henriBankWarn);renderSequenceEditor();go('sequenceEditor')}
+}
+function getScheduleConflict(groupId){
+  ensureAnnualPlan(groupId);
+  const blocks=annualPlans[groupId]||[];
+  const capacity=getGroupSequenceDates(groupId).length;
+  const planned=blocks.reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
+  const overflow=Math.max(0,planned-capacity);
+  return {groupId,capacity,planned,overflow,blocks};
+}
+function conflictFingerprint(conflict){
+  return [conflict.capacity,conflict.planned,conflict.overflow,individualSessions.filter(x=>x.groupId===conflict.groupId).length].join(':');
+}
+function saveConflictIgnores(){
+  localStorage.setItem('previewHenriSlate:henriScheduleConflictIgnores',JSON.stringify(scheduleConflictIgnores));
+}
+function renderScheduleConflict(groupId){
+  const conflict=getScheduleConflict(groupId);
+  if(!conflict.overflow) return '';
+  const fp=conflictFingerprint(conflict);
+  if(scheduleConflictIgnores[groupId]===fp){
+    return '<div class="conflictIgnored">Avis ignoré · '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' demeure'+(conflict.overflow>1?'nt':'')+' sans date à la fin de l’année.</div>';
+  }
+  const rows=conflict.blocks.map(b=>
+    '<div class="conflictSeq"><span><b>'+b.sport+'</b><small>'+b.comp+' · actuellement '+b.courses+' cours</small></span>'+
+    '<input id="conflict-'+b.id+'" type="number" min="1" max="20" value="'+b.courses+'" aria-label="Nombre de cours pour '+b.sport+'">'+
+    '<button class="conflictApply" onclick="applyConflictSequenceCount(\''+groupId+'\',\''+b.id+'\')">Appliquer</button></div>'
+  ).join('');
+  return '<div class="scheduleConflict"><strong>Conflit d’horaire · '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' sans période</strong>'+
+    '<p>Le déplacement dépasse les périodes disponibles avant la fin de l’année. Réduis le nombre de séances d’une séquence au choix, ou ignore l’avis.</p>'+
+    '<div class="conflictSeqList">'+rows+'</div>'+
+    '<button class="conflictIgnore" onclick="ignoreScheduleConflict(\''+groupId+'\')">Ignorer l’avis et conserver le dépassement</button></div>';
+}
+function applyConflictSequenceCount(groupId,blockId){
+  const input=document.getElementById('conflict-'+blockId);
+  const value=Math.max(1,Number(input?.value)||1);
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===blockId);
+  if(!block)return;
+  if(!rebalanceAnnualDurations(groupId,blockId,value))return;
+  delete scheduleConflictIgnores[groupId];
+  saveConflictIgnores();
+  saveAnnual();
+  rebuildPlanningAssignments();
+  if(annualGroup?.value===groupId) renderAnnualPlanner();
+  const conflict=getScheduleConflict(groupId);
+  const msg=conflict.overflow
+    ? 'Ajustement appliqué · il reste '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' sans période.'
+    : 'Horaire ajusté · toutes les séances ont maintenant une date.';
+  if(document.getElementById('quickSession')?.classList.contains('active')) renderQuickResult(msg);
+}
+function ignoreScheduleConflict(groupId){
+  const conflict=getScheduleConflict(groupId);
+  if(!conflict.overflow)return;
+  scheduleConflictIgnores[groupId]=conflictFingerprint(conflict);
+  saveConflictIgnores();
+  if(annualGroup?.value===groupId&&document.getElementById('annualPlanner')?.classList.contains('active')) renderAnnualPlanner();
+  if(document.getElementById('quickSession')?.classList.contains('active')) renderQuickResult('Avis ignoré. Henri conserve le dépassement demandé.');
+}
+
+function openQuickSession(){
+  calendarPlanEditing=false;calendarIndividualEditing=null;
+  quickPrefillDate=null;
+  quickPrefillCourseKey=null;
+  fillPlanGroupSelects();
+  handleQuickSportChange();
+  if(quickContext){quickContext.style.display='none';quickContext.textContent=''}
+  go('quickSession')
+}
+function openQuickSessionForCourse(date,index){
+  const entry=(scheduleEntries[date]||[])[index];
+  if(!entry)return;
+  const group=groupsData.find(g=>g.id===getEntryGroupId(entry));
+  if(!group)return;
+  calendarPlanEditing=false;calendarIndividualEditing=null;
+  quickPrefillDate=date;
+  quickPrefillCourseKey=courseOccurrenceKey(date,entry);
+  fillPlanGroupSelects();
+  if(quickGroup)quickGroup.value=group.id;
+  handleQuickSportChange();
+  quickSessionData=null;
+  if(quickResult){quickResult.classList.remove('show');quickResult.innerHTML=''}
+  const d=new Date(date+'T12:00:00');
+  if(quickContext){
+    quickContext.style.display='block';
+    quickContext.textContent='Cours ciblé · '+dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()]+' · '+entry.time+' · '+entry.group;
+  }
+  go('quickSession');
+}
+function buildQuickSession(){
+  const sport=quickSport.value;
+  const group=groupsData.find(g=>g.id===quickGroup.value);
+  quickSessionData={
+    title:sport+' · séance individuelle',
+    sport,
+    comp:quickComp?.value||'C2',
+    groupId:quickGroup.value,
+    groupName:group?.name||'',
+    duration:quickDuration.value,
+    objective:quickObjective.value==='__custom__'?(quickObjectiveCustom.value.trim()||'Objectif à préciser.'):quickObjective.value,
+    blocks:defaultBlockSet(quickComp?.value||'C2').map(b=>({...b}))
+  };
+  henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);
+  renderQuickResult();
+}
+function getQuickDateOptions(){
+  if(!quickSessionData)return '';
+  return getGroupCourseOccurrences(quickSessionData.groupId).map(slot=>{
+    const current=slot.entry.planData?.title||slot.entry.annualPlan||'À planifier';
+    const selected=slot.key===quickPrefillCourseKey||(!quickPrefillCourseKey&&slot.date===quickPrefillDate);
+    return '<option value="'+henriBankHtml(slot.key)+'"'+(selected?' selected':'')+'>'+henriBankHtml(formatSequenceDate(slot.date)+' · '+slot.entry.time+' · '+current)+'</option>';
+  }).join('');
+}
+
+function renderQuickResult(message=''){
+  if(!quickSessionData){quickResult.classList.remove('show');quickResult.innerHTML='';return}
+  quickResult.classList.add('show');
+  const options=getQuickDateOptions();
+  quickResult.innerHTML=
+    '<button class="planMenuCard" onclick="openSessionEditor(0,\'quick\')"><span class="planMenuIcon">1</span><span><strong>'+quickSessionData.title+'</strong><small>'+quickSessionData.blocks.length+' sections · modifiable immédiatement</small></span><span class="groupArrow">›</span></button>'+
+    '<div class="quickScheduleBox"><strong>Ajouter à l’horaire</strong><p>Choisis un cours de '+quickSessionData.groupName+'. Henri insère cette séance et décale automatiquement les séquences déjà prévues.</p>'+
+      '<select id="quickScheduleDate" class="planControl">'+options+'</select>'+
+      '<button class="planPrimary" onclick="scheduleQuickSession()">Insérer dans l’horaire</button>'+
+      (message?'<div class="quickScheduleSuccess">'+message+'</div>':'')+
+      renderScheduleConflict(quickSessionData.groupId)+
+    '</div>';
+}
+function scheduleQuickSession(){
+  if(!quickSessionData||!quickScheduleDate?.value) return;
+  const slot=getGroupCourseOccurrences(quickSessionData.groupId).find(s=>s.key===quickScheduleDate.value);
+  if(!slot){alert('Ce cours n’est plus disponible. Choisis une autre période.');return}
+  const date=slot.date;
+  individualSessions=individualSessions.filter(x=>!(x.groupId===quickSessionData.groupId&&(x.courseKey===slot.key||(!x.courseKey&&x.date===date&&slot.key===getGroupCourseOccurrences(quickSessionData.groupId).find(s=>s.date===date)?.key))));
+  individualSessions.push({
+    id:'ind-'+Date.now(),
+    date,
+    groupId:quickSessionData.groupId,
+    groupName:quickSessionData.groupName,
+    sport:quickSessionData.sport,
+    title:quickSessionData.title,
+    duration:quickSessionData.duration,
+    objective:quickSessionData.objective,
+    comp:quickSessionData.comp,
+    courseKey:slot.key,
+    time:slot.entry.time,
+    blocks:quickSessionData.blocks.map(b=>({...b}))
+  });
+  individualSessions.sort((a,b)=>a.date.localeCompare(b.date));
+  delete scheduleConflictIgnores[quickSessionData.groupId];
+  saveConflictIgnores();
+  saveIndividualSessions();
+  henriBankStoreSession(individualSessions.find(x=>x.groupId===quickSessionData.groupId&&x.courseKey===slot.key),'Séance individuelle planifiée').catch(henriBankWarn);
+  rebuildPlanningAssignments();
+  if(annualGroup?.value===quickSessionData.groupId) renderAnnualPlanner();
+  const d=new Date(date+'T12:00:00');
+  const conflict=getScheduleConflict(quickSessionData.groupId);
+  const message=conflict.overflow
+    ? 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · '+conflict.overflow+' séance'+(conflict.overflow>1?'s dépassent maintenant les périodes disponibles.':' dépasse maintenant les périodes disponibles.')
+    : 'Ajoutée le '+d.getDate()+' '+shortMonths[d.getMonth()]+' · la planification annuelle et les périodes restantes ont été mises à jour.';
+  renderQuickResult(message);
+}
+
+const defaultGroups=[
+  {
+    id:'s2-01',
+    name:'Secondaire 2 · Groupe 01',
+    students:[
+      {name:'Alexis Gagnon',skill:4,leader:true},
+      {name:'Camille Roy',skill:3,leader:false},
+      {name:'Thomas Bouchard',skill:5,leader:true},
+      {name:'Élodie Tremblay',skill:2,leader:false},
+      {name:'Nathan Côté',skill:3,leader:false},
+      {name:'Mia Pelletier',skill:4,leader:false},
+      {name:'Samuel Lavoie',skill:2,leader:false},
+      {name:'Juliette Morin',skill:3,leader:true},
+      {name:'Lucas Fortin',skill:4,leader:false},
+      {name:'Zoé Beaulieu',skill:3,leader:false},
+      {name:'Félix Caron',skill:2,leader:false},
+      {name:'Emma Gosselin',skill:5,leader:true}
+    ]
+  },
+  {
+    id:'s3-02',
+    name:'Secondaire 3 · Groupe 02',
+    students:[
+      {name:'William Nadeau',skill:5,leader:true},
+      {name:'Léa Martel',skill:4,leader:false},
+      {name:'Olivier Girard',skill:3,leader:false},
+      {name:'Chloé Bélanger',skill:2,leader:false},
+      {name:'Émile Bergeron',skill:4,leader:true},
+      {name:'Florence Paquet',skill:3,leader:false},
+      {name:'Antoine Lessard',skill:2,leader:false},
+      {name:'Rose Lefebvre',skill:4,leader:false},
+      {name:'Gabriel Mercier',skill:3,leader:true},
+      {name:'Alice Parent',skill:3,leader:false},
+      {name:'Jacob Simard',skill:5,leader:false},
+      {name:'Clara Hébert',skill:2,leader:false}
+    ]
+  },
+  {
+    id:'s4-01',
+    name:'Secondaire 4 · Groupe 01',
+    students:[
+      {name:'Raphaël Dubois',skill:4,leader:true},
+      {name:'Maude Lapointe',skill:3,leader:false},
+      {name:'Charles Proulx',skill:5,leader:true},
+      {name:'Laurence Desjardins',skill:3,leader:false},
+      {name:'Maxime Renaud',skill:2,leader:false},
+      {name:'Anaïs Cloutier',skill:4,leader:false},
+      {name:'Jérôme Vachon',skill:3,leader:false},
+      {name:'Sofia Richard',skill:5,leader:true},
+      {name:'Mathis Leblanc',skill:2,leader:false},
+      {name:'Noémie Dion',skill:3,leader:false},
+      {name:'Xavier Lemieux',skill:4,leader:false},
+      {name:'Charlotte Dufour',skill:2,leader:false}
+    ]
+  }
+];
+
+function inferDemoGender(name){
+  const first=(name||'').split(' ')[0];
+  const girls=new Set(['Camille','Élodie','Mia','Juliette','Zoé','Emma','Léa','Chloé','Florence','Rose','Alice','Clara','Maude','Laurence','Anaïs','Sofia','Noémie','Charlotte']);
+  const boys=new Set(['Alexis','Thomas','Nathan','Samuel','Lucas','Félix','William','Olivier','Émile','Antoine','Gabriel','Jacob','Raphaël','Charles','Maxime','Jérôme','Mathis','Xavier']);
+  return girls.has(first)?'F':boys.has(first)?'M':'U';
+}
+function makeDefaultGroups(){
+  const groups=defaultGroups.map(g=>({
+    id:g.id,
+    name:g.name,
+    students:g.students.map((s,i)=>({
+      id:g.id+'-'+i,
+      name:s.name,
+      skill:s.skill,
+      leader:s.leader,
+      gender:s.gender||inferDemoGender(s.name),
+      compatible:[],
+      incompatible:[]
+    }))
+  }));
+
+  const g1=groups[0].students;
+  g1[0].compatible=[g1[1].id];
+  g1[1].compatible=[g1[0].id];
+  g1[2].incompatible=[g1[4].id];
+  g1[4].incompatible=[g1[2].id];
+  g1[7].compatible=[g1[9].id];
+  g1[9].compatible=[g1[7].id];
+
+  const g2=groups[1].students;
+  g2[0].compatible=[g2[4].id];
+  g2[4].compatible=[g2[0].id];
+  g2[2].incompatible=[g2[6].id];
+  g2[6].incompatible=[g2[2].id];
+
+  const g3=groups[2].students;
+  g3[0].compatible=[g3[5].id];
+  g3[5].compatible=[g3[0].id];
+  g3[2].incompatible=[g3[8].id];
+  g3[8].incompatible=[g3[2].id];
+
+  return groups;
+}
+
+let storedGroups=JSON.parse(localStorage.getItem('previewHenriSlate:henriGroupsData')||'null');
+let groupsData=Array.isArray(storedGroups)?storedGroups:[];
+groupsData.forEach(g=>g.students?.forEach(s=>{
+  if(!s.gender)s.gender='U';
+  if(!Array.isArray(s.compatible))s.compatible=[];
+  if(!Array.isArray(s.incompatible))s.incompatible=[];
+}));
+localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
+let activeGroupId=null;
+setTimeout(fillPlanGroupSelects,0);
+function saveGroups(){
+  localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
+  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+}
+function renderGroups(){
+  if(!groupList)return;
+  if(!groupsData.length){
+    groupList.innerHTML='<div class="placeholder"><strong>Aucun groupe importé</strong><p class="muted" style="margin:5px 0 0">Importe tes listes dans les paramètres pour commencer.</p></div>';
+    return;
+  }
+  groupList.innerHTML=groupsData.map(g=>'<button class="groupCard" onclick="openGroup(\''+g.id+'\')"><span><strong>'+g.name+'</strong><span>'+g.students.length+' élèves · profils modifiables</span></span><span class="groupArrow">›</span></button>').join('');
+}
+function openGroup(id){
+  activeGroupId=id;
+  const g=groupsData.find(x=>x.id===id);
+  if(!g) return;
+  groupProfileTitle.textContent=g.name;
+  groupProfileMeta.textContent=g.students.length+' élèves';
+  renderStudents();
+  go('groupProfile');
+}
+function renderStudents(){
+  const g=groupsData.find(x=>x.id===activeGroupId);
+  if(!g||!studentList) return;
+  studentList.innerHTML=g.students.map((s,idx)=>{
+    const others=g.students.filter(x=>x.id!==s.id);
+    const options='<option value="">Ajouter…</option>'+others.map(o=>'<option value="'+o.id+'">'+o.name+'</option>').join('');
+    const comp=s.compatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag" onclick="removeRelation(\''+s.id+'\',\'compatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
+    const incomp=s.incompatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag bad" onclick="removeRelation(\''+s.id+'\',\'incompatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
+    return '<div class="studentCard" id="student-'+idx+'">'+
+      '<button class="studentHead" onclick="toggleStudent('+idx+')"><span><span class="studentName">'+s.name+'</span><span class="studentMeta">Habileté '+s.skill+'/5'+(s.leader?' · Leader':'')+'</span></span><span class="groupArrow">›</span></button>'+
+      '<div class="studentDetails">'+
+        '<div class="detailRow"><div class="detailLabel"><span>Habiletés sportives</span><span>'+s.skill+'/5</span></div><div class="rating">'+[1,2,3,4,5].map(n=>'<button class="'+(s.skill===n?'on':'')+'" onclick="setSkill(\''+s.id+'\','+n+')">'+n+'</button>').join('')+'</div></div>'+
+        '<div class="detailRow toggleRow"><div><div class="detailLabel" style="margin:0">Leader</div><div class="studentMeta">Peut guider et équilibrer une équipe</div></div><button class="switch '+(s.leader?'on':'')+'" onclick="toggleLeader(\''+s.id+'\')"></button></div>'+
+        '<div class="detailRow"><div class="detailLabel">Compatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'compatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+comp+'</div></div>'+
+        '<div class="detailRow"><div class="detailLabel">Incompatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'incompatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+incomp+'</div></div>'+
+      '</div></div>';
+  }).join('');
+}
+function toggleStudent(i){document.getElementById('student-'+i)?.classList.toggle('open')}
+function getActiveStudent(id){return groupsData.find(x=>x.id===activeGroupId)?.students.find(x=>x.id===id)}
+function setSkill(id,skill){const s=getActiveStudent(id);if(!s)return;s.skill=skill;saveGroups();renderStudents()}
+function toggleLeader(id){const s=getActiveStudent(id);if(!s)return;s.leader=!s.leader;saveGroups();renderStudents()}
+function addRelation(id,type,targetId){
+  if(!targetId||id===targetId) return;
+  const g=groupsData.find(x=>x.id===activeGroupId);if(!g)return;
+  const s=g.students.find(x=>x.id===id),t=g.students.find(x=>x.id===targetId);if(!s||!t)return;
+  const opposite=type==='compatible'?'incompatible':'compatible';
+  s[opposite]=s[opposite].filter(x=>x!==targetId);
+  t[opposite]=t[opposite].filter(x=>x!==id);
+  if(!s[type].includes(targetId)) s[type].push(targetId);
+  if(!t[type].includes(id)) t[type].push(id);
+  saveGroups();renderStudents();
+}
+function removeRelation(id,type,targetId){
+  const g=groupsData.find(x=>x.id===activeGroupId);if(!g)return;
+  const s=g.students.find(x=>x.id===id),t=g.students.find(x=>x.id===targetId);if(!s||!t)return;
+  s[type]=s[type].filter(x=>x!==targetId);
+  t[type]=t[type].filter(x=>x!==id);
+  saveGroups();renderStudents();
+}
+
+const teamBuilderSettings={genderMode:'mixed',skill:true,leaders:true,novelty:true};
+let teamBuilderAbsent=new Set();
+let generatedTeamData=[];
+let teamHistory=JSON.parse(localStorage.getItem('previewHenriSlate:henriTeamHistory')||'[]');
+
+function saveTeamHistory(){
+  teamHistory=teamHistory.slice(-30);
+  localStorage.setItem('previewHenriSlate:henriTeamHistory',JSON.stringify(teamHistory));
+}
+function openTeamBuilder(){
+  fillTeamBuilderGroups();
+  teamBuilderGroupChanged();
+  go('teamBuilder');
+}
+function fillTeamBuilderGroups(){
+  const select=document.getElementById('teamGroup');
+  if(!select)return;
+  const current=select.value;
+  select.innerHTML=groupsData.map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
+  if(current&&groupsData.some(g=>g.id===current))select.value=current;
+  else if(groupsData[0])select.value=groupsData[0].id;
+  updateTeamGroupPickerLabel();
+  renderTeamGroupChoices();
+}
+function updateTeamGroupPickerLabel(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value)||groupsData[0];
+  const btn=document.getElementById('teamGroupPicker');
+  if(btn&&group)btn.querySelector('strong').textContent=group.name;
+}
+function openTeamGroupPicker(){
+  renderTeamGroupChoices();
+  document.getElementById('teamGroupOverlay')?.classList.add('show');
+}
+function closeTeamGroupPicker(event){
+  if(event&&event.target?.id!=='teamGroupOverlay')return;
+  document.getElementById('teamGroupOverlay')?.classList.remove('show');
+}
+function renderTeamGroupChoices(){
+  const list=document.getElementById('teamGroupChoices');
+  if(!list)return;
+  list.innerHTML=groupsData.map(g=>'<button class="pickerChoice'+(g.id===teamGroup?.value?' on':'')+'" onclick="selectTeamGroup(\''+g.id+'\')"><strong>'+g.name+'</strong><span class="pickerCheck">✓</span></button>').join('');
+}
+function selectTeamGroup(id){
+  if(teamGroup)teamGroup.value=id;
+  updateTeamGroupPickerLabel();
+  renderTeamGroupChoices();
+  document.getElementById('teamGroupOverlay')?.classList.remove('show');
+  teamBuilderGroupChanged();
+}
+function renderTeamCountButtons(){
+  const wrap=document.getElementById('teamCountButtons');
+  if(!wrap||!teamCount)return;
+  wrap.innerHTML=[...teamCount.options].map(o=>'<button class="teamCountBtn'+(o.selected?' on':'')+'" onclick="selectTeamCount('+o.value+')">'+o.value+'</button>').join('');
+}
+function selectTeamCount(value){
+  if(!teamCount)return;
+  teamCount.value=String(value);
+  renderTeamCountButtons();
+  if(teamResult){teamResult.classList.remove('show');teamResult.innerHTML=''}
+}
+function teamBuilderGroupChanged(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value)||groupsData[0];
+  if(!group)return;
+  if(teamGroup&&teamGroup.value!==group.id)teamGroup.value=group.id;
+  teamBuilderAbsent=new Set();
+  const maxTeams=Math.max(2,Math.min(10,Math.floor(group.students.length/2)||2));
+  const suggested=Math.max(2,Math.round(group.students.length/5));
+  teamCount.innerHTML=Array.from({length:maxTeams-1},(_,i)=>i+2).map(n=>'<option value="'+n+'"'+(n===suggested?' selected':'')+'>'+n+'</option>').join('');
+  updateTeamGroupPickerLabel();
+  renderTeamCountButtons();
+  renderTeamAttendance();
+  teamResult.classList.remove('show');
+  teamResult.innerHTML='';
+}
+function renderTeamAttendance(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value);
+  if(!group||!teamAttendanceChips)return;
+  teamAttendanceChips.innerHTML=group.students.map(s=>'<button class="attendanceChip'+(teamBuilderAbsent.has(s.id)?' absent':'')+'" onclick="toggleTeamAttendance(\''+s.id+'\')">'+s.name+'</button>').join('');
+}
+function toggleTeamAttendance(id){
+  if(teamBuilderAbsent.has(id))teamBuilderAbsent.delete(id);else teamBuilderAbsent.add(id);
+  renderTeamAttendance();
+}
+function setTeamGenderMode(mode){
+  teamBuilderSettings.genderMode=mode;
+  document.querySelectorAll('#genderModeSegment button').forEach(b=>b.classList.toggle('on',b.dataset.value===mode));
+}
+function toggleTeamSetting(key){
+  teamBuilderSettings[key]=!teamBuilderSettings[key];
+  const id=key==='skill'?'teamSkillToggle':key==='leaders'?'teamLeaderToggle':'teamNoveltyToggle';
+  document.getElementById(id)?.classList.toggle('on',teamBuilderSettings[key]);
+}
+function resetTeamBuilder(){
+  teamBuilderSettings.genderMode='mixed';
+  teamBuilderSettings.skill=true;
+  teamBuilderSettings.leaders=true;
+  teamBuilderSettings.novelty=true;
+  teamBuilderAbsent=new Set();
+  generatedTeamData=[];
+  document.querySelectorAll('#genderModeSegment button').forEach(b=>b.classList.toggle('on',b.dataset.value==='mixed'));
+  document.getElementById('teamSkillToggle')?.classList.add('on');
+  document.getElementById('teamLeaderToggle')?.classList.add('on');
+  document.getElementById('teamNoveltyToggle')?.classList.add('on');
+  renderTeamAttendance();
+  const group=groupsData.find(g=>g.id===teamGroup?.value)||groupsData[0];
+  if(group&&teamCount){
+    const suggested=Math.max(2,Math.round(group.students.length/5));
+    if([...teamCount.options].some(o=>Number(o.value)===suggested)) teamCount.value=String(suggested);
+    else if(teamCount.options.length) teamCount.selectedIndex=0;
+    renderTeamCountButtons();
+  }
+  if(teamResult){
+    teamResult.classList.remove('show');
+    teamResult.innerHTML='';
+  }
+}
+function pairKey(a,b){return [a,b].sort().join('::')}
+function recentPartnerSet(groupId){
+  const set=new Set();
+  teamHistory.filter(h=>h.groupId===groupId).slice(-5).forEach(h=>{
+    (h.teams||[]).forEach(team=>{
+      for(let i=0;i<team.length;i++)for(let j=i+1;j<team.length;j++)set.add(pairKey(team[i],team[j]));
+    });
+  });
+  return set;
+}
+function studentGender(s){return ['M','F'].includes(s.gender)?s.gender:'U'}
+function scoreTeamPlacement(student,team,teams,settings,recentPairs,targetSizes){
+  let score=0;
+  const teamIndex=teams.indexOf(team);
+  if(team.length>=targetSizes[teamIndex])score+=10000;
+  const genders=team.map(studentGender).filter(g=>g!=='U');
+  const sg=studentGender(student);
+  if(settings.genderMode==='separate'&&sg!=='U'&&genders.some(g=>g!==sg))score+=2500;
+  if(settings.genderMode==='mixed'&&sg!=='U'){
+    const same=genders.filter(g=>g===sg).length;
+    const other=genders.length-same;
+    score+=(same-other)*4;
+  }
+  team.forEach(m=>{
+    if((student.incompatible||[]).includes(m.id)||(m.incompatible||[]).includes(student.id))score+=5000;
+    if((student.compatible||[]).includes(m.id)||(m.compatible||[]).includes(student.id))score-=80;
+    if(settings.novelty&&recentPairs.has(pairKey(student.id,m.id)))score+=9;
+  });
+  if(settings.skill){
+    const projected=[...team,student].reduce((n,s)=>n+(Number(s.skill)||3),0)/(team.length+1);
+    const allAvgs=teams.map((t,i)=>{
+      if(i===teamIndex)return projected;
+      return t.length?t.reduce((n,s)=>n+(Number(s.skill)||3),0)/t.length:3;
+    });
+    const mean=allAvgs.reduce((a,b)=>a+b,0)/allAvgs.length;
+    score+=allAvgs.reduce((n,x)=>n+Math.pow(x-mean,2),0)*5;
+  }
+  if(settings.leaders&&student.leader){
+    const leaderCount=team.filter(s=>s.leader).length;
+    score+=leaderCount*18;
+  }
+  score+=team.length*2;
+  return score;
+}
+function buildTeamsTrial(students,count,settings,recentPairs){
+  const teams=Array.from({length:count},()=>[]);
+  const base=Math.floor(students.length/count),extra=students.length%count;
+  const targetSizes=Array.from({length:count},(_,i)=>base+(i<extra?1:0));
+  const shuffled=students.slice().sort(()=>Math.random()-.5);
+  shuffled.sort((a,b)=>{
+    const ac=(a.compatible?.length||0)+(a.incompatible?.length||0)+(a.leader?1:0);
+    const bc=(b.compatible?.length||0)+(b.incompatible?.length||0)+(b.leader?1:0);
+    return bc-ac;
+  });
+  shuffled.forEach(student=>{
+    const ranked=teams.map(team=>({team,score:scoreTeamPlacement(student,team,teams,settings,recentPairs,targetSizes)+Math.random()*2})).sort((a,b)=>a.score-b.score);
+    ranked[0].team.push(student);
+  });
+  return teams;
+}
+function scoreWholeTeams(teams,settings,recentPairs){
+  let score=0;
+  const sizes=teams.map(t=>t.length),meanSize=sizes.reduce((a,b)=>a+b,0)/sizes.length;
+  score+=sizes.reduce((n,x)=>n+Math.pow(x-meanSize,2),0)*40;
+  const avgs=teams.map(t=>t.length?t.reduce((n,s)=>n+(Number(s.skill)||3),0)/t.length:0);
+  if(settings.skill){
+    const mean=avgs.reduce((a,b)=>a+b,0)/avgs.length;
+    score+=avgs.reduce((n,x)=>n+Math.pow(x-mean,2),0)*12;
+  }
+  teams.forEach(team=>{
+    let leaderCount=0;
+    team.forEach((s,i)=>{
+      if(s.leader)leaderCount++;
+      for(let j=i+1;j<team.length;j++){
+        const m=team[j];
+        if((s.incompatible||[]).includes(m.id)||(m.incompatible||[]).includes(s.id))score+=5000;
+        if((s.compatible||[]).includes(m.id)||(m.compatible||[]).includes(s.id))score-=120;
+        if(settings.novelty&&recentPairs.has(pairKey(s.id,m.id)))score+=10;
+        const gs=studentGender(s),gm=studentGender(m);
+        if(settings.genderMode==='separate'&&gs!=='U'&&gm!=='U'&&gs!==gm)score+=1800;
+      }
+    });
+    if(settings.leaders&&leaderCount>1)score+=(leaderCount-1)*30;
+    if(settings.genderMode==='mixed'){
+      const known=team.filter(s=>studentGender(s)!=='U');
+      if(known.length){
+        const males=known.filter(s=>studentGender(s)==='M').length;
+        const females=known.length-males;
+        score+=Math.abs(males-females)*3;
+      }
+    }
+  });
+  return score;
+}
+function generateTeams(){
+  const group=groupsData.find(g=>g.id===teamGroup?.value);
+  if(!group)return;
+  const students=group.students.filter(s=>!teamBuilderAbsent.has(s.id));
+  const count=Math.max(2,Math.min(Number(teamCount?.value)||2,students.length));
+  if(students.length<count){alert('Il faut au moins un élève présent par équipe.');return}
+  const recent=recentPartnerSet(group.id);
+  let best=null,bestScore=Infinity;
+  for(let t=0;t<220;t++){
+    const candidate=buildTeamsTrial(students,count,teamBuilderSettings,recent);
+    const score=scoreWholeTeams(candidate,teamBuilderSettings,recent);
+    if(score<bestScore){best=candidate;bestScore=score}
+  }
+  generatedTeamData=best||[];
+  teamHistory.push({date:new Date().toISOString(),groupId:group.id,teams:generatedTeamData.map(team=>team.map(s=>s.id))});
+  saveTeamHistory();
+  renderGeneratedTeams();
+}
+function countCompatibilityIssues(teams){
+  let incompatible=0,compatibleTogether=0,compatibleTotal=0;
+  const all=teams.flat();
+  const seen=new Set();
+  all.forEach(s=>{
+    (s.compatible||[]).forEach(id=>{
+      const k=pairKey(s.id,id);
+      if(seen.has(k))return;seen.add(k);compatibleTotal++;
+      if(teams.some(t=>t.some(x=>x.id===s.id)&&t.some(x=>x.id===id)))compatibleTogether++;
+    });
+  });
+  teams.forEach(team=>team.forEach((s,i)=>team.slice(i+1).forEach(m=>{
+    if((s.incompatible||[]).includes(m.id)||(m.incompatible||[]).includes(s.id))incompatible++;
+  })));
+  return {incompatible,compatibleTogether,compatibleTotal};
+}
+function renderGeneratedTeams(){
+  if(!teamResult)return;
+  const issues=countCompatibilityIssues(generatedTeamData);
+  const avgs=generatedTeamData.map(t=>t.length?t.reduce((n,s)=>n+(Number(s.skill)||3),0)/t.length:0);
+  const spread=avgs.length?Math.max(...avgs)-Math.min(...avgs):0;
+  const quality=[
+    '<span>'+generatedTeamData.reduce((n,t)=>n+t.length,0)+' élèves répartis</span>',
+    teamBuilderSettings.skill?'<span'+(spread>.8?' class="warn"':'')+'>Écart habileté '+spread.toFixed(1)+'</span>':'',
+    '<span'+(issues.incompatible?' class="warn"':'')+'>'+(issues.incompatible?issues.incompatible+' incompatibilité à vérifier':'Incompatibilités respectées')+'</span>',
+    issues.compatibleTotal?'<span>'+issues.compatibleTogether+'/'+issues.compatibleTotal+' compatibilités regroupées</span>':''
+  ].filter(Boolean).join('');
+  teamResult.classList.add('show');
+  teamResult.innerHTML=
+    '<div class="teamResultTop"><div><strong>Équipes générées</strong><div class="teamResultMeta">Henri a optimisé la taille, les profils et les relations enregistrées.</div></div><button class="teamRegenerate" onclick="generateTeams()">Regénérer</button></div>'+
+    '<div class="teamQuality">'+quality+'</div>'+
+    '<div class="generatedTeams">'+generatedTeamData.map((team,i)=>{
+      const avg=team.length?(team.reduce((n,s)=>n+(Number(s.skill)||3),0)/team.length).toFixed(1):'—';
+      return '<div class="generatedTeam"><div class="generatedTeamHead"><strong>Équipe '+(i+1)+'</strong><span class="teamAverage">niveau '+avg+'</span></div>'+
+        team.map(s=>'<div class="teamStudent"><span>'+s.name+'</span><span class="teamStudentMeta">'+(s.leader?'Leader · ':'')+(studentGender(s)==='M'?'G':studentGender(s)==='F'?'F':'—')+' · '+(s.skill||3)+'/5</span></div>').join('')+
+      '</div>';
+    }).join('')+'</div>'+
+    '<div class="teamCompatibilityNote">Les compatibilités et incompatibilités sont toujours considérées. Si toutes les contraintes ne peuvent pas être satisfaites simultanément, Henri privilégie d’abord les incompatibilités à éviter, puis l’équilibre global.</div>';
+}
+
+function makeFullDemoSchoolDays(){
+  const days={};
+  const start=new Date(2026,7,28,12);
+  const end=new Date(2027,5,23,12);
+  let cycle=1;
+  const pedagogical=new Set(['2026-09-18','2026-10-05','2026-11-13','2027-01-29','2027-04-23']);
+  const holidays=new Set(['2026-09-07','2026-10-12','2027-04-02','2027-04-05','2027-05-24']);
+  const inBreak=d=>(d>='2026-12-21'&&d<='2027-01-01')||(d>='2027-03-01'&&d<='2027-03-05');
+  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+    const dow=d.getDay();
+    if(dow===0||dow===6) continue;
+    const key=dateKey(d.getFullYear(),d.getMonth(),d.getDate());
+    if(inBreak(key)||holidays.has(key)){days[key]='Congé';continue}
+    if(pedagogical.has(key)){days[key]='Pédagogique';continue}
+    days[key]='Jour '+cycle;
+    cycle=cycle===9?1:cycle+1;
+  }
+  return days;
+}
+const demoSchoolDays=makeFullDemoSchoolDays();
+const DEMO_DATA_VERSION='demo-2026-27-v1';
+
+const demoTeacherSchedule={
+  'Jour 1':[
+    {time:'8 h 15',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'}
+  ],
+  'Jour 2':[
+    {time:'9 h 45',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 3':[
+    {time:'8 h 15',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 4':[
+    {time:'9 h 45',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'}
+  ],
+  'Jour 5':[
+    {time:'8 h 15',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 6':[
+    {time:'9 h 45',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 7':[
+    {time:'8 h 15',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'}
+  ],
+  'Jour 8':[
+    {time:'9 h 45',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'},
+    {time:'13 h 30',group:'Secondaire 2 · Groupe 01',activity:'Éducation physique'}
+  ],
+  'Jour 9':[
+    {time:'8 h 15',group:'Secondaire 3 · Groupe 02',activity:'Éducation physique'},
+    {time:'11 h 10',group:'Secondaire 4 · Groupe 01',activity:'Éducation physique'}
+  ]
+};
+
+const demoPlanningByGroup={
+  'Secondaire 2 · Groupe 01':{annualPlan:'Flag football',sequence:'Séquence 1',session:'Séance 1/5'},
+  'Secondaire 3 · Groupe 02':{annualPlan:'Ultimate',sequence:'Séquence 1',session:'Séance 2/5'},
+  'Secondaire 4 · Groupe 01':{annualPlan:'Badminton',sequence:'Séquence 1',session:'Séance 3/5'}
+};
+function enrichDemoPlanning(entries){
+  Object.values(entries).forEach(dayEntries=>{
+    dayEntries.forEach(entry=>{
+      const plan=demoPlanningByGroup[entry.group];
+      if(plan&&(!entry.annualPlan&&!entry.sequence&&!entry.session)) Object.assign(entry,plan);
+    });
+  });
+  return entries;
+}
+
+const setupFiles={teacherSchedule:false,schoolCalendar:false,groupSheets:false};
+const importedSetupData={
+  teacherSchedule:JSON.parse(localStorage.getItem('previewHenriSlate:henriImportedTeacherSchedule')||'null'),
+  schoolCalendar:JSON.parse(localStorage.getItem('previewHenriSlate:henriImportedSchoolCalendar')||'null'),
+  groupSheets:JSON.parse(localStorage.getItem('previewHenriSlate:henriImportedGroups')||'null')
+};
+Object.keys(setupFiles).forEach(k=>setupFiles[k]=!!importedSetupData[k]);
+
+function normalizeImportText(text){
+  return String(text||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\r/g,'\n').replace(/\n{2,}/g,'\n').trim();
+}
+async function prepareImageForAI(file,mode='enhanced'){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((resolve,reject)=>{
+      const el=new Image();
+      el.onload=()=>resolve(el);
+      el.onerror=()=>reject(new Error('Photo illisible.'));
+      el.src=url;
+    });
+    const naturalW=img.naturalWidth||img.width;
+    const naturalH=img.naturalHeight||img.height;
+    if(!naturalW||!naturalH)throw new Error('Dimensions de photo invalides.');
+    const longest=Math.max(naturalW,naturalH);
+    const target=Math.min(2800,Math.max(1800,longest));
+    const scale=Math.min(2.2,target/longest);
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(naturalW*scale));
+    canvas.height=Math.max(1,Math.round(naturalH*scale));
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    if(mode!=='original'){
+      const image=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const d=image.data;
+      let mean=0;
+      for(let i=0;i<d.length;i+=4)mean+=(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114);
+      mean/=Math.max(1,d.length/4);
+      for(let i=0;i<d.length;i+=4){
+        let g=d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114;
+        if(mode==='enhanced'){
+          g=(g-mean)*1.65+178;
+          g=Math.max(0,Math.min(255,g));
+        }else if(mode==='threshold'){
+          const threshold=Math.max(145,Math.min(205,mean-18));
+          g=g>threshold?255:0;
+        }
+        d[i]=d[i+1]=d[i+2]=g;
+      }
+      ctx.putImageData(image,0,0);
+    }
+    return canvas;
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+}
+function aiOCRScore(result){
+  const text=normalizeImportText(result?.data?.text||'');
+  const confidence=Number(result?.data?.confidence||0);
+  const lines=text.split('\n').filter(Boolean);
+  const likelyNames=lines.filter(looksLikePersonName).length;
+  const alpha=(text.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/g)||[]).length;
+  return confidence+(Math.min(35,likelyNames)*1.4)+Math.min(12,alpha/180);
+}
+async function runAIPhotoOCR(file,onProgress){
+  if(!window.Tesseract)throw new Error('Le lecteur de photos ne s’est pas chargé.');
+  const passes=['enhanced','original','threshold'];
+  let best=null;
+  for(let p=0;p<passes.length;p++){
+    const mode=passes[p];
+    const source=await prepareImageForAI(file,mode);
+    const result=await Tesseract.recognize(source,'fra+eng',{logger:m=>{
+      if(m.status==='recognizing text'&&onProgress)onProgress(Math.min(99,Math.round(((p+(m.progress||0))/passes.length)*100)));
+    }});
+    const words=(result?.data?.words||[]).map(w=>({
+      text:String(w.text||'').trim(),
+      confidence:Number(w.confidence||0),
+      bbox:w.bbox?{x0:w.bbox.x0,y0:w.bbox.y0,x1:w.bbox.x1,y1:w.bbox.y1}:null
+    })).filter(w=>w.text&&w.bbox);
+    const candidate={
+      text:normalizeImportText(result?.data?.text||''),
+      confidence:Math.round(Number(result?.data?.confidence||0)),
+      score:aiOCRScore(result),
+      pass:mode,
+      words,
+      imageWidth:source.width,
+      imageHeight:source.height
+    };
+    if(!best||candidate.score>best.score)best=candidate;
+    const months=(candidate.text.match(/janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre/gi)||[]).length;
+    const edu=(candidate.text.match(/\bEDU\s*[1-5]\s*G\s*\d\s*[-–]?\s*\d{1,2}\b/gi)||[]).length;
+    if(candidate.confidence>=82&&(months>=8||edu>=5))break;
+  }
+  if(!best?.text)throw new Error('Aucun texte lisible détecté dans '+(file.name||'la photo')+'.');
+  if(onProgress)onProgress(100);
+  return best;
+}
+async function readSetupFile(file,onProgress){
+  const name=(file.name||'').toLowerCase();
+  if(name.endsWith('.pdf')){
+    if(!window.pdfjsLib)throw new Error('Le lecteur PDF ne s’est pas chargé.');
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    const pages=[];
+    for(let number=1;number<=pdf.numPages;number++){
+      const page=await pdf.getPage(number),content=await page.getTextContent();
+      const viewport=page.getViewport({scale:1.75});
+      const items=content.items.filter(i=>i.str?.trim());
+      if(items.reduce((n,i)=>n+i.str.trim().length,0)<20){
+        const canvas=document.createElement('canvas');canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
+        await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+        const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+        if(!blob)throw new Error('Page PDF illisible.');
+        const image=new File([blob],file.name+' · page '+number+'.png',{type:'image/png'});
+        const read=await runAIPhotoOCR(image);
+        pages.push({...read,engine:'PDF numérisé',file:image});
+        canvas.width=0;canvas.height=0;
+      }else{
+        const words=items.map(item=>{
+          const t=pdfjsLib.Util.transform(viewport.transform,item.transform);
+          return {text:item.str,confidence:100,bbox:{x0:t[4],x1:t[4]+item.width*viewport.scale,y0:t[5]-Math.abs(t[3]),y1:t[5]}};
+        });
+        const rows=clusterValues(words.map(w=>w.bbox.y0),8);
+        const text=rows.map(row=>words.filter(w=>row.values.includes(w.bbox.y0)).sort((a,b)=>a.bbox.x0-b.bbox.x0).map(w=>w.text).join('  ')).join('\n');
+        pages.push({text,confidence:100,engine:'PDF',words,imageWidth:viewport.width,imageHeight:viewport.height,file});
+      }
+      if(onProgress)onProgress(Math.round(number/pdf.numPages*100));
+    }
+    await pdf.destroy();
+    return {pages};
+  }
+  if(name.endsWith('.csv')||name.endsWith('.txt')||name.endsWith('.json')){
+    if(onProgress)onProgress(100);
+    return {text:normalizeImportText(await file.text()),confidence:100,engine:'Texte',words:[],imageWidth:0,imageHeight:0};
+  }
+  if((file.type||'').startsWith('image/')){
+    const ai=await runAIPhotoOCR(file,onProgress);
+    return {text:ai.text,confidence:ai.confidence,engine:'Photo',pass:ai.pass,words:ai.words||[],imageWidth:ai.imageWidth||0,imageHeight:ai.imageHeight||0};
+  }
+  throw new Error('Format non pris en charge : '+(file.name||'fichier')+'.');
+}
+function normalizePersonName(s){
+  return String(s||'')
+    .replace(/^\s*[0-9#.-]+\s*/,'')
+    .replace(/\b\d{5,}\b/g,'')
+    .replace(/\s+/g,' ')
+    .replace(/^[-–—|,:;]+|[-–—|,:;]+$/g,'')
+    .trim();
+}
+function looksLikePersonName(line){
+  const x=normalizePersonName(line);
+  if(x.length<4||x.length>74)return false;
+  if(/\b(secondaire|groupe|classe|enseignant|élève|eleve|nom|prénom|prenom|code|fiche|liste|jour|période|periode|école|ecole|absence|présence|presence|tuteur|courriel|email|date|année|annee)\b/i.test(x))return false;
+  if(/@|https?:|www\./i.test(x))return false;
+  const clean=x.replace(/,/g,' ').replace(/\s+/g,' ').trim();
+  if(/\d{2,}/.test(clean))return false;
+  const words=clean.split(' ').filter(Boolean);
+  return words.length>=2&&words.length<=5&&words.every(w=>/^[A-Za-zÀ-ÖØ-öø-ÿ'’.-]+$/.test(w));
+}
+function normalizeGroupAlias(value){
+  return String(value||'').toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Z0-9]/g,'');
+}
+function extractEDUGroupCodes(text){
+  const raw=String(text||'').toUpperCase();
+  const matches=[...raw.matchAll(/EDU\s*([1-5])\s*G\s*(\d)\s*[-–]?\s*(\d{1,2})/g)];
+  return [...new Set(matches.map(m=>'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0')))];
+}
+function groupSignatureFromCode(code){
+  const m=String(code||'').toUpperCase().match(/EDU([1-5])G\d-?(\d{1,2})/);
+  return m?'S'+m[1]+'G'+String(Number(m[2])).padStart(2,'0'):'';
+}
+function inferGroupIdentity(text,fallbackName=''){
+  const aliases=new Set();
+  const codes=extractEDUGroupCodes(text);
+  codes.forEach(code=>{
+    aliases.add(normalizeGroupAlias(code));
+    const sig=groupSignatureFromCode(code);
+    if(sig)aliases.add(sig);
+  });
+  const hay=String(text||'')+' '+String(fallbackName||'');
+  const secGroupPatterns=[
+    /(?:secondaire|sec\.?|s)\s*([1-5])[^\n]{0,25}(?:groupe|gr\.?)\s*0?(\d{1,2})/i,
+    /\b([1-5])\s*[-–]\s*0?(\d{1,2})\b/
+  ];
+  let level=null,num=null;
+  for(const re of secGroupPatterns){
+    const m=hay.match(re);
+    if(m){level=m[1];num=String(Number(m[2])).padStart(2,'0');break}
+  }
+  if(!level&&codes[0]){
+    const m=codes[0].match(/EDU([1-5])G\d-(\d{2})/);
+    if(m){level=m[1];num=m[2]}
+  }
+  if(level&&num){
+    aliases.add('S'+level+'G'+num);
+    aliases.add(normalizeGroupAlias('Secondaire '+level+' Groupe '+num));
+  }
+  if(fallbackName)aliases.add(normalizeGroupAlias(fallbackName));
+  return {
+    canonicalName:level&&num?'Secondaire '+level+' · Groupe '+num:(fallbackName||codes[0]||'Groupe'),
+    aliases:[...aliases].filter(Boolean),
+    level,
+    number:num,
+    codes
+  };
+}
+function matchImportedGroup(rawCodeOrName){return HenriImport.matchGroup(rawCodeOrName,groupsData);}
+
+function parseGroupDocuments(docs){
+  const result=[];
+  docs.forEach(({file,text,confidence,engine},fileIndex)=>{
+    let groupName='';
+    const groupMatch=text.match(/(?:Secondaire\s*\d+[^\n]{0,45}(?:Groupe|gr\.?)[^\n]{0,24}|Groupe\s*[A-Za-z0-9 ._-]{1,35})/i);
+    if(groupMatch)groupName=groupMatch[0].replace(/\s+/g,' ').trim();
+    if(!groupName)groupName=(file.name||('Groupe '+(fileIndex+1))).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
+    const identity=inferGroupIdentity(text,groupName);
+    groupName=identity.codes.length===1?identity.codes[0]+' · '+identity.canonicalName:identity.canonicalName;
+    let candidates=[];
+    if((file.name||'').toLowerCase().endsWith('.csv')){
+      const rows=text.split('\n').map(r=>r.split(/[;,]/).map(v=>v.trim()).filter(Boolean)).filter(r=>r.length);
+      rows.forEach(r=>{
+        const joined=r.filter(v=>looksLikePersonName(v)).sort((a,b)=>b.length-a.length)[0];
+        if(joined)candidates.push(normalizePersonName(joined.replace(',', ' ')));
+        else if(r.length>=2){
+          const pair=(r[0]+' '+r[1]).trim();
+          if(looksLikePersonName(pair))candidates.push(normalizePersonName(pair));
+        }
+      });
+    }else{
+      const lines=HenriImport.rosterLines(text);
+      lines.forEach(line=>{
+        const segments=line.split(/\s{2,}|\||\t|;/).map(v=>normalizePersonName(v)).filter(Boolean);
+        const direct=segments.find(looksLikePersonName);
+        if(direct)candidates.push(direct.replace(',',' '));
+        else{
+          const cleaned=normalizePersonName(line.replace(/^[0-9 .#-]+/,'').replace(/[0-9]{4,}.*$/,''));
+          if(looksLikePersonName(cleaned))candidates.push(cleaned.replace(',',' '));
+        }
+      });
+    }
+    const canonical=name=>normalizePersonName(name).replace(/\s*,\s*/g,' ').replace(/\s+/g,' ').trim();
+    const seen=new Set();
+    const unique=candidates.map(canonical).filter(name=>{
+      const key=name.toLocaleLowerCase('fr-CA');
+      if(seen.has(key))return false;
+      seen.add(key);return true;
+    }).slice(0,80);
+    if(unique.length){
+      result.push({
+        id:'import-'+Date.now()+'-'+fileIndex,
+        name:groupName,
+        sourceFile:file.name||'Photo '+(fileIndex+1),
+        importConfidence:Number(confidence??0),
+        importEngine:engine||'Lecture',
+        aliases:identity.aliases,
+        sourceCodes:identity.codes,
+        level:identity.level,
+        groupNumber:identity.number,
+        students:unique.map((name,i)=>({id:'st-'+Date.now()+'-'+fileIndex+'-'+i,name,skill:3,leader:false,gender:'U',compatible:[],incompatible:[]}))
+      });
+    }
+  });
+  return result;
+}
+function normalizeEDUCode(raw){
+  const m=String(raw||'').toUpperCase().replace(/\s+/g,'').match(/EDU([1-5])G(\d)[-–]?(\d{1,2})/);
+  return m?'EDU'+m[1]+'G'+m[2]+'-'+String(Number(m[3])).padStart(2,'0'):'';
+}
+function periodTimeFromColumn(index){
+  const times=['8 h 10','9 h 35','10 h 55','12 h 35','14 h 00'];
+  return times[index]||('Période '+(index+1));
+}
+function clusterValues(values,tolerance){
+  const sorted=[...values].sort((a,b)=>a-b);
+  const clusters=[];
+  sorted.forEach(v=>{
+    const last=clusters[clusters.length-1];
+    if(!last||Math.abs(v-last.avg)>tolerance)clusters.push({values:[v],avg:v});
+    else{
+      last.values.push(v);
+      last.avg=last.values.reduce((a,b)=>a+b,0)/last.values.length;
+    }
+  });
+  return clusters;
+}
+function parseTeacherScheduleGrid(words){return HenriImport.scheduleGrid(words);}
+
+function parseTeacherScheduleText(text){return HenriImport.scheduleText(text);}
+
+function parseTeacherScheduleDocs(docs){
+  const merged={};
+  docs.forEach(doc=>{
+    const grid=parseTeacherScheduleGrid(doc.words||[]);
+    const fallback=Object.keys(grid).length?grid:parseTeacherScheduleText(doc.text||'');
+    Object.entries(fallback).forEach(([day,lessons])=>{
+      if(!merged[day])merged[day]=[];
+      lessons.forEach(lesson=>{
+        const matched=lesson.matchedGroupId?groupsData.find(g=>g.id===lesson.matchedGroupId):matchImportedGroup(lesson.groupCode||lesson.group);
+        const normalized={...lesson,group:matched?.name||lesson.group,matchedGroupId:matched?.id||lesson.matchedGroupId||null};
+        if(!merged[day].some(x=>x.time===normalized.time&&x.group===normalized.group))merged[day].push(normalized);
+      });
+    });
+  });
+  return merged;
+}
+const frenchMonths={janvier:0,'février':1,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,'août':7,aout:7,septembre:8,octobre:9,novembre:10,'décembre':11,decembre:11};
+function parseDateToken(day,month,year){const mi=frenchMonths[String(month).toLowerCase().replace(/\.$/,'')];return HenriImport.validDate(year,mi===undefined?Number(month):mi+1,day);}
+
+function normalizeSchoolCalendarLabel(value){return HenriImport.label(value);}
+
+function parseSchoolCalendarText(text){return HenriImport.calendarText(text);}
+
+function parseSchoolCalendarLoose(text){return HenriImport.calendarText(text);}
+
+function calendarMonthIndex(value){
+  const key=String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
+  const map={janvier:0,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,aout:7,septembre:8,octobre:9,novembre:10,decembre:11};
+  return Object.prototype.hasOwnProperty.call(map,key)?map[key]:null;
+}
+function clusterCalendarNumbers(values,tolerance){
+  const sorted=[...values].sort((a,b)=>a-b),out=[];
+  sorted.forEach(v=>{
+    const last=out[out.length-1];
+    if(!last||Math.abs(v-last.avg)>tolerance)out.push({avg:v,values:[v]});
+    else{last.values.push(v);last.avg=last.values.reduce((a,b)=>a+b,0)/last.values.length}
+  });
+  return out;
+}
+async function loadCalendarImage(file,w,h){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('Photo illisible.'));el.src=url;});
+    const canvas=document.createElement('canvas');canvas.width=w||img.naturalWidth;canvas.height=h||img.naturalHeight;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    return {canvas,ctx};
+  }finally{URL.revokeObjectURL(url)}
+}
+function classifyCalendarCellColor(ctx,x0,y0,x1,y1){
+  const sx=Math.max(0,Math.floor(x0+(x1-x0)*.18)),sy=Math.max(0,Math.floor(y0+(y1-y0)*.18));
+  const sw=Math.min(ctx.canvas.width-sx,Math.max(1,Math.floor((x1-x0)*.64))),sh=Math.min(ctx.canvas.height-sy,Math.max(1,Math.floor((y1-y0)*.64)));
+  if(sw<=0||sh<=0)return '';
+  const pixels=ctx.getImageData(sx,sy,sw,sh).data;let green=0,blue=0,red=0,total=0;
+  for(let i=0;i<pixels.length;i+=16){
+    total++;const R=pixels[i],G=pixels[i+1],B=pixels[i+2];
+    if(G>100&&G>R*.95&&B<100&&G-B>70)green++;
+    else if(B>100&&B>G*1.3&&B>R*1.8)blue++;
+    else if(R>140&&G<105&&B<105)red++;
+  }
+  if(green/total>.4)return 'Pédagogique';
+  if(blue/total>.4||red/total>.4)return 'Congé';
+  return '';
+}
+
+function parseSchoolBoundary(text,start){
+  const re=start
+    ?/(?:début|debut)[^\n]{0,60}?(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(20\d{2})/i
+    :/(?:fin)[^\n]{0,60}?(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(20\d{2})/i;
+  const m=String(text||'').match(re);if(!m)return null;
+  const month=calendarMonthIndex(m[2]);return month===null?null:dateKey(Number(m[3]),month,Number(m[1]));
+}
+async function parseSchoolCalendarVisual(doc){
+  const items=HenriImport.wordsWithLabels(doc.words);
+  const raw=String(doc.text||'');
+  const years=[...new Set([...raw.matchAll(/\b20\d{2}\b/g)].map(m=>Number(m[0])))].sort();
+  if(years.length!==2)return {};
+  const months=items.map(w=>({...w,month:calendarMonthIndex(w.text)})).filter(w=>w.month!==null);
+  if(!months.length)return {};
+  let classify=null;
+  if(HenriImport.decouvreursReference(raw)&&(doc.file?.type||'').startsWith('image/')&&doc.imageWidth&&doc.imageHeight){
+    const {ctx}=await loadCalendarImage(doc.file,doc.imageWidth,doc.imageHeight);
+    classify=(x0,y0,x1,y1)=>classifyCalendarCellColor(ctx,x0,y0,x1,y1);
+  }
+  const out=HenriImport.calendarNumberGrid(doc.words,years[0],years[1],classify);
+  for(const word of items){
+    const type=normalizeSchoolCalendarLabel(word.text);
+    if(!type)continue;
+    // A printed month heading must be above the date; no assumed page layout or color legend.
+    const heading=months.filter(m=>m.y<word.y).sort((a,b)=>Math.hypot(a.x-word.x,a.y-word.y)-Math.hypot(b.x-word.x,b.y-word.y))[0];
+    if(!heading)continue;
+    const height=word.bbox.y1-word.bbox.y0;
+    const dateWord=items.filter(w=>/^\d{1,2}$/.test(w.text)&&w.y>heading.y&&w!==word&&w.x<=word.x&&Math.abs(w.y-word.y)<height*2&&word.x-w.x<height*5).sort((a,b)=>Math.hypot(a.x-word.x,a.y-word.y)-Math.hypot(b.x-word.x,b.y-word.y))[0];
+    if(!dateWord)continue;
+    const key=HenriImport.validDate(heading.month>=6?years[0]:years[1],heading.month+1,Number(dateWord.text));
+    if(key){if(out[key]&&out[key]!==type)throw new Error('Date ambiguë dans le calendrier : '+key);out[key]=type;}
+  }
+  return out;
+}
+
+async function parseSchoolCalendarDocs(docs){
+  const out={};
+  for(const doc of docs){
+    const reference=HenriImport.decouvreursReference(doc.text);
+    let recognized={...await parseSchoolCalendarVisual(doc),...parseSchoolCalendarText(doc.text||'')};
+    if(reference){
+      const dates=Object.keys(reference).sort();
+      recognized=Object.fromEntries(Object.entries(recognized).filter(([date])=>date>=dates[0]&&date<=dates.at(-1)));
+    }
+    if(reference)for(const [date,type] of Object.entries(recognized)){
+      if(reference[date]&&reference[date]!==type)throw new Error('Le '+date+' diffère du calendrier de référence du CSS des Découvreurs. Vérifie la date reconnue ou importe la version adaptée par ton école.');
+    }
+    const parsed={...reference,...recognized};
+    for(const [date,type] of Object.entries(parsed)){
+      if(out[date]&&out[date]!==type)throw new Error('Les photos indiquent des jours différents pour le '+date+'.');
+      out[date]=type;
+    }
+  }
+  return out;
+}
+
+async function handleSetupFile(type,input){
+  const files=[...(input.files||[])];
+  const state=document.getElementById(type+'State');
+  const card=document.getElementById(type+'Card');
+  if(!files.length)return;
+  const previous={data:importedSetupData[type],ready:setupFiles[type]};
+  setupFiles[type]=false;
+  state.textContent='Analyse…';
+  card.classList.remove('ready');
+  updateGenerateState();
+  try{
+    if(type==='groupSheets'&&files.length>30)throw new Error('Maximum 30 listes à la fois.');
+    const docs=[];
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      if(type==='groupSheets'||type==='teacherSchedule'||type==='schoolCalendar'){
+        state.textContent='Analyse '+(i+1)+' / '+files.length;
+      }
+      const read=await readSetupFile(file,p=>{
+        if(type==='groupSheets'||type==='teacherSchedule'||type==='schoolCalendar')state.textContent='Analyse '+(i+1)+' / '+files.length;
+      });
+      for(const page of read.pages||[read])docs.push({file:page.file||file,text:page.text,confidence:page.confidence,engine:page.engine,words:page.words||[],imageWidth:page.imageWidth||0,imageHeight:page.imageHeight||0});
+    }
+    if(type==='groupSheets'){
+      const groups=parseGroupDocuments(docs);
+      if(!groups.length)throw new Error('Aucun élève détecté.');
+      const imageFiles=files.filter(f=>(f.type||'').startsWith('image/'));
+      if(imageFiles.length===files.length&&groups.length!==files.length){
+        const recognized=new Set(groups.map(g=>g.sourceFile));
+        const missing=files.filter(f=>!recognized.has(f.name)).map(f=>f.name);
+        throw new Error('Henri n’a pas reconnu une liste complète dans '+missing.length+' photo'+(missing.length>1?'s':'')+' : '+missing.slice(0,3).join(', ')+(missing.length>3?'…':'')+'.');
+      }
+      const weak=groups.filter(g=>g.importConfidence<70||g.students.length<8);
+      groupsData=mergeImportedGroups(groups,previous.data||[]);
+      importedSetupData.groupSheets=groupsData;
+      saveGroups();
+      state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' importé'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves'+(weak.length?' · '+weak.length+' à vérifier':'');
+      localStorage.setItem('previewHenriSlate:henriImportedGroups',JSON.stringify(groupsData));
+      if(groupAIReview&&groupAIReviewList){
+        groupAIReview.style.display='block';
+        groupAIReviewList.innerHTML=groups.map(g=>'<div style="display:flex;justify-content:space-between;gap:12px"><span><b>'+g.name+'</b> · '+g.students.length+' élèves</span><span>'+(g.importConfidence<70||g.students.length<8?'À vérifier':'Importé')+'</span></div>').join('');
+      }
+    }else if(type==='teacherSchedule'){
+      const parsed=parseTeacherScheduleDocs(docs);
+      const lessons=Object.values(parsed).reduce((n,a)=>n+a.length,0);
+      if(!lessons)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
+      const linked=Object.values(parsed).flat().filter(x=>x.matchedGroupId).length;
+      importedSetupData.teacherSchedule=parsed;
+      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' créneaux · '+linked+' liés aux groupes';
+      localStorage.setItem('previewHenriSlate:henriImportedTeacherSchedule',JSON.stringify(parsed));
+    }else{
+      const parsed=await parseSchoolCalendarDocs(docs);
+      const days=Object.keys(parsed).length;
+      if(days<5)throw new Error('Calendrier non reconnu. Essaie de cadrer la page complète, incluant les 12 mois et la légende du bas.');
+      const cycles=Object.values(parsed).filter(v=>/^Jour /.test(v)).length;
+      const specials=Object.values(parsed).filter(v=>v==='Pédagogique'||v==='Congé').length;
+      importedSetupData.schoolCalendar=parsed;
+      state.textContent='Calendrier importé · '+days+' dates · '+cycles+' jours-cycle · '+specials+' journées spéciales';
+      localStorage.setItem('previewHenriSlate:henriImportedSchoolCalendar',JSON.stringify(parsed));
+    }
+    setupFiles[type]=true;
+    refreshImportedLinks();
+    card.classList.add('ready');
+    henriSyncSharedData({skipSequenceEditor:true});
+  }catch(err){
+    setupFiles[type]=previous.ready;
+    importedSetupData[type]=previous.data;
+    state.textContent=previous.ready?'Import précédent conservé':'À vérifier';
+    card.classList.remove('ready');
+    alert('Henri n’a pas pu valider ce document : '+err.message);
+  }
+  updateGenerateState();
+}
+function updateGenerateState(){if(typeof renderImportLinksReview==='function')renderImportLinksReview();else generateScheduleBtn.disabled=true;}
+
+function generateMySchedule(){
+  refreshImportedLinks();
+  if(!Object.values(setupFiles).every(Boolean)||!HenriImport.review(importedSetupData.teacherSchedule,importedSetupData.schoolCalendar,importedSetupData.groupSheets).ready){
+    alert('Vérifie les associations et les dates indiquées sous tes documents avant de générer ton année.');
+    return;
+  }
+  const teacher=importedSetupData.teacherSchedule;
+  const calendar=importedSetupData.schoolCalendar;
+  const groups=importedSetupData.groupSheets;
+  if(!teacher||!calendar||!groups)return;
+  groupsData=groups;
+  schoolDays={...calendar};
+  scheduleEntries={};
+  Object.entries(schoolDays).forEach(([date,cycle])=>{
+    const lessons=sortScheduleEntries(teacher[cycle]||[]);
+    if(/^Jour \d+$/.test(cycle)&&lessons.length)scheduleEntries[date]=lessons.map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
+  });
+  localStorage.removeItem('previewHenriSlate:henriDemoSchedule');
+  localStorage.setItem('previewHenriSlate:henriSetupComplete','1');
+  localStorage.setItem('previewHenriSlate:henriScheduleEntries',JSON.stringify(scheduleEntries));
+  localStorage.setItem('previewHenriSlate:henriSchoolDays',JSON.stringify(schoolDays));
+  localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
+  rebuildPlanningAssignments();
+  henriSyncSharedData({skipSequenceEditor:true});
+  const entries=Object.values(scheduleEntries).flat();
+  const total=entries.filter(isPlanningEntry).length;
+  const cognitive=entries.filter(entry=>entry.kind==='cognitive').length;
+  const dates=Object.keys(schoolDays).sort();
+  setupSuccess.textContent='Année générée du '+formatPlanDate(dates[0])+' au '+formatPlanDate(dates.at(-1))+' · '+groupsData.length+' groupes · '+total+' cours placés'+(cognitive?' · '+cognitive+' interventions cognitives':'')+'.';
+  setupSuccess.classList.add('show');
+  const pending=Object.values(schoolDays).filter(type=>/^Jour [xyz]$/.test(type)).length;
+  if(pending)setupSuccess.textContent+=' '+pending+' jours-cycle restent à préciser, sans cours attribué.';
+  const first=new Date(Object.keys(schoolDays).sort()[0]+'T12:00:00');shownYear=first.getFullYear();shownMonth=first.getMonth();
+  renderMonth();renderWeek();
+  setTimeout(()=>{go('home');setCalendarView('month')},350);
+}
+const savedScheduleEntries=JSON.parse(localStorage.getItem('previewHenriSlate:henriScheduleEntries')||'null');
+const savedSchoolDays=JSON.parse(localStorage.getItem('previewHenriSlate:henriSchoolDays')||'null');
+if(savedScheduleEntries) scheduleEntries=savedScheduleEntries;
+if(savedSchoolDays) schoolDays=savedSchoolDays;
+
+
+rebuildPlanningAssignments();
+renderGroups();
+fillTeamBuilderGroups();
+fillExceptionGroupOptions();
+renderCalendarExceptions();
+setTimeout(()=>{
+  refreshQuickObjectiveOptions();
+  const labels={
+    teacherSchedule:importedSetupData.teacherSchedule?'Horaire validé':null,
+    schoolCalendar:importedSetupData.schoolCalendar?(Object.keys(importedSetupData.schoolCalendar).length+' dates'):null,
+    groupSheets:importedSetupData.groupSheets?(importedSetupData.groupSheets.length+' groupe'+(importedSetupData.groupSheets.length>1?'s':'')):null
+  };
+  Object.entries(labels).forEach(([k,label])=>{
+    if(!label)return;
+    document.getElementById(k+'State').textContent=label;
+    document.getElementById(k+'Card').classList.add('ready');
+  });
+  updateGenerateState();
+},0);
+</script>
+<script src="henri-bank-v1.js"></script>
+<script src="henri-ux.js"></script>
+</body>
+</html>
