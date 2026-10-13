@@ -1,5 +1,3 @@
-Prévisualisation isolée de la branche design/henri-slate-ux, commit c66ff60.
+Prévisualisation isolée de Henri, commit 8d427662f3ef92886bf053912475cab5f1fc5cb1.
 
-Les clés localStorage sont préfixées previewHenriSlate: et la banque IndexedDB utilise preview-henri-slate-planning-bank-v1. Aucun fichier de production à la racine du dépôt n’est remplacé.
-
-La prévisualisation démarre sans les données du site actuel. Utiliser des données fictives pour la revue visuelle.
+Les clés localStorage conservent le préfixe previewHenriSlate: et la banque IndexedDB conserve le nom preview-henri-slate-planning-bank-v1. Les données des essais précédents restent accessibles. Aucun fichier de production à la racine du dépôt n’est remplacé.

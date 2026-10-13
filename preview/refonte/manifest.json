@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "c66ff60bacfcd897642677f7d427c4bc5cc442f4",
+  "sourceCommit": "8d427662f3ef92886bf053912475cab5f1fc5cb1",
   "previewPath": "preview/refonte/",
   "storagePrefix": "previewHenriSlate:",
   "files": [
@@ -8,9 +8,11 @@
     "henri-design.css",
     "henri-layout.css",
     "henri-ux.js",
+    "henri-visuals.js",
     "henri-import.js",
     "henri-calendar-links.js",
     "henri-bank-v1.js",
-    "henri-icon.svg"
+    "henri-icon.svg",
+    "henri-illustrations.svg"
   ]
 }

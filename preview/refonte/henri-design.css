@@ -1,7 +1,7 @@
 /* Henri — semantic tokens and shared components. No remote fonts. */
 :root {
   color-scheme:light;
-  --bg:#f7f8fa;
+  --bg:#f8f8f5;
   --card:#fff;
   --ink:#252d35;
   --muted:#626d78;
@@ -13,8 +13,14 @@
   --warning:#795b2f;
   --warning-soft:#faf3e7;
   --danger:#a34242;
-  --radius:8px;
-  --radius-small:5px;
+  --sage:#456953;
+  --sage-soft:#edf3ef;
+  --clay:#895b43;
+  --clay-soft:#f5ebe3;
+  --lilac:#6b5d7a;
+  --lilac-soft:#f1edf5;
+  --radius:16px;
+  --radius-small:10px;
   --shadow:0 8px 28px #182b3d0c;
   --space-1:4px;
   --space-2:8px;
@@ -40,7 +46,8 @@ button,input,textarea,select {
 }
 
 button {
-  transition:background .14s,border-color .14s,color .14s;
+
+  transition:background .16s,border-color .16s,color .16s,transform .16s;
   touch-action:manipulation;
 }
 
@@ -261,17 +268,22 @@ main {
 .homeEmpty {
   display:flex;
   justify-content:space-between;
-  gap:28px;
+
+  gap:24px;
   align-items:center;
-  background:var(--card);
-  border:1px solid var(--line);
+
+  background:#f0f4f5;
+
+  border:1px solid #dce6e9;
   border-radius:var(--radius);
+
   padding:28px;
   margin-bottom:24px;
 }
 
 .homeEmpty h2 {
   margin:0 0 8px;
+
   font-size:22px;
 }
 
@@ -288,10 +300,15 @@ main {
 }
 
 .nextCourse {
-  background:var(--card);
-  border:1px solid var(--line);
-  border-left:3px solid var(--accent);
-  border-radius:var(--radius);
+
+  background:#f0f4f6;
+
+  border:1px solid #dce5eb;
+
+  border-left:1px solid #dce5eb;
+
+  border-radius:20px;
+
   padding:24px 28px;
   margin-bottom:16px;
 }
@@ -313,7 +330,8 @@ main {
 .nextCourseMain {
   display:flex;
   justify-content:space-between;
-  gap:24px;
+
+  gap:20px;
   align-items:center;
 }
 
@@ -336,15 +354,25 @@ main {
 }
 
 .homeActions .itemBtn {
-  background:transparent;
-  border-color:transparent;
+
+  background:var(--card);
+
+  border-color:var(--line);
   padding-left:0;
-  margin-right:16px;
+
+  margin-right:0;
+  padding:10px 14px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border-radius:999px;
 }
 
 .homeActions .itemBtn:hover {
   color:var(--accent);
-  text-decoration:underline;
+
+  text-decoration:none;
+  background:var(--accent-soft);
 }
 
 .sectionHead {
@@ -360,7 +388,8 @@ main {
   display:flex;
   background:#edf0f3;
   border:1px solid var(--line);
-  border-radius:6px;
+
+  border-radius:12px;
   padding:3px;
   gap:3px;
 }
@@ -369,7 +398,8 @@ main {
   min-height:38px;
   border:0;
   background:transparent;
-  border-radius:4px;
+
+  border-radius:9px;
   font-size:12px;
   padding:6px 14px;
   color:var(--muted);
@@ -387,18 +417,25 @@ main {
 }
 
 #home .week {
-  gap:0;
-  border:1px solid var(--line);
-  background:var(--card);
+
+  gap:12px;
+
+  border:0;
+
+  background:transparent;
   border-radius:var(--radius);
-  overflow:hidden;
+
+  overflow:visible;
 }
 
 #home .weekDay {
-  border:0;
-  border-radius:0;
+
+  border:1px solid var(--line);
+
+  border-radius:16px;
   background:var(--card);
   box-shadow:none;
+  overflow:hidden;
 }
 
 #home .weekDay+.weekDay {
@@ -406,7 +443,9 @@ main {
 }
 
 #home .weekDay.today {
-  background:#f3f6f9;
+
+  background:#f0f5f8;
+  border-color:#a7bfce;
 }
 
 #home .dayHead {
@@ -438,7 +477,8 @@ main {
 }
 
 #home .weekEvent:hover {
-  background:var(--accent-soft);
+
+  background:#f1f5f7;
 }
 
 #home .groupBar {
@@ -459,8 +499,17 @@ main {
   font-size:12px;
   color:var(--muted);
   white-space:normal;
-  max-width:160px;
-  text-align:right;
+
+  max-width:100%;
+
+  text-align:left;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  border-radius:9px;
+  width:fit-content;
+  background:#f3f5f5;
 }
 
 #home .quickSport.planningSport {
@@ -478,10 +527,6 @@ main {
   font-size:12px;
   color:var(--muted);
   padding:20px;
-}
-
-.sportIcon {
-  display:none;
 }
 
 .monthCard {
@@ -544,7 +589,8 @@ main {
   height:28px;
   font-size:13px;
   font-weight:500;
-  border-radius:5px;
+
+  border-radius:10px;
 }
 
 .dayCell.today .dayNum {
@@ -557,11 +603,13 @@ main {
 }
 
 .dayCell.pedago {
-  background:var(--warning-soft);
+
+  background:var(--sage-soft);
 }
 
 .dayCell.holiday {
-  background:#f1f3f5;
+
+  background:var(--clay-soft);
 }
 
 .eventDot {
@@ -628,9 +676,11 @@ main {
 .planMenuIcon,.toolIcon,.choiceIcon {
   width:36px;
   height:36px;
-  background:transparent;
+
+  background:var(--accent-soft);
   color:var(--accent);
-  border-radius:5px;
+
+  border-radius:12px;
   font-size:16px;
   font-weight:600;
 }
@@ -1650,7 +1700,8 @@ select {
 .nav {
   background:transparent;
   color:var(--muted);
-  border-radius:5px;
+
+  border-radius:12px;
   font-size:11px;
   font-weight:500;
   min-height:58px;
@@ -1658,7 +1709,8 @@ select {
 }
 
 .nav.on {
-  background:var(--accent-soft);
+
+  background:#e6eef3;
   color:var(--accent);
   font-weight:600;
 }
@@ -1745,6 +1797,33 @@ select {
   background:var(--card);
   border-radius:8px;
   color:var(--ink);
+}
+
+/* Illustrations and activity cues stay decorative: text carries every status. */
+.activityIcon { width:18px; height:18px; flex:0 0 18px; vertical-align:middle; }
+.homeEmptyIllustration { width:128px; height:90px; flex:0 0 auto; }
+.nextCourseInfo { flex:1; min-width:0; }
+.nextCourseIllustration { width:84px; height:84px; flex:0 0 84px; position:relative; display:grid; place-items:center; border-radius:28px 28px 28px 10px; background:var(--sage-soft); color:var(--sage); }
+.nextCourseIllustration > svg:first-child { width:46px; height:46px; transform:rotate(-10deg); }
+.nextCourseIllustration .motionTrail { position:absolute; bottom:-8px; left:-8px; width:100px; height:30px; color:var(--clay); }
+.homeActions .itemBtn:nth-child(2) .activityIcon { color:var(--sage); }
+.homeActions .itemBtn:nth-child(3) .activityIcon { color:var(--clay); }
+.planMenuCard:nth-child(2) .planMenuIcon { color:var(--sage); background:var(--sage-soft); }
+.planMenuCard:nth-child(3) .planMenuIcon { color:var(--clay); background:var(--clay-soft); }
+.planMenuCard:nth-child(4) .planMenuIcon { color:var(--lilac); background:var(--lilac-soft); }
+.toolIcon { color:var(--sage); background:var(--sage-soft); }
+#home .plannedCourse .quickSport { background:var(--sage-soft); color:var(--sage); }
+#home .cognitiveCourse .quickSport { background:var(--lilac-soft); color:var(--lilac); }
+#home .blockedCourse .quickSport { background:var(--clay-soft); color:var(--clay); }
+#home .blockedCourse .course { color:var(--muted); }
+.dayKind { color:var(--sage); align-self:flex-end; margin-top:4px; }
+.holiday .dayKind,.exceptionDay .dayKind { color:var(--clay); }
+.exceptionDay { box-shadow:inset 0 2px 0 #bd957c; }
+.dayKind .activityIcon { width:14px; height:14px; }
+@media(hover:hover) {
+  .planMenuIcon svg,.toolIcon svg,.homeActions .activityIcon { transition:transform .18s ease; }
+  .planMenuCard:hover .planMenuIcon svg,.toolCard:hover .toolIcon svg,.homeActions button:hover .activityIcon { transform:rotate(-7deg); }
+  .planPrimary:active,.itemBtn:active,.segment button:active { transform:translateY(1px); }
 }
 
 @keyframes screen-in {
@@ -1934,6 +2013,11 @@ select {
 }
 
 @media(max-width:699px) {
+  .homeEmptyIllustration { width:112px; height:78px; }
+  .nextCourseIllustration { width:60px; height:64px; border-radius:20px 20px 20px 8px; }
+  .nextCourseIllustration > svg:first-child { width:34px; height:34px; }
+  .nextCourseIllustration .motionTrail { width:74px; left:-4px; }
+  .dayKind { align-self:center; margin:0; }
   main {
     padding:24px 20px 48px;
   }
@@ -1970,10 +2054,13 @@ select {
     font-size:12px;
   }
 
-  .homeEmpty {
-    display:block;
+.homeEmpty {
+
+  display:flex;
     padding:24px;
-  }
+    flex-direction:column;
+  align-items:flex-start;
+}
 
   .homeEmpty .planPrimary {
     width:100%;
@@ -1997,27 +2084,36 @@ select {
     margin-bottom:6px;
   }
 
-  .nextCourseMain {
-    display:block;
-  }
+.nextCourseMain {
+
+  display:grid;
+    grid-template-columns:64px minmax(0,1fr);
+  gap:12px;
+}
 
   .nextCourseMain h2 {
     font-size:19px;
   }
 
-  .nextCourseMain .itemBtn {
-    margin-top:16px;
-  }
+.nextCourseMain .itemBtn {
+
+  margin-top:8px;
+    grid-column:1 / -1;
+  justify-self:start;
+}
 
   .homeActions {
     gap:4px;
     margin-bottom:24px;
   }
 
-  .homeActions .itemBtn {
-    font-size:12px;
-    margin-right:12px;
-  }
+.homeActions .itemBtn {
+
+  font-size:12px;
+
+  margin-right:0;
+    padding:9px 12px;
+}
 
   .sectionHead h2 {
     font-size:15px;
@@ -2306,4 +2402,4 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus {
   gap:8px;
 }
 
-.previewNotice{max-width:1040px;margin:0 auto 28px;padding:12px 16px;border:1px solid var(--line);border-radius:6px;background:var(--card);display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:12px;color:var(--muted)}.previewNotice strong{color:var(--accent);font-size:12px}.previewNotice a{color:var(--accent);margin-left:auto;min-height:32px;display:flex;align-items:center}@media(max-width:699px){.previewNotice{display:block}.previewNotice span{display:block;margin-top:6px}.previewNotice a{margin-top:6px}}
+.previewNotice{max-width:1040px;margin:0 auto 28px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:12px;color:var(--muted)}.previewNotice strong{color:var(--accent);font-size:12px}.previewNotice a{color:var(--accent);margin-left:auto;min-height:32px;display:flex;align-items:center}@media(max-width:699px){.previewNotice{display:block}.previewNotice span{display:block;margin-top:6px}.previewNotice a{margin-top:6px}}
