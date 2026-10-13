@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Henri</title>
+<meta name="theme-color" content="#f7f5ef">
+<link rel="icon" href="henri-icon.svg" type="image/svg+xml">
 <style>
 :root{
   --bg:#f5f5f3;
@@ -500,7 +502,7 @@ body{background:#f8f7f4}
 .henriBankLesson strong{display:block;font-size:12px}.henriBankLesson small{font-size:11px;color:var(--muted)}
 .henriBankLesson p{font-size:11px;line-height:1.6}.henriBankLesson p span,.editBlockNotes{display:block;white-space:pre-line;color:var(--muted);font-size:11px;margin-top:5px}
 @media(max-width:520px){.henriBankPanel,.henriResetPanel{padding:14px}}
-.teamResult{display:none;margin-top:14px>
+.teamResult{display:none;margin-top:14px}
 .teamResult.show{display:block}
 .teamResultTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
 .teamResultTop strong{font-size:15px}
@@ -520,22 +522,24 @@ body{background:#f8f7f4}
 .teamCompatibilityNote{margin-top:10px;color:var(--muted);font-size:10px;line-height:1.4}
 @media(max-width:600px){.teamSetupGrid{grid-template-columns:1fr}.generatedTeams{grid-template-columns:1fr}.teamOption{align-items:flex-start;flex-direction:column}}
 </style>
+<link rel="stylesheet" href="henri-design.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="topin"><div><span class="brand">Henri</span><span class="version">v5.60</span></div><button class="pill" onclick="go('settings')">Paramètres</button></div></header>
+<header class="top"><div class="topin"><button class="brandHome" onclick="goHome()" aria-label="Henri, retour au calendrier"><span class="brandMark" aria-hidden="true">h</span><span><span class="brand">Henri</span><span class="brandCaption">Éducation physique</span></span></button><button id="settingsButton" class="pill" onclick="go('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 3 2 2v3l3 2 1 3h5l1-3 3-2v-3l2-2-2-3-3-1-1-3Z"/></svg><span>Paramètres</span></button></div></header>
 <main>
 <section id="home" class="screen active">
-  <h1>Accueil</h1>
+  <div class="screenHeading"><div><p class="screenKicker">Mon espace</p><h1>Votre calendrier</h1></div><span id="todayStamp" class="todayStamp"></span></div>
+  <div id="homeEmpty" class="homeEmpty"><div><h2>Ajoutez votre horaire.</h2><p>Votre horaire, le calendrier scolaire et vos listes de groupes : réunissez vos documents pour retrouver chaque cours à sa date.</p></div><button class="planPrimary" onclick="go('settings')">Configurer mon horaire</button></div>
 
   <div class="calendarPanel">
     <div class="sectionHead">
-      <h2>Calendrier</h2>
+      <h2 id="calendarSectionTitle">Cette semaine</h2>
       <div class="segment" aria-label="Vue du calendrier">
-        <button id="weekBtn" class="on" onclick="setCalendarView('week')">Semaine</button>
-        <button id="monthBtn" onclick="setCalendarView('month')">Mois</button>
+        <button id="weekBtn" class="on" aria-pressed="true" onclick="setCalendarView('week')">Semaine</button>
+        <button id="monthBtn" aria-pressed="false" onclick="setCalendarView('month')">Mois</button>
       </div>
     </div>
 
@@ -548,7 +552,7 @@ body{background:#f8f7f4}
         <div class="monthTop">
           <span id="monthTitle" class="monthTitle"></span>
           <div style="display:flex;align-items:center;gap:8px">
-            <button class="itemBtn" onclick="goHome()">Retour à l’accueil</button>
+            <button class="itemBtn" onclick="goHome()">Cette semaine</button>
             <div class="monthNav"><button aria-label="Mois précédent" onclick="changeMonth(-1)">‹</button><button aria-label="Mois suivant" onclick="changeMonth(1)">›</button></div>
           </div>
         </div>
@@ -719,6 +723,7 @@ body{background:#f8f7f4}
     </div>
   </div>
   <div id="sequenceOverview" class="seqOverview"></div>
+  <div id="sequenceDatePlacement" class="planForm" hidden><label for="sequenceStartSlot">Placer cette séquence à partir d’un cours</label><select id="sequenceStartSlot" class="planControl"></select><button class="planPrimary" onclick="scheduleStandaloneSequence()">Placer dans le calendrier</button><p class="planHint">Les séances suivent les prochains cours de ce groupe. La planification annuelle se décale sur les périodes restantes.</p></div>
   <div class="planForm" style="margin-top:12px">
     <div class="planField"><label>Objectif de la séquence</label><small class="pdaCategory" id="sequencePdaCategory"></small><select id="sequenceObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('sequence',this.value)"></select></div>
     <div class="planField" id="sequenceObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sequenceObjectiveCustom" class="planControl" placeholder="Écrire l’objectif de la séquence" oninput="saveCustomObjective('sequence',this.value)"></div>
@@ -851,30 +856,42 @@ body{background:#f8f7f4}
   <div class="setupStack">
     <label class="importCard" id="teacherScheduleCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M4 9h16"/></svg></span>
-      <span class="importText"><strong>Horaire d’enseignant</strong><span>PDF, texte ou CSV · Henri détecte les jours-cycle, groupes et périodes</span></span>
+      <span class="importText"><strong>Horaire d’enseignant</strong><span>Photos, PDF, texte ou CSV · plusieurs pages permises</span></span>
       <span class="importState" id="teacherScheduleState">Importer</span>
-      <input class="fileInput" id="teacherScheduleFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('teacherSchedule',this)">
+      <input class="fileInput" id="teacherScheduleFile" type="file" multiple accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('teacherSchedule',this)">
     </label>
 
     <label class="importCard" id="schoolCalendarCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
-      <span class="importText"><strong>Calendrier scolaire</strong><span>Photo, PDF ou CSV · grande tolérance</span></span>
+      <span class="importText"><strong>Calendrier scolaire</strong><span>Photos, PDF ou CSV · toute l’année, jours-cycle et congés</span></span>
       <span class="importState" id="schoolCalendarState">Importer</span>
-      <input class="fileInput" id="schoolCalendarFile" type="file" accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('schoolCalendar',this)">
+      <input class="fileInput" id="schoolCalendarFile" type="file" multiple accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('schoolCalendar',this)">
     </label>
 
     <label class="importCard" id="groupSheetsCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
       <span class="importText"><strong>Listes de groupes</strong><span>Photos, PDF ou CSV · sélection multiple permise</span></span>
       <span class="importState" id="groupSheetsState">Importer</span>
-      <input class="fileInput" id="groupSheetsFile" type="file" accept=".pdf,.csv,image/*" multiple onchange="handleSetupFile('groupSheets',this)">
+      <input class="fileInput" id="groupSheetsFile" type="file" accept=".pdf,.csv,.txt,image/*" multiple onchange="handleSetupFile('groupSheets',this)">
     </label>
     <div id="groupAIReview" class="placeholder" style="display:none;margin-top:-2px">
-      <strong>Vérification IA</strong>
+      <strong>Vérifier les listes reconnues</strong>
       <div id="groupAIReviewList" class="muted" style="margin-top:8px;display:grid;gap:6px"></div>
     </div>
   </div>
 
+  <div id="importLinksReview" class="placeholder" role="status" aria-live="polite"></div>
+  <div class="generateBox">
+    <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()" disabled>Générer mon horaire</button>
+    <p class="generateHint">Ajoute tes trois sources. Les jours-cycle inconnus restent visibles, sans groupe attribué.</p>
+    <div id="setupSuccess" class="setupSuccess">Configuration terminée. Ton Henri est prêt.</div>
+  </div>
+
+  <div class="groupsSection">
+    <h2>Mes groupes</h2>
+    <div id="groupList" class="groupList"></div>
+    <p class="dataNote">Les profils élèves sont conservés dans Henri et serviront plus tard automatiquement à l’outil de formation d’équipes.</p>
+  </div>
   <div class="calendarExceptionSection">
     <div class="calendarExceptionHead">
       <div>
@@ -889,7 +906,7 @@ body{background:#f8f7f4}
         <div class="planField"><label>Date de début</label><input id="exceptionStart" type="date" class="planControl"></div>
         <div class="planField"><label>Date de fin · optionnel</label><input id="exceptionEnd" type="date" class="planControl"></div>
         <div class="planField"><label>Groupe concerné</label><select id="exceptionGroup" class="planControl"><option value="all">Tous les groupes</option></select></div>
-        <div class="planField"><label>Type</label><select id="exceptionType" class="planControl"><option>Sortie scolaire</option><option>Journée pédagogique</option><option>Activité spéciale</option><option>Examen</option><option>Gym indisponible</option><option>Absence enseignant</option><option>Autre</option></select></div>
+        <div class="planField"><label>Type</label><select id="exceptionType" class="planControl"><option>Sortie scolaire</option><option>Journée pédagogique</option><option>Journée pédagogique flottante</option><option>Activité spéciale</option><option>Examen</option><option>Gym indisponible</option><option>Absence enseignant</option><option>Autre</option></select></div>
       </div>
       <div class="planField" style="margin-top:9px"><label>Raison / note</label><input id="exceptionReason" class="planControl" placeholder="Ex. sortie au Musée de la civilisation"></div>
       <div class="exceptionActions">
@@ -901,17 +918,6 @@ body{background:#f8f7f4}
     <div id="exceptionList" class="exceptionList"></div>
   </div>
 
-  <div class="generateBox">
-    <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()" disabled>Générer mon horaire</button>
-    <p class="generateHint">Ajoute tes trois sources. Henri activera la génération seulement lorsqu’elles auront été validées.</p>
-    <div id="setupSuccess" class="setupSuccess">Configuration terminée. Ton Henri est prêt.</div>
-  </div>
-
-  <div class="groupsSection">
-    <h2>Mes groupes</h2>
-    <div id="groupList" class="groupList"></div>
-    <p class="dataNote">Les profils élèves sont conservés dans Henri et serviront plus tard automatiquement à l’outil de formation d’équipes.</p>
-  </div>
   <div class="henriResetPanel"><h2>Nouvelle année scolaire</h2><p>Réinitialiser les groupes, listes d’élèves, horaires et calendrier. Les planifications sont archivées et une sauvegarde est proposée avant de repartir.</p><button id="henriYearResetButton" class="henriYearResetButton" onclick="henriResetSchoolYear()">Réinitialiser pour la nouvelle année</button><p id="henriYearResetStatus" class="planHint" role="status">Ta banque de planifications sera conservée.</p></div>
 </section>
 
@@ -940,17 +946,18 @@ body{background:#f8f7f4}
   <div class="placeholder" style="margin-top:10px">
     <strong id="courseSessionTitle">Séance</strong>
     <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
+    <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div>
   </div>
 </section>
 
 <section id="session" class="screen"><button class="back" onclick="go(previousScreen)">‹ Retour</button><div class="muted" id="sessionMeta"></div><h1 id="sessionTitle"></h1><div class="placeholder"><strong>Séance clé en main</strong><p class="muted">Le contenu pédagogique complet sera branché à la banque Henri. Ce lien confirme le circuit agenda → séance.</p></div></section>
 </main>
 
-<nav class="bottom">
+<nav class="bottom" aria-label="Navigation principale">
   <div class="bottomin">
-    <button class="nav on" data-screen="home" onclick="goHome()">
+    <button class="nav on" aria-current="page" data-screen="home" onclick="goHome()">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
-      Accueil
+      Calendrier
     </button>
     <button class="nav" data-screen="plan" onclick="go('plan')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
@@ -964,6 +971,8 @@ body{background:#f8f7f4}
 </nav>
 </div>
 
+<script src="henri-import.js"></script>
+<script src="henri-calendar-links.js"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -971,8 +980,11 @@ if(localStorage.getItem('henriFreshStartVersion')!==HENRI_FRESH_START_VERSION)lo
 let previousScreen='home';
 function go(id){
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
-  document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('on',x.dataset.screen===id));
-  if(id==='settings'){fillExceptionGroupOptions();renderCalendarExceptions()}
+  const section=['home','dayPlan','courseDetail'].includes(id)?'home':['tools','teamBuilder'].includes(id)?'tools':['settings','groupProfile'].includes(id)?null:'plan';
+  document.querySelectorAll('.nav').forEach(x=>{const active=x.dataset.screen===section;x.classList.toggle('on',active);if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');});
+  const settings=document.getElementById('settingsButton');settings.classList.toggle('isCurrent',id==='settings'||id==='groupProfile');
+  if(id==='settings'||id==='groupProfile')settings.setAttribute('aria-current','page');else settings.removeAttribute('aria-current');
+  if(id==='settings'){fillExceptionGroupOptions();renderCalendarExceptions();refreshImportedLinks();renderImportLinksReview()}
   if(id==='henriBank'&&typeof henriBankRefresh==='function')henriBankRefresh();
   scrollTo(0,0);
 }
@@ -994,6 +1006,8 @@ function setCalendarView(view){
   monthView.classList.toggle('on',!isWeek);
   weekBtn.classList.toggle('on',isWeek);
   monthBtn.classList.toggle('on',!isWeek);
+  weekBtn.setAttribute('aria-pressed',String(isWeek));monthBtn.setAttribute('aria-pressed',String(!isWeek));
+  document.getElementById('calendarSectionTitle').textContent=isWeek?'Cette semaine':'Vue du mois';
 }
 let scheduleEntries={};
 let calendarEvents={};
@@ -1029,6 +1043,8 @@ function getWeekMonday(base=new Date()){
 }
 function renderWeek(){
   if(!weekGrid) return;
+  document.getElementById('homeEmpty').hidden=Object.keys(scheduleEntries).length>0;
+  document.getElementById('todayStamp').textContent=new Intl.DateTimeFormat('fr-CA',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
   const start=getWeekMonday();
   let out='';
   for(let i=0;i<5;i++){
@@ -1043,9 +1059,9 @@ function renderWeek(){
     if(entries.length){
       entries.forEach((entry)=>{
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
-        let sport=entry.annualPlan||'À planifier';
+        let sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'À planifier');
         if(sport==='À choisir') sport='À planifier';
-        const groupColors=['#3b82f6','#34a853','#f59e0b','#8b5cf6'];
+        const groupColors=['#476653','#9c6045','#8a7954','#716b86'];
         const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
         const groupColor=groupColors[groupIndex%groupColors.length];
         const sportLower=sport.toLowerCase();
@@ -1073,7 +1089,7 @@ function renderWeek(){
       out+='<button class="weekEvent" style="--groupColor:#b28b56" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+entry.group+'</span><span class="quickSport">'+exception.type+'</span></button>';
     });
     if(!entries.length&&!blocked.length){
-      out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu')+'</div>';
+      out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':/^Jour [xyz]$/.test(cycle||'')?'Jour-cycle à préciser · '+cycle:'Aucun cours prévu')+'</div>';
     }
     out+='</div>';
   }
@@ -1090,12 +1106,13 @@ function openDayPlan(date){
   const cards=[];
   entries.forEach(entry=>{
     const originalIndex=(scheduleEntries[date]||[]).indexOf(entry);
-    const sport=entry.annualPlan||'Sport à planifier';
-    const session=entry.session||'Séance à planifier';
+    const sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'Sport à planifier');
+    const session=entry.session||(entry.kind==='cognitive'?'Intervention cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
     cards.push('<div class="dayPlanCard">'+
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+sport+'</div>'+
       '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+originalIndex+')">'+session+'</button>'+
+      (getEntryGroupId(entry)?'<button class="itemBtn" onclick="openGroup(\''+getEntryGroupId(entry)+'\')">Voir les élèves</button>':'')+
     '</div>');
   });
   blocked.forEach(({entry,exception})=>{
@@ -1109,7 +1126,7 @@ function openDayPlan(date){
   if(cards.length) dayPlanCourses.innerHTML=cards.join('');
   else{
     const allException=calendarExceptions.find(ex=>ex.groupId==='all'&&exceptionCoversDate(ex,date));
-    const label=allException?(allException.type+(allException.reason?' · '+allException.reason:'')):cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':'Aucun cours prévu';
+    const label=allException?(allException.type+(allException.reason?' · '+allException.reason:'')):cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':/^Jour [xyz]$/.test(cycle||'')?'Jour-cycle à préciser · '+cycle:'Aucun cours prévu';
     dayPlanCourses.innerHTML='<div class="placeholder">'+label+'</div>';
   }
   go('dayPlan');
@@ -1118,7 +1135,9 @@ function openDayPlan(date){
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
-  if(!entry.annualPlan&&!entry.isIndividual){
+  calendarCourseContext={date,index};
+  renderCoursePlanningActions(entry,date,index);
+  if(!entry.annualPlan&&!entry.isIndividual&&entry.kind!=='cognitive'){
     openQuickSessionForCourse(date,index);
     return;
   }
@@ -1128,48 +1147,22 @@ function openCourseEntry(date,index){
   courseDetailMeta.textContent=date+' · '+entry.time;
   courseDetailGroup.textContent=entry.group;
   courseDetailCycle.textContent=schoolDays[date]||'';
-  courseSessionTitle.textContent=entry.session||'Séance à planifier';
+  courseSessionTitle.textContent=entry.planData?.title||entry.session||(entry.kind==='cognitive'?'Intervention cognitive':'Séance à planifier');
+  if(entry.kind==='cognitive'){
+    coursePlanContent.textContent='Intervention cognitive · '+entry.time+(entry.endTime?' à '+entry.endTime:'')+(entry.durationMinutes?' · '+entry.durationMinutes+' min':'')+'. Ce bloc est affiché dans ton horaire et ne compte pas comme une séance d’éducation physique.';
+    go('courseDetail');return;
+  }
 
   if(entry.planData){
     const session=entry.planData;
     const rows=[['Objectif',session.objective||'Objectif à préciser.']]
       .concat((session.blocks||[]).map(b=>[b.type,b.title+(b.minutes?' · '+b.minutes+' min':'')]));
-    coursePlanContent.innerHTML=rows.map(([label,text])=>'<div style="padding:9px 0;border-top:1px solid #f0f1f1"><strong style="display:block;color:var(--ink);font-size:12px;margin-bottom:3px">'+label+'</strong>'+text+'</div>').join('');
+    coursePlanContent.innerHTML=rows.map(([label,text])=>'<div style="padding:9px 0;border-top:1px solid #f0f1f1"><strong style="display:block;color:var(--ink);font-size:12px;margin-bottom:3px">'+henriBankHtml(label)+'</strong>'+henriBankHtml(text)+'</div>').join('');
     go('courseDetail');
     return;
   }
 
-  const plans={
-    'Ultimate':[
-      ['Objectif','Se démarquer pour offrir une option de passe.'],
-      ['Échauffement','Passes en mouvement · 5 min'],
-      ['Éducatif 1','Démarquage et changement de direction · 10 min'],
-      ['Éducatif 2','3 c. 2 avec recherche d’espace libre · 12 min'],
-      ['Situation de partie','Match 4 c. 4 · 35 min']
-    ],
-    'Badminton':[
-      ['Objectif','Créer de la profondeur avec le dégagement.'],
-      ['Échauffement','Échanges contrôlés · 5 min'],
-      ['Éducatif 1','Dégagement fond de terrain · 10 min'],
-      ['Éducatif 2','Dégagement + replacement · 12 min'],
-      ['Situation de partie','Matchs avec bonus pour profondeur · 35 min']
-    ],
-    'Flag football':[
-      ['Objectif','Créer et exploiter un espace libre.'],
-      ['Échauffement','Courses et passes courtes · 5 min'],
-      ['Éducatif 1','Tracés simples en duo · 10 min'],
-      ['Éducatif 2','2 c. 1 vers zone libre · 12 min'],
-      ['Situation de partie','Matchs réduits · 35 min']
-    ]
-  };
-  const plan=plans[sport]||[
-    ['Objectif','Objectif de séance à définir.'],
-    ['Échauffement','À planifier'],
-    ['Éducatif 1','À planifier'],
-    ['Éducatif 2','À planifier'],
-    ['Situation de partie','À planifier']
-  ];
-  coursePlanContent.innerHTML=plan.map(([label,text])=>'<div style="padding:9px 0;border-top:1px solid #f0f1f1"><strong style="display:block;color:var(--ink);font-size:12px;margin-bottom:3px">'+label+'</strong>'+text+'</div>').join('');
+  coursePlanContent.textContent='Cette période est réservée dans l’année. La séance reste à préparer.';
   go('courseDetail');
 }
 
@@ -1178,6 +1171,7 @@ const initialCalendarDate=new Date();
 let shownYear=initialCalendarDate.getFullYear(),shownMonth=initialCalendarDate.getMonth();
 function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
 function renderMonth(){
+  const escape=value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   monthTitle.textContent=monthNames[shownMonth]+' '+shownYear;
   const first=new Date(shownYear,shownMonth,1);
   const offset=(first.getDay()+6)%7;
@@ -1196,11 +1190,12 @@ function renderMonth(){
     const pedago=schoolDay==='Pédagogique'||schoolDay==='Congé';
     const hasException=calendarExceptions.some(ex=>exceptionCoversDate(ex,key));
     const today=key===getLocalTodayKey();
-    const hasSomething=entries.length||blocked.length||pedago||hasException;
+    const hasSomething=entries.length||blocked.length||pedago||hasException||/^Jour [xyz]$/.test(schoolDay||'');
     out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'">'+
-      '<button class="monthDayButton" onclick="openDayPlan(\''+key+'\')">'+
+      '<button class="monthDayButton" aria-label="'+escape(d+' '+monthNames[m]+' '+y+(schoolDay?' · '+schoolDay:'')+(entries.length?' · '+entries.length+' créneaux':''))+'" onclick="openDayPlan(\''+key+'\')">'+
         '<span class="dayNum">'+d+'</span>'+
         (hasSomething?'<span class="eventDot"></span>':'')+
+        (entries.length?'<span class="monthDayMeta"><strong>'+escape(entries[0].groupCode||entries[0].group)+'</strong>'+escape(entries[0].time)+(entries.length>1?' · +'+(entries.length-1):'')+'</span>':schoolDay?'<span class="monthDayMeta">'+escape(schoolDay)+'</span>':'')+
       '</button>'+
     '</div>';
   }
@@ -1243,9 +1238,8 @@ function exceptionCoversDate(ex,date){
 function getCalendarException(date,groupId){
   return calendarExceptions.find(ex=>exceptionCoversDate(ex,date)&&(ex.groupId==='all'||ex.groupId===groupId))||null;
 }
-function getEntryGroupId(entry){
-  return groupsData.find(g=>g.name===entry.group)?.id||null;
-}
+function getEntryGroupId(entry){return groupsData.find(g=>g.id===entry.matchedGroupId)?.id||matchImportedGroup(entry.groupCode||entry.group)?.id||null;}
+
 function scheduleTimeMinutes(value){
   const raw=String(value||'').trim().toLowerCase();
   let m=raw.match(/(\d{1,2})\s*[h:]\s*(\d{2})/);
@@ -1439,17 +1433,10 @@ function organizeAnnualWithHenri(){
   if(annualManualWrap) annualManualWrap.classList.remove('show');
   setAnnualWorkspaceVisible(true);
 }
-function getGroupCourseDates(groupId){
-  const g=groupsData.find(x=>x.id===groupId);
-  if(!g) return [];
-  return Object.keys(scheduleEntries)
-    .filter(date=>!getCalendarException(date,groupId)&&(scheduleEntries[date]||[]).some(e=>e.group===g.name))
-    .sort();
-}
-function getGroupSequenceDates(groupId){
-  const blocked=new Set(individualSessions.filter(x=>x.groupId===groupId).map(x=>x.date));
-  return getGroupCourseDates(groupId).filter(date=>!blocked.has(date));
-}
+function getGroupCourseDates(groupId){return getGroupCourseOccurrences(groupId).map(slot=>slot.date);}
+
+function getGroupSequenceDates(groupId){return getGroupAnnualOccurrences(groupId).map(slot=>slot.date);}
+
 function getGroupCourseSlots(groupId){
   return getGroupSequenceDates(groupId).length;
 }
@@ -1857,6 +1844,7 @@ function henriSyncSharedData(options={}){
   }
 }
 function henriSyncSequenceToAnnual(){
+  if(activeSequence?.startCourseKey){savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));return}
   if(!activeSequence?.annualBlockId)return;
   const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
   if(!block)return;
@@ -2070,68 +2058,7 @@ function saveIndividualSessions(){
   localStorage.setItem('henriIndividualSessions',JSON.stringify(individualSessions));
   if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
 }
-function rebuildPlanningAssignments(){
-  if(typeof groupsData==='undefined') return;
-
-  Object.values(scheduleEntries).flat().forEach(entry=>{
-    entry.annualPlan=null;
-    entry.sequence=null;
-    entry.session=null;
-    entry.annualBlockId=null;
-    entry.planData=null;
-    entry.isIndividual=false;
-  });
-
-  groupsData.forEach(group=>{
-    ensureAnnualPlan(group.id);
-    const queue=[];
-    (annualPlans[group.id]||[]).forEach(block=>{
-      const saved=getSavedSequence(group.id,block.id);
-      const count=Math.max(0,Number(block.courses)||0);
-      for(let i=0;i<count;i++){
-        const session=saved?.sessions?.[i]||null;
-        queue.push({
-          sport:block.sport,
-          annualBlockId:block.id,
-          sequence:saved?'Séquence planifiée':'Séquence à planifier',
-          session:'Séance '+(i+1)+'/'+count,
-          planData:session
-        });
-      }
-    });
-
-    let q=0;
-    getGroupCourseDates(group.id).forEach(date=>{
-      const entry=(scheduleEntries[date]||[]).find(e=>e.group===group.name);
-      if(!entry) return;
-      const individual=individualSessions.find(x=>x.groupId===group.id&&x.date===date);
-      if(individual){
-        entry.annualPlan=individual.sport;
-        entry.sequence='Séance individuelle';
-        entry.session='Séance individuelle';
-        entry.isIndividual=true;
-        entry.planData={
-          title:individual.title,
-          objective:individual.objective,
-          blocks:individual.blocks
-        };
-        return;
-      }
-      const planned=queue[q++];
-      if(!planned) return;
-      entry.annualPlan=planned.sport;
-      entry.sequence=planned.sequence;
-      entry.session=planned.session;
-      entry.annualBlockId=planned.annualBlockId;
-      entry.planData=planned.planData;
-    });
-  });
-
-  localStorage.setItem('henriScheduleEntries',JSON.stringify(scheduleEntries));
-  rebuildCalendarEvents();
-  renderMonth();
-  renderWeek();
-}
+function rebuildPlanningAssignments(){rebuildCalendarPlanning();}
 
 function saveAnnualAndPlanSequences(){
   const groupId=annualGroup?.value;
@@ -2219,7 +2146,7 @@ function createSequenceFromMacro(useHenri){
   go('sequenceEditor');
 }
 function openStandaloneSequence(){fillPlanGroupSelects();go('standaloneSequence')}
-function returnFromSequenceEditor(){go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
+function returnFromSequenceEditor(){if(calendarPlanEditing){calendarPlanEditing=false;openDayPlan(calendarCourseContext.date);return}go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
 // Objectifs élaborés à partir de la PDA EPS secondaire (MÉQ, 2010), C1, C2 et C3.
 // Source : https://cdn-contenu.quebec.ca/cdn-contenu/education/pfeq/secondaire/progressions-apprentissages/PFEQ-progression-apprentissages-education-physique-secondaire.pdf
 // Ce sont des formulations pédagogiques inspirées de la PDA, pas des citations officielles.
@@ -2452,15 +2379,8 @@ function buildStandaloneSequence(useHenri){
   henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(henriBankWarn);
   renderSequenceEditor();go('sequenceEditor');
 }
-function getSequenceDates(sequence){
-  if(!sequence?.annualBlockId) return [];
-  const blocks=annualPlans[sequence.groupId]||[];
-  const index=blocks.findIndex(b=>b.id===sequence.annualBlockId);
-  if(index<0) return [];
-  const dates=getGroupSequenceDates(sequence.groupId);
-  const offset=blocks.slice(0,index).reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
-  return dates.slice(offset,offset+sequence.sessions.length);
-}
+function getSequenceDates(sequence){return getSequenceOccurrences(sequence).map(slot=>slot.date);}
+
 function formatSequenceDate(date){
   if(!date) return 'Sans date';
   const d=new Date(date+'T12:00:00');
@@ -2485,8 +2405,10 @@ function changeActiveSequenceComp(value){
 }
 function renderSequenceEditor(){
   if(!activeSequence)return;
-  const dates=getSequenceDates(activeSequence);
-  const isScheduled=Boolean(activeSequence.annualBlockId);
+  const occurrences=getSequenceOccurrences(activeSequence);
+  const dates=occurrences.map(slot=>slot.date);
+  renderSequenceDatePlacement();
+  const isScheduled=Boolean(activeSequence.annualBlockId||activeSequence.startCourseKey);
   const placed=isScheduled?Math.min(dates.length,activeSequence.sessions.length):activeSequence.sessions.length;
   const total=activeSequence.sessions.length;
   const pct=total?Math.round((placed/total)*100):0;
@@ -2509,10 +2431,10 @@ function renderSequenceEditor(){
     const date=dates[i]||null;
     const objective=session.objective||'Objectif à préciser.';
     const structure=(session.blocks||[]).map(b=>b.type).join(' · ');
-    return '<div class="seqLesson'+(!date&&activeSequence.annualBlockId?' unscheduled':'')+'">'+
+    return '<div class="seqLesson'+(!date&&(activeSequence.annualBlockId||activeSequence.startCourseKey)?' unscheduled':'')+'">'+
       '<button class="seqNum" onclick="openSessionEditor('+i+',\'sequence\')" aria-label="Ouvrir le cours '+(i+1)+'">'+(i+1)+'</button>'+
       '<button class="seqLessonBody" style="border:0;background:transparent;padding:0;text-align:left" onclick="openSessionEditor('+i+',\'sequence\')">'+
-        '<span class="seqLessonTop"><span class="seqLessonDate'+(!date&&activeSequence.annualBlockId?' unscheduled':'')+'">'+formatSequenceDate(date)+'</span></span>'+
+        '<span class="seqLessonTop"><span class="seqLessonDate'+(!date&&(activeSequence.annualBlockId||activeSequence.startCourseKey)?' unscheduled':'')+'">'+formatSequenceDate(date)+(occurrences[i]?' · '+occurrences[i].entry.time:'')+'</span></span>'+
         '<strong>'+session.title+'</strong>'+
         '<span class="seqLessonObjective">'+objective+'</span>'+
         '<span class="seqLessonStructure">'+structure+'</span>'+
@@ -2572,10 +2494,11 @@ function saveSequence(){
     rebuildPlanningAssignments();
     if(annualGroup?.value===activeSequence.groupId) renderAnnualPlanner();
   }
+  if(activeSequence.startCourseKey)savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));
   henriSyncSharedData({skipSequenceEditor:true});
   henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode||'Créée dans Henri').catch(henriBankWarn);
   if(activeSequence.annualBlockId)henriBankStoreAnnual(activeSequence.groupId,annualPlans[activeSequence.groupId]||[]).catch(henriBankWarn);
-  alert(activeSequence.annualBlockId?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
+  alert(activeSequence.annualBlockId||activeSequence.startCourseKey?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
 }
 function openSessionEditor(index,source){
   sessionEditorSource=source||'sequence';
@@ -2612,6 +2535,7 @@ function addSessionSection(){
   s.blocks.push({type,title,minutes:10});renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
 }
 function returnFromSessionEditor(){
+  if(calendarPlanEditing){persistCalendarIndividual();henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();calendarPlanEditing=false;calendarIndividualEditing=null;openDayPlan(calendarCourseContext.date);return}
   if(sessionEditorSource==='quick'){henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);renderQuickResult();go('quickSession')}else{henriBankStoreSequence(activeSequence,'Séquence').catch(henriBankWarn);renderSequenceEditor();go('sequenceEditor')}
 }
 function getScheduleConflict(groupId){
@@ -2672,7 +2596,9 @@ function ignoreScheduleConflict(groupId){
 }
 
 function openQuickSession(){
+  calendarPlanEditing=false;calendarIndividualEditing=null;
   quickPrefillDate=null;
+  quickPrefillCourseKey=null;
   fillPlanGroupSelects();
   handleQuickSportChange();
   if(quickContext){quickContext.style.display='none';quickContext.textContent=''}
@@ -2681,9 +2607,11 @@ function openQuickSession(){
 function openQuickSessionForCourse(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry)return;
-  const group=groupsData.find(g=>g.name===entry.group);
+  const group=groupsData.find(g=>g.id===getEntryGroupId(entry));
   if(!group)return;
+  calendarPlanEditing=false;calendarIndividualEditing=null;
   quickPrefillDate=date;
+  quickPrefillCourseKey=courseOccurrenceKey(date,entry);
   fillPlanGroupSelects();
   if(quickGroup)quickGroup.value=group.id;
   handleQuickSportChange();
@@ -2713,15 +2641,14 @@ function buildQuickSession(){
   renderQuickResult();
 }
 function getQuickDateOptions(){
-  if(!quickSessionData) return '';
-  return getGroupCourseDates(quickSessionData.groupId).map(date=>{
-    const entry=(scheduleEntries[date]||[]).find(e=>e.group===quickSessionData.groupName);
-    const current=entry?.annualPlan?(entry.annualPlan+(entry.session?' · '+entry.session:'')):'Libre';
-    const d=new Date(date+'T12:00:00');
-    const label=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()]+' · '+current;
-    return '<option value="'+date+'"'+(date===quickPrefillDate?' selected':'')+'>'+label+'</option>';
+  if(!quickSessionData)return '';
+  return getGroupCourseOccurrences(quickSessionData.groupId).map(slot=>{
+    const current=slot.entry.planData?.title||slot.entry.annualPlan||'À planifier';
+    const selected=slot.key===quickPrefillCourseKey||(!quickPrefillCourseKey&&slot.date===quickPrefillDate);
+    return '<option value="'+henriBankHtml(slot.key)+'"'+(selected?' selected':'')+'>'+henriBankHtml(formatSequenceDate(slot.date)+' · '+slot.entry.time+' · '+current)+'</option>';
   }).join('');
 }
+
 function renderQuickResult(message=''){
   if(!quickSessionData){quickResult.classList.remove('show');quickResult.innerHTML='';return}
   quickResult.classList.add('show');
@@ -2737,8 +2664,10 @@ function renderQuickResult(message=''){
 }
 function scheduleQuickSession(){
   if(!quickSessionData||!quickScheduleDate?.value) return;
-  const date=quickScheduleDate.value;
-  individualSessions=individualSessions.filter(x=>!(x.groupId===quickSessionData.groupId&&x.date===date));
+  const slot=getGroupCourseOccurrences(quickSessionData.groupId).find(s=>s.key===quickScheduleDate.value);
+  if(!slot){alert('Ce cours n’est plus disponible. Choisis une autre période.');return}
+  const date=slot.date;
+  individualSessions=individualSessions.filter(x=>!(x.groupId===quickSessionData.groupId&&(x.courseKey===slot.key||(!x.courseKey&&x.date===date&&slot.key===getGroupCourseOccurrences(quickSessionData.groupId).find(s=>s.date===date)?.key))));
   individualSessions.push({
     id:'ind-'+Date.now(),
     date,
@@ -2748,13 +2677,16 @@ function scheduleQuickSession(){
     title:quickSessionData.title,
     duration:quickSessionData.duration,
     objective:quickSessionData.objective,
+    comp:quickSessionData.comp,
+    courseKey:slot.key,
+    time:slot.entry.time,
     blocks:quickSessionData.blocks.map(b=>({...b}))
   });
   individualSessions.sort((a,b)=>a.date.localeCompare(b.date));
   delete scheduleConflictIgnores[quickSessionData.groupId];
   saveConflictIgnores();
   saveIndividualSessions();
-  henriBankStoreSession(individualSessions.find(x=>x.groupId===quickSessionData.groupId&&x.date===date),'Séance individuelle planifiée').catch(henriBankWarn);
+  henriBankStoreSession(individualSessions.find(x=>x.groupId===quickSessionData.groupId&&x.courseKey===slot.key),'Séance individuelle planifiée').catch(henriBankWarn);
   rebuildPlanningAssignments();
   if(annualGroup?.value===quickSessionData.groupId) renderAnnualPlanner();
   const d=new Date(date+'T12:00:00');
@@ -3385,16 +3317,34 @@ async function readSetupFile(file,onProgress){
   if(name.endsWith('.pdf')){
     if(!window.pdfjsLib)throw new Error('Le lecteur PDF ne s’est pas chargé.');
     pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    const buffer=await file.arrayBuffer();
-    const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
     const pages=[];
-    for(let p=1;p<=pdf.numPages;p++){
-      const page=await pdf.getPage(p);
-      const content=await page.getTextContent();
-      pages.push(content.items.map(i=>i.str).join(' '));
-      if(onProgress)onProgress(Math.round((p/pdf.numPages)*100));
+    for(let number=1;number<=pdf.numPages;number++){
+      const page=await pdf.getPage(number),content=await page.getTextContent();
+      const viewport=page.getViewport({scale:1.75});
+      const items=content.items.filter(i=>i.str?.trim());
+      if(items.reduce((n,i)=>n+i.str.trim().length,0)<20){
+        const canvas=document.createElement('canvas');canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
+        await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+        const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+        if(!blob)throw new Error('Page PDF illisible.');
+        const image=new File([blob],file.name+' · page '+number+'.png',{type:'image/png'});
+        const read=await runAIPhotoOCR(image);
+        pages.push({...read,engine:'PDF numérisé',file:image});
+        canvas.width=0;canvas.height=0;
+      }else{
+        const words=items.map(item=>{
+          const t=pdfjsLib.Util.transform(viewport.transform,item.transform);
+          return {text:item.str,confidence:100,bbox:{x0:t[4],x1:t[4]+item.width*viewport.scale,y0:t[5]-Math.abs(t[3]),y1:t[5]}};
+        });
+        const rows=clusterValues(words.map(w=>w.bbox.y0),8);
+        const text=rows.map(row=>words.filter(w=>row.values.includes(w.bbox.y0)).sort((a,b)=>a.bbox.x0-b.bbox.x0).map(w=>w.text).join('  ')).join('\n');
+        pages.push({text,confidence:100,engine:'PDF',words,imageWidth:viewport.width,imageHeight:viewport.height,file});
+      }
+      if(onProgress)onProgress(Math.round(number/pdf.numPages*100));
     }
-    return {text:normalizeImportText(pages.join('\n')),confidence:100,engine:'PDF',words:[],imageWidth:0,imageHeight:0};
+    await pdf.destroy();
+    return {pages};
   }
   if(name.endsWith('.csv')||name.endsWith('.txt')||name.endsWith('.json')){
     if(onProgress)onProgress(100);
@@ -3473,30 +3423,8 @@ function inferGroupIdentity(text,fallbackName=''){
     codes
   };
 }
-function matchImportedGroup(rawCodeOrName){
-  const raw=String(rawCodeOrName||'');
-  const aliases=new Set([normalizeGroupAlias(raw)]);
-  extractEDUGroupCodes(raw).forEach(code=>{
-    aliases.add(normalizeGroupAlias(code));
-    const sig=groupSignatureFromCode(code);
-    if(sig)aliases.add(sig);
-  });
-  const inferred=inferGroupIdentity(raw,raw);
-  inferred.aliases.forEach(a=>aliases.add(a));
-  let best=null,bestScore=0;
-  for(const g of groupsData){
-    const gAliases=new Set([normalizeGroupAlias(g.name),...(g.aliases||[]).map(normalizeGroupAlias)]);
-    let score=0;
-    aliases.forEach(a=>{
-      if(gAliases.has(a))score=Math.max(score,100);
-      else for(const ga of gAliases){
-        if(a&&ga&&(a.includes(ga)||ga.includes(a))&&Math.min(a.length,ga.length)>=5)score=Math.max(score,70);
-      }
-    });
-    if(score>bestScore){best=g;bestScore=score}
-  }
-  return bestScore>=70?best:null;
-}
+function matchImportedGroup(rawCodeOrName){return HenriImport.matchGroup(rawCodeOrName,groupsData);}
+
 function parseGroupDocuments(docs){
   const result=[];
   docs.forEach(({file,text,confidence,engine},fileIndex)=>{
@@ -3505,7 +3433,7 @@ function parseGroupDocuments(docs){
     if(groupMatch)groupName=groupMatch[0].replace(/\s+/g,' ').trim();
     if(!groupName)groupName=(file.name||('Groupe '+(fileIndex+1))).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
     const identity=inferGroupIdentity(text,groupName);
-    groupName=identity.canonicalName;
+    groupName=identity.codes.length===1?identity.codes[0]+' · '+identity.canonicalName:identity.canonicalName;
     let candidates=[];
     if((file.name||'').toLowerCase().endsWith('.csv')){
       const rows=text.split('\n').map(r=>r.split(/[;,]/).map(v=>v.trim()).filter(Boolean)).filter(r=>r.length);
@@ -3518,7 +3446,7 @@ function parseGroupDocuments(docs){
         }
       });
     }else{
-      const lines=text.split('\n').map(v=>v.trim()).filter(Boolean);
+      const lines=HenriImport.rosterLines(text);
       lines.forEach(line=>{
         const segments=line.split(/\s{2,}|\||\t|;/).map(v=>normalizePersonName(v)).filter(Boolean);
         const direct=segments.find(looksLikePersonName);
@@ -3541,7 +3469,7 @@ function parseGroupDocuments(docs){
         id:'import-'+Date.now()+'-'+fileIndex,
         name:groupName,
         sourceFile:file.name||'Photo '+(fileIndex+1),
-        importConfidence:Number(confidence||100),
+        importConfidence:Number(confidence??0),
         importEngine:engine||'Lecture',
         aliases:identity.aliases,
         sourceCodes:identity.codes,
@@ -3574,90 +3502,10 @@ function clusterValues(values,tolerance){
   });
   return clusters;
 }
-function parseTeacherScheduleGrid(words){
-  if(!Array.isArray(words)||!words.length)return {};
-  const usable=words.filter(w=>w.bbox&&w.confidence>=20);
-  const codeWords=usable.map(w=>({...w,code:normalizeEDUCode(w.text)})).filter(w=>w.code);
-  if(codeWords.length<3)return {};
+function parseTeacherScheduleGrid(words){return HenriImport.scheduleGrid(words);}
 
-  // Day rows: detect "Jour" labels + nearby digits; otherwise infer 9 evenly ordered row bands from code Y positions.
-  const dayAnchors=[];
-  usable.filter(w=>/^jour$/i.test(w.text)).forEach(j=>{
-    const cy=(j.bbox.y0+j.bbox.y1)/2;
-    const near=usable.filter(n=>/^\d{1,2}$/.test(n.text)&&Math.abs(((n.bbox.y0+n.bbox.y1)/2)-cy)<35&&n.bbox.x0<j.bbox.x1+90)
-      .sort((a,b)=>Math.abs(a.bbox.x0-j.bbox.x1)-Math.abs(b.bbox.x0-j.bbox.x1))[0];
-    if(near){
-      const num=Number(near.text);
-      if(num>=1&&num<=10)dayAnchors.push({day:num,y:cy});
-    }
-  });
-  dayAnchors.sort((a,b)=>a.day-b.day);
+function parseTeacherScheduleText(text){return HenriImport.scheduleText(text);}
 
-  let rowCenters=[];
-  if(dayAnchors.length>=5){
-    rowCenters=dayAnchors.map(a=>({day:a.day,y:a.y}));
-  }else{
-    const ys=codeWords.map(w=>(w.bbox.y0+w.bbox.y1)/2);
-    const min=Math.min(...ys),max=Math.max(...ys);
-    const step=(max-min)/8;
-    rowCenters=Array.from({length:9},(_,i)=>({day:i+1,y:min+i*step}));
-  }
-
-  // Column centers from detected course codes. Merge into the 5 teaching columns used by this schedule.
-  const xs=codeWords.map(w=>(w.bbox.x0+w.bbox.x1)/2);
-  let xClusters=clusterValues(xs,55).filter(c=>c.values.length>=1).sort((a,b)=>a.avg-b.avg);
-  if(xClusters.length>5){
-    // Keep strongest/widest-spread five columns.
-    xClusters=xClusters.sort((a,b)=>b.values.length-a.values.length).slice(0,5).sort((a,b)=>a.avg-b.avg);
-  }
-  const columnCenters=xClusters.map(c=>c.avg);
-  if(columnCenters.length<3)return {};
-
-  const out={};
-  codeWords.forEach(w=>{
-    const cy=(w.bbox.y0+w.bbox.y1)/2;
-    const cx=(w.bbox.x0+w.bbox.x1)/2;
-    const row=rowCenters.reduce((best,r)=>Math.abs(r.y-cy)<Math.abs(best.y-cy)?r:best,rowCenters[0]);
-    const col=columnCenters.reduce((best,x,i)=>Math.abs(x-cx)<Math.abs(columnCenters[best]-cx)?i:best,0);
-    const group=matchImportedGroup(w.code);
-    const groupName=group?.name||inferGroupIdentity(w.code,w.code).canonicalName;
-    const day='Jour '+row.day;
-    if(!out[day])out[day]=[];
-    if(!out[day].some(x=>x.group===groupName&&x.time===periodTimeFromColumn(col))){
-      out[day].push({
-        time:periodTimeFromColumn(col),
-        group:groupName,
-        groupCode:w.code,
-        matchedGroupId:group?.id||null,
-        activity:'Éducation physique'
-      });
-    }
-  });
-  Object.values(out).forEach(arr=>arr.sort((a,b)=>a.time.localeCompare(b.time,'fr')));
-  return out;
-}
-function parseTeacherScheduleText(text){
-  const out={};
-  const raw=String(text||'');
-  const dayMatches=[...raw.matchAll(/Jour\s*([1-9]|10)\b/gi)];
-  dayMatches.forEach((m,i)=>{
-    const day='Jour '+m[1];
-    const chunk=raw.slice(m.index,i+1<dayMatches.length?dayMatches[i+1].index:raw.length);
-    const codes=extractEDUGroupCodes(chunk);
-    if(!codes.length)return;
-    out[day]=codes.map((code,index)=>{
-      const group=matchImportedGroup(code);
-      return {
-        time:periodTimeFromColumn(index),
-        group:group?.name||inferGroupIdentity(code,code).canonicalName,
-        groupCode:code,
-        matchedGroupId:group?.id||null,
-        activity:'Éducation physique'
-      };
-    });
-  });
-  return out;
-}
 function parseTeacherScheduleDocs(docs){
   const merged={};
   docs.forEach(doc=>{
@@ -3675,68 +3523,14 @@ function parseTeacherScheduleDocs(docs){
   return merged;
 }
 const frenchMonths={janvier:0,'février':1,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,'août':7,aout:7,septembre:8,octobre:9,novembre:10,'décembre':11,decembre:11};
-function parseDateToken(day,month,year){
-  const m=String(month).toLowerCase().replace(/\.$/,'');
-  const mi=frenchMonths[m]??(Number(month)-1);
-  if(mi<0||mi>11)return null;
-  return dateKey(Number(year),mi,Number(day));
-}
-function normalizeSchoolCalendarLabel(value){
-  const s=String(value||'').trim();
-  const j=s.match(/jour\s*([1-9]|10)/i);
-  if(j)return 'Jour '+Number(j[1]);
-  if(/p[eé]dagog/i.test(s))return 'Pédagogique';
-  if(/cong[eé]|vacance|f[eê]ri[eé]/i.test(s))return 'Congé';
-  return '';
-}
-function parseSchoolCalendarText(text){
-  const out={};
-  const raw=String(text||'');
-  const patterns=[
-    /(20\d{2})[-\/.](\d{1,2})[-\/.](\d{1,2})[^\n]{0,80}(Jour\s*\d+|P[eé]dagogique|Cong[eé]|Vacances?)/gi,
-    /(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})[^\n]{0,80}(Jour\s*\d+|P[eé]dagogique|Cong[eé]|Vacances?)/gi,
-    /(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(20\d{2})[^\n]{0,80}(Jour\s*\d+|P[eé]dagogique|Cong[eé]|Vacances?)/gi
-  ];
-  patterns.forEach((re,idx)=>{
-    for(const m of raw.matchAll(re)){
-      let key='';
-      if(idx===0)key=dateKey(Number(m[1]),Number(m[2])-1,Number(m[3]));
-      else key=parseDateToken(m[1],m[2],m[3]);
-      const type=normalizeSchoolCalendarLabel(m[4]);
-      if(key&&type)out[key]=type;
-    }
-  });
-  return out;
-}
-function parseSchoolCalendarLoose(text){
-  const out={};
-  const raw=String(text||'');
-  const lines=raw.split('\n').map(x=>x.trim()).filter(Boolean);
-  const years=[...raw.matchAll(/\b(20\d{2})\b/g)].map(m=>Number(m[1]));
-  const now=new Date();
-  const fallbackStart=now.getMonth()>=6?now.getFullYear():now.getFullYear()-1;
-  const startYear=years.length?Math.min(...years):fallbackStart;
-  const endYear=years.length?Math.max(...years):startYear+1;
-  lines.forEach((line,i)=>{
-    const nearby=[line,lines[i+1]||'',lines[i+2]||''].join(' ');
-    const label=normalizeSchoolCalendarLabel(nearby);
-    if(!label)return;
-    let m=line.match(/\b(\d{1,2})[\/-](\d{1,2})(?:[\/-](20\d{2}))?\b/);
-    if(m){
-      const month=Number(m[2])-1;
-      const year=Number(m[3]||(month>=7?startYear:endYear));
-      out[dateKey(year,month,Number(m[1]))]=label;
-      return;
-    }
-    m=line.match(/\b(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)(?:\s+(20\d{2}))?/i);
-    if(m){
-      const month=frenchMonths[m[2].toLowerCase()];
-      const year=Number(m[3]||(month>=7?startYear:endYear));
-      out[dateKey(year,month,Number(m[1]))]=label;
-    }
-  });
-  return out;
-}
+function parseDateToken(day,month,year){const mi=frenchMonths[String(month).toLowerCase().replace(/\.$/,'')];return HenriImport.validDate(year,mi===undefined?Number(month):mi+1,day);}
+
+function normalizeSchoolCalendarLabel(value){return HenriImport.label(value);}
+
+function parseSchoolCalendarText(text){return HenriImport.calendarText(text);}
+
+function parseSchoolCalendarLoose(text){return HenriImport.calendarText(text);}
+
 function calendarMonthIndex(value){
   const key=String(value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
   const map={janvier:0,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,aout:7,septembre:8,octobre:9,novembre:10,decembre:11};
@@ -3761,23 +3555,21 @@ async function loadCalendarImage(file,w,h){
   }finally{URL.revokeObjectURL(url)}
 }
 function classifyCalendarCellColor(ctx,x0,y0,x1,y1){
-  const px=(x1-x0)*.18,py=(y1-y0)*.18;
-  const sx=Math.max(0,Math.floor(x0+px)),sy=Math.max(0,Math.floor(y0+py));
-  const sw=Math.max(2,Math.floor((x1-x0)-2*px)),sh=Math.max(2,Math.floor((y1-y0)-2*py));
-  const d=ctx.getImageData(sx,sy,sw,sh).data;
-  let g=0,b=0,r=0,t=0;
-  for(let i=0;i<d.length;i+=16){
-    const R=d[i],G=d[i+1],B=d[i+2],mx=Math.max(R,G,B),mn=Math.min(R,G,B);
-    if(mx-mn<28||mx<65)continue;t++;
-    if(G>R*1.12&&G>B*1.08)g++;
-    else if(B>R*1.18&&B>G*1.06)b++;
-    else if(R>G*1.22&&R>B*1.18)r++;
+  const sx=Math.max(0,Math.floor(x0+(x1-x0)*.18)),sy=Math.max(0,Math.floor(y0+(y1-y0)*.18));
+  const sw=Math.min(ctx.canvas.width-sx,Math.max(1,Math.floor((x1-x0)*.64))),sh=Math.min(ctx.canvas.height-sy,Math.max(1,Math.floor((y1-y0)*.64)));
+  if(sw<=0||sh<=0)return '';
+  const pixels=ctx.getImageData(sx,sy,sw,sh).data;let green=0,blue=0,red=0,total=0;
+  for(let i=0;i<pixels.length;i+=16){
+    total++;const R=pixels[i],G=pixels[i+1],B=pixels[i+2];
+    if(G>100&&G>R*.95&&B<100&&G-B>70)green++;
+    else if(B>100&&B>G*1.3&&B>R*1.8)blue++;
+    else if(R>140&&G<105&&B<105)red++;
   }
-  if(t<3)return '';
-  if(g/t>.42)return 'Pédagogique';
-  if(b/t>.42||r/t>.42)return 'Congé';
+  if(green/total>.4)return 'Pédagogique';
+  if(blue/total>.4||red/total>.4)return 'Congé';
   return '';
 }
+
 function parseSchoolBoundary(text,start){
   const re=start
     ?/(?:début|debut)[^\n]{0,60}?(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\s+(20\d{2})/i
@@ -3786,102 +3578,50 @@ function parseSchoolBoundary(text,start){
   const month=calendarMonthIndex(m[2]);return month===null?null:dateKey(Number(m[3]),month,Number(m[1]));
 }
 async function parseSchoolCalendarVisual(doc){
-  if(!(doc.file?.type||'').startsWith('image/')||!doc.imageWidth||!doc.imageHeight)return {};
-  const W=doc.imageWidth,H=doc.imageHeight;
-  const {ctx}=await loadCalendarImage(doc.file,W,H);
-  const text=String(doc.text||'');
-  const years=[...text.matchAll(/\b(20\d{2})\b/g)].map(m=>Number(m[1]));
-  const startYear=years.length?Math.min(...years):new Date().getFullYear();
-  const endYear=years.length?Math.max(...years):startYear+1;
-
-  // Prefer OCR month titles. If OCR misses them, use the common 4 x 3 CSS calendar layout.
-  const words=(doc.words||[]).filter(w=>w.bbox&&w.confidence>=10);
-  const anchors=[],seen=new Set();
-  words.forEach(w=>{
-    const month=calendarMonthIndex(w.text);
-    if(month!==null&&!seen.has(month)){
-      seen.add(month);
-      anchors.push({month,x:(w.bbox.x0+w.bbox.x1)/2,y:(w.bbox.y0+w.bbox.y1)/2});
-    }
-  });
-
-  if(anchors.length<8){
-    const xs=[0.18,0.405,0.63,0.855].map(v=>v*W);
-    const ys=[0.29,0.48,0.675].map(v=>v*H);
-    const months=[6,7,8,9,10,11,0,1,2,3,4,5];
-    anchors.length=0;
-    months.forEach((month,i)=>anchors.push({month,x:xs[i%4],y:ys[Math.floor(i/4)]}));
+  const items=HenriImport.wordsWithLabels(doc.words);
+  const raw=String(doc.text||'');
+  const years=[...new Set([...raw.matchAll(/\b20\d{2}\b/g)].map(m=>Number(m[0])))].sort();
+  if(years.length!==2)return {};
+  const months=items.map(w=>({...w,month:calendarMonthIndex(w.text)})).filter(w=>w.month!==null);
+  if(!months.length)return {};
+  let classify=null;
+  if(HenriImport.decouvreursReference(raw)&&(doc.file?.type||'').startsWith('image/')&&doc.imageWidth&&doc.imageHeight){
+    const {ctx}=await loadCalendarImage(doc.file,doc.imageWidth,doc.imageHeight);
+    classify=(x0,y0,x1,y1)=>classifyCalendarCellColor(ctx,x0,y0,x1,y1);
   }
-
-  anchors.sort((a,b)=>a.y-b.y||a.x-b.x);
-  const xClusters=clusterCalendarNumbers(anchors.map(a=>a.x),W*.07).sort((a,b)=>a.avg-b.avg);
-  const yClusters=clusterCalendarNumbers(anchors.map(a=>a.y),H*.055).sort((a,b)=>a.avg-b.avg);
-  if(xClusters.length<4||yClusters.length<3)return {};
-
-  const specials={};
-  anchors.forEach(a=>{
-    const xi=xClusters.reduce((best,x,i)=>Math.abs(x.avg-a.x)<Math.abs(xClusters[best].avg-a.x)?i:best,0);
-    const yi=yClusters.reduce((best,y,i)=>Math.abs(y.avg-a.y)<Math.abs(yClusters[best].avg-a.y)?i:best,0);
-    const xc=xClusters[xi].avg,yc=yClusters[yi].avg;
-    const left=xi>0?(xClusters[xi-1].avg+xc)/2:Math.max(0,xc-(xClusters[1].avg-xc)/2);
-    const right=xi<xClusters.length-1?(xc+xClusters[xi+1].avg)/2:Math.min(W,xc+(xc-xClusters[xi-1].avg)/2);
-
-    const nextY=yi<yClusters.length-1?yClusters[yi+1].avg:yc+H*.19;
-    const gridTop=yc+H*.036;
-    const gridBottom=Math.min(H,nextY-H*.022);
-    const cellW=(right-left)/7;
-    const cellH=(gridBottom-gridTop)/6;
-    const year=a.month>=6?startYear:endYear;
-    const daysInMonth=new Date(year,a.month+1,0).getDate();
-    const firstDow=new Date(year,a.month,1).getDay(); // Sunday = 0, matching D L M M J V S
-
-    for(let day=1;day<=daysInMonth;day++){
-      const slot=firstDow+(day-1);
-      const row=Math.floor(slot/7),col=slot%7;
-      if(row>5)continue;
-      const x0=left+col*cellW,x1=x0+cellW;
-      const y0=gridTop+row*cellH,y1=y0+cellH;
-      const type=classifyCalendarCellColor(ctx,x0,y0,x1,y1);
-      if(type)specials[dateKey(year,a.month,day)]=type;
-    }
-  });
-
-  // Determine school boundaries from printed text.
-  let start=parseSchoolBoundary(text,true);
-  let end=parseSchoolBoundary(text,false);
-
-  // Common fallback when the photo is the CSS Découvreurs 2026-2027 calendar.
-  if(!start&&/2026\s*[-–]\s*2027/.test(text))start='2026-08-31';
-  if(!end&&/2026\s*[-–]\s*2027/.test(text))end='2027-06-23';
-  if(!start||!end)return specials;
-
-  // Build the 9-day cycle from the first instructional day.
-  // On this calendar, the first day of classes is explicitly Jour 1.
-  let cycle=1;
-  let d=new Date(start+'T12:00:00');
-  const endD=new Date(end+'T12:00:00');
-  const out={...specials};
-  while(d<=endD){
-    const key=dateKey(d.getFullYear(),d.getMonth(),d.getDate());
-    const wd=d.getDay();
-    if(wd>=1&&wd<=5){
-      if(!out[key]){
-        out[key]='Jour '+cycle;
-        cycle=cycle>=9?1:cycle+1;
-      }
-    }
-    d.setDate(d.getDate()+1);
+  const out=HenriImport.calendarNumberGrid(doc.words,years[0],years[1],classify);
+  for(const word of items){
+    const type=normalizeSchoolCalendarLabel(word.text);
+    if(!type)continue;
+    // A printed month heading must be above the date; no assumed page layout or color legend.
+    const heading=months.filter(m=>m.y<word.y).sort((a,b)=>Math.hypot(a.x-word.x,a.y-word.y)-Math.hypot(b.x-word.x,b.y-word.y))[0];
+    if(!heading)continue;
+    const height=word.bbox.y1-word.bbox.y0;
+    const dateWord=items.filter(w=>/^\d{1,2}$/.test(w.text)&&w.y>heading.y&&w!==word&&w.x<=word.x&&Math.abs(w.y-word.y)<height*2&&word.x-w.x<height*5).sort((a,b)=>Math.hypot(a.x-word.x,a.y-word.y)-Math.hypot(b.x-word.x,b.y-word.y))[0];
+    if(!dateWord)continue;
+    const key=HenriImport.validDate(heading.month>=6?years[0]:years[1],heading.month+1,Number(dateWord.text));
+    if(key){if(out[key]&&out[key]!==type)throw new Error('Date ambiguë dans le calendrier : '+key);out[key]=type;}
   }
-
   return out;
 }
 
 async function parseSchoolCalendarDocs(docs){
   const out={};
   for(const doc of docs){
-    if((doc.file?.type||'').startsWith('image/'))Object.assign(out,await parseSchoolCalendarVisual(doc));
-    Object.assign(out,parseSchoolCalendarLoose(doc.text||''));
-    Object.assign(out,parseSchoolCalendarText(doc.text||''));
+    const reference=HenriImport.decouvreursReference(doc.text);
+    let recognized={...await parseSchoolCalendarVisual(doc),...parseSchoolCalendarText(doc.text||'')};
+    if(reference){
+      const dates=Object.keys(reference).sort();
+      recognized=Object.fromEntries(Object.entries(recognized).filter(([date])=>date>=dates[0]&&date<=dates.at(-1)));
+    }
+    if(reference)for(const [date,type] of Object.entries(recognized)){
+      if(reference[date]&&reference[date]!==type)throw new Error('Le '+date+' diffère du calendrier de référence du CSS des Découvreurs. Vérifie la date reconnue ou importe la version adaptée par ton école.');
+    }
+    const parsed={...reference,...recognized};
+    for(const [date,type] of Object.entries(parsed)){
+      if(out[date]&&out[date]!==type)throw new Error('Les photos indiquent des jours différents pour le '+date+'.');
+      out[date]=type;
+    }
   }
   return out;
 }
@@ -3890,12 +3630,12 @@ async function handleSetupFile(type,input){
   const files=[...(input.files||[])];
   const state=document.getElementById(type+'State');
   const card=document.getElementById(type+'Card');
+  if(!files.length)return;
+  const previous={data:importedSetupData[type],ready:setupFiles[type]};
   setupFiles[type]=false;
-  importedSetupData[type]=null;
   state.textContent='Analyse…';
   card.classList.remove('ready');
   updateGenerateState();
-  if(!files.length){state.textContent='Importer';return}
   try{
     if(type==='groupSheets'&&files.length>30)throw new Error('Maximum 30 listes à la fois.');
     const docs=[];
@@ -3907,7 +3647,7 @@ async function handleSetupFile(type,input){
       const read=await readSetupFile(file,p=>{
         if(type==='groupSheets'||type==='teacherSchedule'||type==='schoolCalendar')state.textContent='Analyse '+(i+1)+' / '+files.length;
       });
-      docs.push({file,text:read.text,confidence:read.confidence,engine:read.engine,words:read.words||[],imageWidth:read.imageWidth||0,imageHeight:read.imageHeight||0});
+      for(const page of read.pages||[read])docs.push({file:page.file||file,text:page.text,confidence:page.confidence,engine:page.engine,words:page.words||[],imageWidth:page.imageWidth||0,imageHeight:page.imageHeight||0});
     }
     if(type==='groupSheets'){
       const groups=parseGroupDocuments(docs);
@@ -3919,11 +3659,11 @@ async function handleSetupFile(type,input){
         throw new Error('Henri n’a pas reconnu une liste complète dans '+missing.length+' photo'+(missing.length>1?'s':'')+' : '+missing.slice(0,3).join(', ')+(missing.length>3?'…':'')+'.');
       }
       const weak=groups.filter(g=>g.importConfidence<70||g.students.length<8);
-      importedSetupData.groupSheets=groups;
-      groupsData=groups;
+      groupsData=mergeImportedGroups(groups,previous.data||[]);
+      importedSetupData.groupSheets=groupsData;
       saveGroups();
       state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' importé'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves'+(weak.length?' · '+weak.length+' à vérifier':'');
-      localStorage.setItem('henriImportedGroups',JSON.stringify(groups));
+      localStorage.setItem('henriImportedGroups',JSON.stringify(groupsData));
       if(groupAIReview&&groupAIReviewList){
         groupAIReview.style.display='block';
         groupAIReviewList.innerHTML=groups.map(g=>'<div style="display:flex;justify-content:space-between;gap:12px"><span><b>'+g.name+'</b> · '+g.students.length+' élèves</span><span>'+(g.importConfidence<70||g.students.length<8?'À vérifier':'Importé')+'</span></div>').join('');
@@ -3934,7 +3674,7 @@ async function handleSetupFile(type,input){
       if(!lessons)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
       const linked=Object.values(parsed).flat().filter(x=>x.matchedGroupId).length;
       importedSetupData.teacherSchedule=parsed;
-      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' cours · '+linked+' liés aux groupes';
+      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' créneaux · '+linked+' liés aux groupes';
       localStorage.setItem('henriImportedTeacherSchedule',JSON.stringify(parsed));
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
@@ -3947,22 +3687,24 @@ async function handleSetupFile(type,input){
       localStorage.setItem('henriImportedSchoolCalendar',JSON.stringify(parsed));
     }
     setupFiles[type]=true;
+    refreshImportedLinks();
     card.classList.add('ready');
     henriSyncSharedData({skipSequenceEditor:true});
   }catch(err){
-    setupFiles[type]=false;
-    state.textContent='À vérifier';
+    setupFiles[type]=previous.ready;
+    importedSetupData[type]=previous.data;
+    state.textContent=previous.ready?'Import précédent conservé':'À vérifier';
     card.classList.remove('ready');
     alert('Henri n’a pas pu valider ce document : '+err.message);
   }
   updateGenerateState();
 }
-function updateGenerateState(){
-  generateScheduleBtn.disabled=!Object.values(setupFiles).every(Boolean);
-}
+function updateGenerateState(){if(typeof renderImportLinksReview==='function')renderImportLinksReview();else generateScheduleBtn.disabled=true;}
+
 function generateMySchedule(){
-  if(!Object.values(setupFiles).every(Boolean)){
-    alert('Importe et valide les trois sources avant de générer ton horaire.');
+  refreshImportedLinks();
+  if(!Object.values(setupFiles).every(Boolean)||!HenriImport.review(importedSetupData.teacherSchedule,importedSetupData.schoolCalendar,importedSetupData.groupSheets).ready){
+    alert('Vérifie les associations et les dates indiquées sous tes documents avant de générer ton année.');
     return;
   }
   const teacher=importedSetupData.teacherSchedule;
@@ -3970,11 +3712,11 @@ function generateMySchedule(){
   const groups=importedSetupData.groupSheets;
   if(!teacher||!calendar||!groups)return;
   groupsData=groups;
-  schoolDays=calendar;
+  schoolDays={...calendar};
   scheduleEntries={};
   Object.entries(schoolDays).forEach(([date,cycle])=>{
     const lessons=sortScheduleEntries(teacher[cycle]||[]);
-    if(lessons.length)scheduleEntries[date]=lessons.map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
+    if(/^Jour \d+$/.test(cycle)&&lessons.length)scheduleEntries[date]=lessons.map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
   });
   localStorage.removeItem('henriDemoSchedule');
   localStorage.setItem('henriSetupComplete','1');
@@ -3983,12 +3725,17 @@ function generateMySchedule(){
   localStorage.setItem('henriGroupsData',JSON.stringify(groupsData));
   rebuildPlanningAssignments();
   henriSyncSharedData({skipSequenceEditor:true});
-  const total=Object.values(scheduleEntries).reduce((n,a)=>n+a.length,0);
-  setupSuccess.textContent='Horaire généré · '+groupsData.length+' groupes · '+total+' périodes placées.';
+  const entries=Object.values(scheduleEntries).flat();
+  const total=entries.filter(isPlanningEntry).length;
+  const cognitive=entries.filter(entry=>entry.kind==='cognitive').length;
+  const dates=Object.keys(schoolDays).sort();
+  setupSuccess.textContent='Année générée du '+formatPlanDate(dates[0])+' au '+formatPlanDate(dates.at(-1))+' · '+groupsData.length+' groupes · '+total+' cours placés'+(cognitive?' · '+cognitive+' interventions cognitives':'')+'.';
   setupSuccess.classList.add('show');
-  shownYear=new Date().getFullYear();shownMonth=new Date().getMonth();
+  const pending=Object.values(schoolDays).filter(type=>/^Jour [xyz]$/.test(type)).length;
+  if(pending)setupSuccess.textContent+=' '+pending+' jours-cycle restent à préciser, sans cours attribué.';
+  const first=new Date(Object.keys(schoolDays).sort()[0]+'T12:00:00');shownYear=first.getFullYear();shownMonth=first.getMonth();
   renderMonth();renderWeek();
-  setTimeout(()=>{goHome();setCalendarView('week')},350);
+  setTimeout(()=>{go('home');setCalendarView('month')},350);
 }
 const savedScheduleEntries=JSON.parse(localStorage.getItem('henriScheduleEntries')||'null');
 const savedSchoolDays=JSON.parse(localStorage.getItem('henriSchoolDays')||'null');
