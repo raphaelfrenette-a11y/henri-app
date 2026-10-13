@@ -4,6 +4,8 @@ Application statique : `index.html` ouvre `henri-v560.html`. La refonte utilise 
 
 Les groupes disposent de leur propre espace. Les paramètres regroupent les documents, les exceptions et la nouvelle année. Les sélecteurs sont natifs pour conserver les interactions clavier, tactile et lecteur d’écran. Aucun framework ni police distante supplémentaire n’est nécessaire.
 
+L’affinage visuel ajoute des formes plus douces et des accents sauge, terre cuite et mauve. `henri-illustrations.svg` contient les pictogrammes locaux et l’illustration de démarrage; `henri-visuals.js` choisit uniquement les repères de présentation. Les états des cours restent lisibles par leur texte et leurs icônes, sans dépendre exclusivement de la couleur. Les animations respectent la réduction des mouvements. Aucun nouveau stockage ni changement de modèle de données n’est introduit.
+
 Depuis le dépôt, démarrer avec `python3 -m http.server 8000` et ouvrir le serveur dans un navigateur. Aucun build ni compte serveur n’est nécessaire.
 
 ## Documents et calendrier

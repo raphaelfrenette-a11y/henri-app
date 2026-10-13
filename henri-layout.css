@@ -313,10 +313,10 @@ h1{margin:6px 0 20px}
 #home .groupBar{width:4px;height:31px}
 #home .course{min-width:0}
 #home .quickSport{display:inline-flex;align-items:center;gap:6px;padding:7px 10px}
-#home .sportIcon{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+
 @media(max-width:520px){#home .weekEvent{grid-template-columns:55px 4px minmax(0,1fr) auto;padding:12px 14px;gap:9px}
 #home .quickSport{padding:6px 8px}
-#home .sportIcon{width:15px;height:15px}}
+}
 .toolGrid{display:grid;gap:10px}
 .toolCard{width:100%;border:1px solid var(--line);padding:18px;text-align:left;display:grid;grid-template-columns:46px 1fr auto;gap:13px;align-items:center}
 .toolIcon{width:46px;height:46px;display:grid;place-items:center}

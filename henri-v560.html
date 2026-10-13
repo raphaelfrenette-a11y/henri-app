@@ -18,13 +18,13 @@
 <main id="mainContent" tabindex="-1">
 <section id="home" class="screen active">
   <div class="screenHeading"><div><p class="screenKicker">Mon horaire</p><h1>Calendrier</h1></div><span id="todayStamp" class="todayStamp"></span></div>
-  <div id="homeEmpty" class="homeEmpty"><div><h2>Votre année commence ici.</h2><p>Importez votre horaire, le calendrier scolaire et vos groupes.</p></div><button class="planPrimary" onclick="go('settings')">Configurer mon horaire</button></div>
+  <div id="homeEmpty" class="homeEmpty"><svg class="homeEmptyIllustration" viewBox="0 0 160 110" aria-hidden="true" focusable="false"><use href="henri-illustrations.svg#start"></use></svg><div><h2>Une année bien en mouvement.</h2><p>Ton horaire, tes groupes et le calendrier scolaire : tout commence avec tes trois documents.</p></div><button class="planPrimary" onclick="go('settings')">Ajouter mes documents</button></div>
 
   <div id="nextCourse" class="nextCourse" hidden>
     <div class="nextCourseContext"><span id="nextCourseEyebrow" class="screenKicker">Prochain cours</span><span id="nextCourseWhen"></span></div>
-    <div class="nextCourseMain"><div><h2 id="nextCourseGroup"></h2><p id="nextCoursePlan"></p></div><button id="nextCourseOpen" class="itemBtn primary">Ouvrir le cours <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
+    <div class="nextCourseMain"><div class="nextCourseIllustration" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use id="nextCourseSymbol" href="henri-illustrations.svg#lesson"></use></svg><svg class="motionTrail" viewBox="0 0 100 30" focusable="false"><path d="M4 22c18-25 32 12 50-5S76 4 96 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 6"/></svg></div><div class="nextCourseInfo"><h2 id="nextCourseGroup"></h2><p id="nextCoursePlan"></p></div><button id="nextCourseOpen" class="itemBtn primary">Ouvrir le cours <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
   </div>
-  <div class="homeActions" aria-label="Accès rapides"><button class="itemBtn" onclick="openQuickSession()">Préparer une séance</button><button class="itemBtn" onclick="openAnnualPlanner()">Planification annuelle</button><button class="itemBtn" onclick="openTeamBuilder()">Former des équipes</button></div>
+  <div class="homeActions" aria-label="Accès rapides"><button class="itemBtn" onclick="openQuickSession()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg#lesson"></use></svg>Préparer une séance</button><button class="itemBtn" onclick="openAnnualPlanner()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg#calendar"></use></svg>Planification annuelle</button><button class="itemBtn" onclick="openTeamBuilder()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg#groups"></use></svg>Former des équipes</button></div>
   <div class="calendarPanel">
     <div class="sectionHead">
       <h2 id="calendarSectionTitle">Cette semaine</h2>
@@ -86,7 +86,7 @@
   <h1>Ma banque de planifications</h1>
   <p class="planIntro">Tes créations restent disponibles d’année en année. Réutiliser une séquence crée une copie sans modifier l’original.</p>
   <div class="henriBankPanel">
-    <div class="henriBankInfo"><strong id="henriBankCount">Ma banque</strong><span>Stockage dans ce navigateur. Exporte une sauvegarde pour éviter les pertes en changeant d’appareil.</span></div>
+    <div class="henriBankInfo"><strong id="henriBankCount">Ma banque</strong><span>Tes contenus sont enregistrés sur cet appareil. Exporte-les avant de changer d’appareil.</span></div>
     <input id="henriBankSearch" class="planControl" placeholder="Rechercher une planification…" oninput="henriBankRefresh()" aria-label="Rechercher des planifications">
     <div class="henriBankToolbar"><button class="itemBtn" onclick="henriBankExport(false).catch(henriBankWarn)">Exporter ma banque</button><label class="itemBtn henriBankUpload">Importer une sauvegarde<input type="file" accept=".json,application/json" onchange="henriBankImportBackup(this)" hidden></label></div>
     <label class="henriBankPdfImport">+ Importer des planifications PDF<input type="file" accept=".pdf,application/pdf" multiple onchange="henriBankImportPdf(this)" hidden></label>
@@ -119,8 +119,8 @@
     <div class="annualSetup">
       <button type="button" class="annualChangeMethod" onclick="toggleAnnualManualSetup(false)">‹ Changer de méthode</button>
       <div class="annualSetupEyebrow">Organisation manuelle</div>
-      <h2>Construire ma structure</h2>
-      <p class="annualSetupText" id="annualSetupText">Le niveau est déterminé automatiquement à partir du groupe sélectionné. Choisis seulement la structure de départ que tu souhaites.</p>
+      <h2>Préparer mon année</h2>
+      <p class="annualSetupText" id="annualSetupText">Henri reconnaît le niveau de ton groupe. Choisis le nombre de séquences et leur durée pour commencer.</p>
       <div class="annualSetupGrid">
         <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
         <div class="planField"><label>Nombre de cours cible par séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
@@ -464,6 +464,7 @@
 </nav>
 </div>
 
+<script src="henri-visuals.js"></script>
 <script src="henri-import.js"></script>
 <script src="henri-calendar-links.js"></script>
 <script>
@@ -557,16 +558,16 @@ function renderWeek(){
         const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
         const groupColor=groupColors[groupIndex%groupColors.length];
         const sportLower=sport.toLowerCase();
-        out+='<button class="weekEvent" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
+        out+='<button class="weekEvent '+HenriVisuals.courseState(entry)+'" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
           '<span class="time">'+entry.time+'</span>'+
           '<span class="groupBar" aria-hidden="true"></span>'+
           '<span class="course">'+entry.group+'</span>'+
-          '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+sport+'</span>'+
+          '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+
         '</button>';
       });
     }
     blocked.forEach(({entry,exception})=>{
-      out+='<button class="weekEvent" style="--groupColor:#b28b56" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+entry.group+'</span><span class="quickSport">'+exception.type+'</span></button>';
+      out+='<button class="weekEvent blockedCourse" style="--groupColor:#9a654b" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+entry.group+'</span><span class="quickSport">'+HenriVisuals.icon('pause')+exception.type+'</span></button>';
     });
     if(!entries.length&&!blocked.length){
       out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':/^Jour [xyz]$/.test(cycle||'')?'Jour-cycle à préciser · '+cycle:'Aucun cours prévu')+'</div>';
@@ -672,10 +673,11 @@ function renderMonth(){
     const hasException=calendarExceptions.some(ex=>exceptionCoversDate(ex,key));
     const today=key===getLocalTodayKey();
     const hasSomething=entries.length||blocked.length||pedago||hasException||/^Jour [xyz]$/.test(schoolDay||'');
-    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(pedago?' pedago':'')+'">'+
-      '<button class="monthDayButton" aria-label="'+escape(d+' '+monthNames[m]+' '+y+(schoolDay?' · '+schoolDay:'')+(entries.length?' · '+entries.length+' créneaux':''))+'" onclick="openDayPlan(\''+key+'\')">'+
+    out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(schoolDay==='Congé'?' holiday':schoolDay==='Pédagogique'?' pedago':'')+(hasException?' exceptionDay':'')+'">'+
+      '<button class="monthDayButton" aria-label="'+escape(d+' '+monthNames[m]+' '+y+(schoolDay?' · '+schoolDay:'')+(entries.length?' · '+entries.length+' cours':'')+(hasException?' · Horaire modifié':''))+'" onclick="openDayPlan(\''+key+'\')">'+
         '<span class="dayNum">'+d+'</span>'+
         (hasSomething?'<span class="eventDot"></span>':'')+
+        (pedago?'<span class="dayKind">'+HenriVisuals.icon(schoolDay==='Congé'?'sun':'lesson')+'</span>':hasException?'<span class="dayKind">'+HenriVisuals.icon('pause')+'</span>':'')+
         (entries.length?'<span class="monthDayMeta"><strong>'+escape(entries[0].groupCode||entries[0].group)+'</strong>'+escape(entries[0].time)+(entries.length>1?' · +'+(entries.length-1):'')+'</span>':schoolDay?'<span class="monthDayMeta">'+escape(schoolDay)+'</span>':'')+
       '</button>'+
     '</div>';

@@ -30,6 +30,9 @@
       const dateLabel = date === today ? 'Aujourd’hui' : new Intl.DateTimeFormat('fr-CA', {weekday:'long', day:'numeric', month:'long'}).format(new Date(date + 'T12:00:00'));
       setText('nextCourseWhen', dateLabel + ' · ' + entry.time + (entry.endTime ? ' – ' + entry.endTime : ''));
       setText('nextCourseGroup', entry.group);
+      const symbol = 'henri-illustrations.svg#' + HenriVisuals.sportSymbol(entry.annualPlan, entry.kind);
+      const artwork = document.getElementById('nextCourseSymbol');
+      if (artwork.getAttribute('href') !== symbol) artwork.setAttribute('href', symbol);
       setText('nextCoursePlan', entry.annualPlan && entry.annualPlan !== 'À choisir' ? entry.annualPlan + (entry.session ? ' · ' + entry.session : '') : 'Séance à préparer');
     }
     document.querySelector('.homeActions').hidden = !groupsData.length;
