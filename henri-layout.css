@@ -1,0 +1,397 @@
+/* Existing component layout and visibility rules. Visual tokens live in henri-design.css. */
+*{box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{margin:0}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.app{min-height:100vh;padding-bottom:86px}
+.top{position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line)}
+.topin{max-width:900px;margin:auto;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.version{margin-left:6px}
+.pill{border:1px solid var(--line);padding:8px 12px}
+main{max-width:860px;margin:auto;padding:25px 16px 55px}
+.screen{display:none}
+.screen.active{display:block}
+.hero{width:100%;border:0;padding:24px 23px;text-align:left}
+.hero h2{margin:7px 0 5px}
+.hero p{margin:0;line-height:1.4}
+.calendarPanel{margin-top:30px}
+.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 1px 13px}
+.sectionHead h2{margin:0}
+.segment{display:inline-flex;padding:3px}
+.segment button{border:0;padding:6px 11px;transition:.18s ease}
+.calendarView{display:none}
+.calendarView.on{display:block}
+.week{display:grid;gap:8px}
+.weekDay{border:1px solid var(--line);overflow:hidden}
+.dayHead{width:100%;border:0;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);text-align:left}
+.todayBadge{display:inline-flex;align-items:center;gap:5px}
+.todayDot{width:6px;height:6px}
+.weekEvent{width:100%;border:0;padding:11px 14px;display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;text-align:left}
+.weekEvent+.weekEvent{border-top:1px solid var(--line)}
+.quickSport{white-space:nowrap}
+.empty{padding:11px 14px}
+.monthCard{border:1px solid var(--line);padding:17px 14px 15px}
+.monthTop{display:flex;align-items:center;justify-content:space-between;margin:0 3px 16px}
+.monthNav{display:flex;gap:5px}
+.monthNav button{width:31px;height:31px;border:0;line-height:1}
+.weekLabels,.monthGrid{display:grid;grid-template-columns:repeat(7,1fr)}
+.weekLabels div{text-align:center;padding-bottom:7px}
+.dayCell{min-height:66px;border-top:1px solid var(--line);padding:7px 5px;position:relative}
+.dayNum{width:25px;height:25px;display:flex;align-items:center;justify-content:center}
+.monthEvent{display:none}
+.eventDot{display:block;width:5px;height:5px;margin:5px auto 0}
+.dayCell{cursor:pointer}
+.monthDayButton{width:100%;height:100%;min-height:52px;border:0;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.monthDetails{display:none;margin-top:12px;border:1px solid var(--line);overflow:hidden}
+.monthDetails.show{display:block}
+.monthDetailsHead{padding:13px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}
+.monthLesson{width:100%;border:0;padding:13px 14px;text-align:left;display:grid;grid-template-columns:52px 1fr auto;gap:9px;align-items:center}
+.monthLesson+.monthLesson{border-top:1px solid var(--line)}
+.monthLessonMain small{display:block;margin-top:3px}
+.monthLessonPlan{margin-top:4px;display:block}
+.dayPlanList{display:grid;gap:10px}
+.dayPlanCard{width:100%;border:1px solid var(--line);padding:15px 16px;text-align:left}
+.dayPlanTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.dayPlanGroup{margin-top:3px}
+.dayPlanSport{margin-top:11px}
+.dayPlanPath{margin-top:4px;line-height:1.4}
+.sessionLink{margin-top:9px;border:0;padding:7px 10px}
+.sessionLink:hover{filter:brightness(.98)}
+.dayPlanCycle{display:inline-block;margin-bottom:12px}
+.placeholder{border:1px solid var(--line);padding:21px}
+.planIntro{margin:-8px 0 22px;line-height:1.5}
+.planMenu{display:grid;gap:10px}
+.planMenuCard{width:100%;border:1px solid var(--line);padding:18px;text-align:left;display:grid;grid-template-columns:44px 1fr auto;gap:13px;align-items:center}
+.planMenuIcon{width:44px;height:44px;display:grid;place-items:center}
+.planMenuCard strong{display:block}
+.planMenuCard small{display:block;margin-top:4px;line-height:1.35}
+.planForm{border:1px solid var(--line);padding:18px}
+.planGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.planField label{display:block;margin:0 0 6px}
+.planControl{width:100%;min-height:46px;border:1px solid var(--line);padding:0 11px}
+.planPrimary{width:100%;border:0;min-height:49px;margin-top:12px}
+.planSecondary{width:100%;border:1px solid var(--line);min-height:47px;margin-top:8px}
+.planStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.planStat{border:1px solid var(--line);padding:12px}
+.planStat small{display:block}
+.planStat strong{display:block;margin-top:3px}
+.annualModeChoices{display:grid;gap:10px;margin:14px 0}
+.annualModeCard{width:100%;border:1px solid var(--line);padding:17px 18px;text-align:left;display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center}
+.annualModeIcon{width:42px;height:42px;display:grid;place-items:center}
+.annualModeCard strong{display:block}
+.annualModeCard small{display:block;line-height:1.4;margin-top:4px}
+.annualManualWrap{display:none}
+.annualManualWrap.show{display:block}
+.annualChangeMethod{border:0;padding:0;margin:0 0 14px;cursor:pointer}
+.annualWorkspace{display:none}
+.annualWorkspace.show{display:block}
+.annualSetup{border:1px solid var(--line);padding:18px;margin:10px 0 14px}
+.annualSetup h2{margin:5px 0 6px}
+.annualSetupText{margin:0;line-height:1.45}
+.annualSetupGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+.annualRecommendation{margin-top:11px;padding:11px 12px}
+.annualRecommendation strong{display:block}
+.annualRecommendation span{display:block;line-height:1.4;margin-top:3px}
+.annualRecBreakdown{display:flex!important;flex-wrap:wrap;gap:6px;margin-top:9px!important}
+.annualRecChip{display:inline-flex!important;align-items:center!important;width:auto!important;padding:6px 9px}
+.annualRecNote{margin-top:8px!important}
+.annualAutoNote{margin-left:4px}
+.annualSetupActions{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:10px}
+.annualSuggestBtn{border:1px solid var(--line);padding:10px 12px}
+.annualBuildBtn{border:0;padding:10px 12px}
+.annualSuggestBtn:disabled,.annualBuildBtn:disabled{cursor:not-allowed}
+.annualDataWarning{display:flex;align-items:flex-start;gap:9px;margin-top:10px;border:1px solid var(--line);padding:11px 12px;line-height:1.45}
+.annualDataWarningDot{width:8px;height:8px;flex:0 0 auto;margin-top:4px}
+.annualSequenceLabel{margin-top:8px}
+.annualCourseAdjust{display:inline-flex;align-items:center;gap:5px;padding:3px}
+.annualCourseAdjust button{width:27px;height:27px;border:0}
+.annualCourseAdjust span{min-width:52px;text-align:center}
+@media(max-width:520px){.annualSetupGrid{grid-template-columns:1fr}
+.annualSetupActions{grid-template-columns:1fr}}
+.annualOverview{border:1px solid var(--line);padding:14px 15px;margin:0 0 12px}
+.annualOverviewTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.annualOverviewBtn{border:0;padding:8px 10px;white-space:nowrap}
+.annualProgressTrack{height:7px;overflow:hidden;margin-top:11px}
+.annualProgressFill{display:block;height:100%;width:0;transition:width .25s ease}
+.annualOverview small{display:block;line-height:1.4;margin-top:8px}
+.annualList{display:grid;gap:10px;margin-top:14px;position:relative;padding-left:25px}
+.annualList::before{content:"";position:absolute;left:8px;top:20px;bottom:20px;width:2px}
+.annualItem{position:relative;border:1px solid var(--line);padding:15px;transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.annualItem::before{content:"";position:absolute;left:-23px;top:23px;width:10px;height:10px;border:3px solid var(--bg)}
+.annualItem.dragging{transform:scale(.99)}
+.annualTop{display:flex;justify-content:space-between;gap:11px;align-items:flex-start}
+.dragHandle{width:34px;height:34px;flex:0 0 34px;border:0;display:grid;place-items:center;cursor:grab;touch-action:none}
+.dragHandle:active{cursor:grabbing}
+.annualMain{min-width:0;flex:1}
+.annualHeaderLine{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.annualStatus{display:inline-flex;align-items:center;padding:5px 8px}
+.annualDatePill{display:inline-flex;align-items:center;margin-top:8px;padding:7px 9px}
+.annualReorder{display:flex;gap:5px;margin-left:auto}
+.orderBtn{width:32px;height:32px;border:1px solid var(--line)}
+.compBadge{display:inline-block;padding:5px 8px}
+.compBadge.editable{border:0;cursor:pointer}
+.inlineCompSelect{min-height:32px;border:1px solid var(--line);padding:0 9px}
+.annualSport{margin-top:8px}
+.annualSport.editable{width:100%;border:0;text-align:left;padding:0;cursor:pointer}
+.annualSport.editable::after{content:"  ›"}
+.annualSportSelect.editing{margin-top:8px}
+.annualSportSelect{width:100%;min-height:42px;border:1px solid var(--line);padding:0 10px;margin-top:8px}
+.annualMeta{display:flex;justify-content:space-between;gap:10px;margin-top:9px}
+.annualMiniProgress{height:4px;overflow:hidden;margin-top:7px}
+.annualMiniProgress span{display:block;height:100%}
+.itemActions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.itemBtn{border:1px solid var(--line);padding:8px 10px}
+.itemBtn.danger{margin-left:auto}
+.planHint{margin-top:10px;line-height:1.4}
+.annualItemCalendar{border:0;padding:8px 10px}
+@media(max-width:520px){.annualList{padding-left:21px}
+.annualList::before{left:7px}
+.annualItem::before{left:-20px}
+.annualReorder{flex-direction:column}
+.itemBtn.danger{margin-left:0}}
+.macroSeqList{display:grid;gap:9px;margin-top:12px}
+.macroSeqCard{width:100%;border:1px solid var(--line);padding:15px 16px;text-align:left;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.macroSeqMeta{margin-top:4px;line-height:1.35}
+.seqStatus{display:inline-block;margin-top:7px;padding:5px 8px}
+.choiceHero{padding:20px;margin:12px 0}
+.choiceHero small{display:block}
+.choiceHero h2{margin:6px 0 4px}
+.choiceHero p{margin:0;line-height:1.45}
+.choiceCards{display:grid;gap:10px}
+.choiceCard{width:100%;border:1px solid var(--line);padding:17px;text-align:left;display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center}
+.choiceIcon{width:40px;height:40px;display:grid;place-items:center}
+.choiceCard strong{display:block}
+.choiceCard small{display:block;line-height:1.4;margin-top:3px}
+.seqHeader{padding:20px;margin:12px 0 12px}
+.seqHeader h2{margin:6px 0 4px}
+.seqHeader p{margin:0;line-height:1.4}
+.seqOverview{border:1px solid var(--line);padding:13px 14px;margin-bottom:12px}
+.seqOverviewTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seqProgressTrack{height:6px;overflow:hidden;margin-top:10px}
+.seqProgressTrack span{display:block;height:100%}
+.seqOverviewFoot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;line-height:1.35}
+.seqOverviewFoot button{border:0;padding:7px 9px;white-space:nowrap}
+.seqList{display:grid;gap:9px;position:relative;padding-left:21px}
+.seqList::before{content:"";position:absolute;left:7px;top:20px;bottom:20px;width:2px}
+.seqLesson{position:relative;width:100%;border:1px solid var(--line);padding:14px;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:11px;align-items:start;text-align:left}
+.seqLesson::before{content:"";position:absolute;left:-18px;top:23px;width:9px;height:9px;border:3px solid var(--bg)}
+.seqNum{width:38px;height:38px;border:0;display:grid;place-items:center;padding:0}
+.seqLessonBody{min-width:0}
+.seqLessonTop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.seqLessonDate{display:inline-flex;padding:5px 8px}
+.seqLesson strong{display:block;line-height:1.25;margin-top:5px}
+.seqLessonObjective{display:block;line-height:1.4;margin-top:4px}
+.seqLessonStructure{display:block;line-height:1.35;margin-top:7px}
+.seqLessonActions{display:flex;flex-direction:column;gap:5px}
+.seqMiniBtn{width:31px;height:31px;border:1px solid var(--line);display:grid;place-items:center}
+.seqAddRow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
+.seqSaveBar{position:sticky;bottom:78px;z-index:5;padding:9px 0 2px}
+@media(max-width:520px){.seqLesson{grid-template-columns:36px minmax(0,1fr) auto}
+.seqLessonActions{gap:4px}
+.seqMiniBtn{width:29px;height:29px}}
+.pdaCategory{display:block;line-height:1.45;margin:5px 0 7px}
+.annualPdaObjective{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.annualPdaObjective label{display:block;line-height:1.45;margin-bottom:7px}
+.annualPdaObjective select,.annualPdaObjective input{width:100%;min-height:39px;border:1px solid var(--line);padding:8px 10px}
+.annualPdaObjective input{margin-top:7px}
+.sessionObjective{padding:14px;margin:12px 0}
+.sessionObjective small{display:block}
+.sessionObjective p{margin:5px 0 0;line-height:1.4}
+.editBlocks{display:grid;gap:9px}
+.editBlock{border:1px solid var(--line);padding:14px}
+.editBlockTop{display:flex;justify-content:space-between;gap:10px}
+.editBlockTitle{margin-top:4px}
+.editBlockActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.addSection{width:100%;border:1px dashed var(--line);min-height:48px;margin-top:10px}
+.quickResult{display:none;margin-top:14px}
+.quickResult.show{display:block}
+.quickScheduleBox{margin-top:10px;border:1px solid var(--line);padding:15px}
+.quickScheduleBox strong{display:block;margin-bottom:4px}
+.quickScheduleBox p{margin:0 0 12px;line-height:1.4}
+.quickScheduleSuccess{margin-top:10px;padding:10px 11px}
+.scheduleConflict{margin-top:10px;border:1px solid var(--line);padding:14px}
+.scheduleConflict strong{display:block}
+.scheduleConflict p{margin:5px 0 12px;line-height:1.45}
+.conflictSeqList{display:grid;gap:7px}
+.conflictSeq{display:grid;grid-template-columns:1fr 76px auto;gap:8px;align-items:center;border:1px solid var(--line);padding:9px 10px}
+.conflictSeq span{min-width:0}
+.conflictSeq b{display:block}
+.conflictSeq small{display:block;margin-top:2px}
+.conflictSeq input{width:76px;height:38px;border:1px solid var(--line);padding:0 8px}
+.conflictApply{border:0;min-height:38px;padding:0 10px}
+.conflictIgnore{width:100%;border:0;padding:10px 4px 0}
+.conflictIgnored{margin-top:10px;padding:10px 11px}
+@media(max-width:480px){.conflictSeq{grid-template-columns:1fr 68px}
+.conflictApply{grid-column:1/-1}
+.conflictSeq input{width:68px}}
+@media(max-width:600px){.planGrid{grid-template-columns:1fr}
+.planStats{grid-template-columns:repeat(3,1fr)}}
+.calendarExceptionSection{margin-top:18px;border:1px solid var(--line);padding:18px}
+.calendarExceptionHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.calendarExceptionHead h2{margin:0}
+.calendarExceptionHead p{margin:5px 0 0;line-height:1.45}
+.exceptionAddBtn{border:0;padding:9px 11px;white-space:nowrap}
+.exceptionForm{display:none;margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.exceptionForm.show{display:block}
+.exceptionGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.exceptionActions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
+.exceptionCancel{border:1px solid var(--line);padding:0 13px}
+.exceptionImpact{display:none;margin-top:10px;padding:10px 11px;line-height:1.45}
+.exceptionImpact.show{display:block}
+.exceptionList{display:grid;gap:8px;margin-top:14px}
+.exceptionEmpty{padding:8px 1px}
+.exceptionItem{border:1px solid var(--line);padding:12px 13px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.exceptionItem strong{display:block}
+.exceptionItem small{display:block;line-height:1.4;margin-top:3px}
+.exceptionDelete{border:0;padding:8px 9px}
+.exceptionBadge{display:inline-flex;margin-top:8px;padding:5px 8px}
+@media(max-width:560px){.exceptionGrid{grid-template-columns:1fr}
+.calendarExceptionHead{display:block}
+.exceptionAddBtn{margin-top:10px}
+.exceptionActions{grid-template-columns:1fr}}
+.settingsIntro{margin:-8px 0 22px;line-height:1.5;max-width:650px}
+.setupStack{display:grid;gap:10px}
+.importCard{position:relative;border:1px solid var(--line);padding:17px 18px;display:grid;grid-template-columns:44px 1fr auto;gap:13px;align-items:center;transition:.18s ease}
+.importIcon{width:44px;height:44px;display:grid;place-items:center}
+.importIcon svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.importText strong{display:block}
+.importText span{display:block;margin-top:3px;line-height:1.35}
+.importState{padding:7px 10px;white-space:nowrap}
+.fileInput{position:absolute;inset:0;cursor:pointer;width:100%;height:100%}
+.generateBox{margin-top:18px;border:1px solid var(--line);padding:18px}
+.generateBtn{width:100%;border:0;padding:14px 16px}
+.generateBtn:disabled{cursor:not-allowed}
+.generateHint{text-align:center;margin:10px 2px 0;line-height:1.4}
+.setupSuccess{display:none;margin-top:14px;padding:13px 14px}
+.setupSuccess.show{display:block}
+.groupsSection{margin-top:28px}
+.groupsSection h2{margin:0 0 12px}
+.groupList{display:grid;gap:9px}
+.groupCard{width:100%;border:1px solid var(--line);padding:15px 16px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.groupCard strong{display:block}
+.groupCard span{display:block;margin-top:3px}
+.studentList{display:grid;gap:9px}
+.studentCard{border:1px solid var(--line);overflow:hidden}
+.studentHead{width:100%;border:0;padding:14px 15px;display:flex;align-items:center;justify-content:space-between;text-align:left}
+.studentMeta{margin-top:3px}
+.studentDetails{display:none;padding:0 15px 15px;border-top:1px solid var(--line)}
+.studentCard.open .studentDetails{display:block}
+.detailRow{padding-top:14px}
+.detailLabel{margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.rating{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rating button{border:1px solid var(--line);padding:8px 0}
+.toggleRow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.switch{width:46px;height:27px;border:0;padding:3px;transition:.18s}
+.switch::after{content:"";display:block;width:21px;height:21px;transition:.18s}
+.switch.on::after{transform:translateX(19px)}
+.relationBox{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.relationSelect{width:100%;border:1px solid var(--line);padding:10px}
+.relationTags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{border:0;padding:6px 9px}
+.dataNote{margin-top:14px;line-height:1.45}
+.schoolMeta{padding:2px 4px;margin-top:4px;display:inline-block}
+.back{border:0;padding:0 0 15px}
+h1{margin:6px 0 20px}
+.muted{line-height:1.45}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+.bottomin{max-width:520px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.nav{border:0;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.nav svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:520px){main{padding-top:20px}
+.hero{padding:21px 19px}
+.calendarPanel{margin-top:27px}
+.monthCard{padding:15px 8px 12px}
+.dayCell{min-height:51px;padding:5px 2px}
+.monthEvent{display:none}
+.eventDot{display:block}
+.dayNum{width:23px;height:23px;margin:auto}}
+@media(min-width:720px){.dayCell{min-height:82px;padding:8px}}
+#home .calendarPanel{margin-top:24px}
+#home .week{gap:12px}
+#home .dayHead{padding:14px 16px}
+#home .weekEvent{grid-template-columns:64px 5px minmax(0,1fr) auto;padding:12px 16px;gap:11px}
+#home .groupBar{width:4px;height:31px}
+#home .course{min-width:0}
+#home .quickSport{display:inline-flex;align-items:center;gap:6px;padding:7px 10px}
+#home .sportIcon{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+@media(max-width:520px){#home .weekEvent{grid-template-columns:55px 4px minmax(0,1fr) auto;padding:12px 14px;gap:9px}
+#home .quickSport{padding:6px 8px}
+#home .sportIcon{width:15px;height:15px}}
+.toolGrid{display:grid;gap:10px}
+.toolCard{width:100%;border:1px solid var(--line);padding:18px;text-align:left;display:grid;grid-template-columns:46px 1fr auto;gap:13px;align-items:center}
+.toolIcon{width:46px;height:46px;display:grid;place-items:center}
+.toolCard strong{display:block}
+.toolCard small{display:block;line-height:1.4;margin-top:4px}
+.teamBuilderHero{border:1px solid var(--line);padding:18px;margin:10px 0 14px}
+.teamBuilderHero h2{margin:0 0 5px}
+.teamBuilderHero p{margin:0;line-height:1.45}
+.teamSetup{border:1px solid var(--line);padding:17px}
+.teamSetupGrid{display:grid;grid-template-columns:1.35fr .65fr;gap:10px}
+.premiumPickerLabel{display:block;margin:0 0 6px}
+.premiumPickerButton{width:100%;min-height:52px;border:1px solid var(--line);padding:0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left}
+.premiumPickerButton .pickerChevron{line-height:1}
+.teamCountButtons{display:flex;flex-wrap:wrap;gap:6px}
+.teamCountBtn{min-width:44px;height:44px;border:1px solid var(--line)}
+.pickerOverlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
+.pickerOverlay.show{display:flex}
+.pickerSheet{width:min(560px,100%);max-height:min(72vh,620px);overflow:auto;padding:14px}
+.pickerHandle{width:36px;height:4px;margin:2px auto 12px}
+.pickerSheetHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px 10px}
+.pickerClose{width:32px;height:32px;border:0}
+.pickerList{display:grid;gap:5px}
+.pickerChoice{width:100%;border:0;padding:13px 12px;display:flex;align-items:center;justify-content:space-between;text-align:left}
+.teamOptions{display:grid;gap:8px;margin-top:12px}
+.teamOption{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:11px}
+.teamOption:first-child{border-top:0;padding-top:0}
+.teamOptionText strong{display:block}
+.teamOptionText small{display:block;margin-top:2px;line-height:1.35}
+.teamSegment{display:inline-flex;padding:3px;gap:2px}
+.teamSegment button{border:0;padding:7px 9px}
+.teamAttendance{margin-top:14px;border-top:1px solid var(--line);padding-top:13px}
+.teamAttendanceHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.attendanceChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.attendanceChip{border:1px solid var(--line);padding:7px 9px}
+.attendanceChip.absent{text-decoration:line-through}
+.teamGenerateActions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:14px}
+.teamGenerateBtn{width:100%;border:0;padding:13px 15px;margin:0}
+.teamResetBtn{border:1px solid var(--line);padding:0 14px;white-space:nowrap}
+@media(max-width:520px){.teamGenerateActions{grid-template-columns:1fr}
+.teamResetBtn{min-height:44px}}
+.henriBankPanel,.henriResetPanel{margin-top:18px;border:1px solid var(--line);padding:18px}
+.henriResetPanel h2{margin:0 0 8px}
+.henriResetPanel p{line-height:1.6}
+.henriYearResetButton{border:1px solid var(--line);padding:13px 16px;cursor:pointer}
+.henriYearResetButton:disabled{cursor:wait}
+.henriBankInfo{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;margin-bottom:14px}
+.henriBankInfo span{line-height:1.5;max-width:320px}
+.henriBankToolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.henriBankUpload,.henriBankPdfImport{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-align:center}
+.henriBankPdfImport{width:100%;padding:13px}
+.henriBankList{display:grid;gap:11px;margin-top:16px}
+.henriBankCard{display:grid;gap:8px;padding:15px;border:1px solid var(--line)}
+.henriBankCardTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.henriBankActions{display:flex;flex-wrap:wrap;gap:6px}
+.henriBankDetail{padding:15px;border:1px solid var(--line);margin-top:15px}
+.henriBankDetailHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.henriBankLesson{padding:12px 0;border-top:1px solid var(--line)}
+.henriBankLesson strong{display:block}
+.henriBankLesson p{line-height:1.6}
+.henriBankLesson p span,.editBlockNotes{display:block;white-space:pre-line;margin-top:5px}
+@media(max-width:520px){.henriBankPanel,.henriResetPanel{padding:14px}}
+.teamResult{display:none;margin-top:14px}
+.teamResult.show{display:block}
+.teamResultTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.teamResultMeta{margin-top:3px;line-height:1.4}
+.teamRegenerate{border:1px solid var(--line);padding:8px 10px;white-space:nowrap}
+.teamQuality{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.teamQuality span{display:inline-flex;padding:6px 8px}
+.generatedTeams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.generatedTeam{border:1px solid var(--line);padding:13px 14px}
+.generatedTeamHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.teamAverage{padding:5px 7px}
+.teamStudent{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line)}
+.teamStudent:first-of-type{border-top:0}
+.teamCompatibilityNote{margin-top:10px;line-height:1.4}
+@media(max-width:600px){.teamSetupGrid{grid-template-columns:1fr}
+.generatedTeams{grid-template-columns:1fr}
+.teamOption{align-items:flex-start;flex-direction:column}}

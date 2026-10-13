@@ -1,0 +1,2307 @@
+/* Henri — semantic tokens and shared components. No remote fonts. */
+:root {
+  color-scheme:light;
+  --bg:#f7f8fa;
+  --card:#fff;
+  --ink:#252d35;
+  --muted:#626d78;
+  --line:#dfe4e9;
+  --accent:#3c566d;
+  --accent-soft:#eaf0f5;
+  --success:#376452;
+  --success-soft:#edf5f0;
+  --warning:#795b2f;
+  --warning-soft:#faf3e7;
+  --danger:#a34242;
+  --radius:8px;
+  --radius-small:5px;
+  --shadow:0 8px 28px #182b3d0c;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-6:24px;
+  --space-8:32px;
+}
+
+body {
+  background:var(--bg);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif;
+  color:var(--ink);
+}
+
+[hidden] {
+  display:none!important;
+}
+
+button,input,textarea,select {
+  font:inherit;
+  color:inherit;
+}
+
+button {
+  transition:background .14s,border-color .14s,color .14s;
+  touch-action:manipulation;
+}
+
+button:disabled {
+  cursor:not-allowed;
+  opacity:.55;
+}
+
+:where(button,a,input,textarea,select,[tabindex]):focus-visible {
+  outline:3px solid #6085a4;
+  outline-offset:3px;
+}
+
+:where(input,textarea,select) {
+  accent-color:var(--accent);
+}
+
+.skipLink {
+  position:fixed;
+  top:-80px;
+  left:24px;
+  z-index:300;
+  background:var(--accent);
+  color:white;
+  padding:12px 20px;
+  border-radius:var(--radius);
+}
+
+.skipLink:focus {
+  top:12px;
+}
+
+h1,h2,h3,p {
+  overflow-wrap:anywhere;
+}
+
+h1 {
+  font-size:30px;
+  line-height:1.2;
+  letter-spacing:-.035em;
+  font-weight:650;
+  margin:0 0 28px;
+}
+
+h2 {
+  font-size:18px;
+  line-height:1.35;
+  letter-spacing:-.02em;
+  font-weight:600;
+}
+
+h3 {
+  font-size:15px;
+  font-weight:600;
+}
+
+strong {
+  font-weight:600;
+}
+
+small {
+  font-size:12px;
+}
+
+.muted,.dataNote,.planHint,.generateHint {
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+}
+
+.app {
+  padding:0 0 96px;
+}
+
+.top {
+  background:var(--card);
+  border-bottom:1px solid var(--line);
+  z-index:30;
+  backdrop-filter:none;
+}
+
+.topin {
+  max-width:1280px;
+  padding:16px 28px;
+}
+
+.brandHome {
+  border:0;
+  background:transparent;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  text-align:left;
+  padding:0;
+}
+
+.brandMark {
+  background:var(--accent);
+  color:white;
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  font-size:25px;
+  font-weight:650;
+  line-height:1;
+}
+
+.brand {
+  display:block;
+  font-size:23px;
+  font-weight:650;
+  letter-spacing:-.04em;
+  line-height:1.1;
+}
+
+.brandCaption {
+  display:block;
+  font-size:10px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.version {
+  display:none;
+}
+
+.pill {
+  border:1px solid var(--line);
+  background:var(--card);
+  border-radius:var(--radius-small);
+  min-height:44px;
+  padding:8px 12px;
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  font-size:13px;
+  font-weight:500;
+}
+
+.pill svg {
+  width:18px;
+  height:18px;
+}
+
+.pill:hover,.pill.isCurrent {
+  background:var(--accent-soft);
+  color:var(--accent);
+}
+
+main {
+  max-width:1280px;
+  padding:36px 28px 64px;
+  margin:auto;
+}
+
+.screen {
+  max-width:980px;
+  margin:auto;
+  animation:screen-in .16s ease-out;
+}
+
+.screen.active {
+  display:block;
+}
+
+.screenHeading {
+  display:flex;
+  gap:24px;
+  align-items:flex-end;
+  justify-content:space-between;
+  margin-bottom:28px;
+}
+
+.screenHeading h1 {
+  margin:0;
+}
+
+.screenKicker {
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 8px;
+}
+
+.todayStamp {
+  font-size:13px;
+  color:var(--muted);
+  text-transform:capitalize;
+}
+
+.back {
+  font-size:13px;
+  font-weight:500;
+  color:var(--muted);
+  min-height:44px;
+  margin:0 0 12px;
+  padding:0;
+  background:transparent;
+  border:0;
+}
+
+.back:hover {
+  color:var(--accent);
+}
+
+.planIntro,.settingsIntro {
+  color:var(--muted);
+  max-width:650px;
+  font-size:14px;
+  line-height:1.6;
+  margin:-12px 0 28px;
+}
+
+.homeEmpty {
+  display:flex;
+  justify-content:space-between;
+  gap:28px;
+  align-items:center;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:28px;
+  margin-bottom:24px;
+}
+
+.homeEmpty h2 {
+  margin:0 0 8px;
+  font-size:22px;
+}
+
+.homeEmpty p {
+  margin:0;
+  color:var(--muted);
+}
+
+.homeEmpty .planPrimary {
+  width:auto;
+  margin:0;
+  white-space:nowrap;
+  padding:0 20px;
+}
+
+.nextCourse {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent);
+  border-radius:var(--radius);
+  padding:24px 28px;
+  margin-bottom:16px;
+}
+
+.nextCourseContext {
+  display:flex;
+  align-items:center;
+  gap:16px;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:14px;
+}
+
+.nextCourseContext .screenKicker {
+  margin:0;
+  color:var(--accent);
+}
+
+.nextCourseMain {
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  align-items:center;
+}
+
+.nextCourseMain h2 {
+  font-size:21px;
+  margin:0 0 4px;
+}
+
+.nextCourseMain p {
+  color:var(--muted);
+  margin:0;
+  font-size:13px;
+}
+
+.homeActions {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:0 0 32px;
+}
+
+.homeActions .itemBtn {
+  background:transparent;
+  border-color:transparent;
+  padding-left:0;
+  margin-right:16px;
+}
+
+.homeActions .itemBtn:hover {
+  color:var(--accent);
+  text-decoration:underline;
+}
+
+.sectionHead {
+  margin:0 0 16px;
+  gap:16px;
+}
+
+.sectionHead h2 {
+  font-size:17px;
+}
+
+.segment,.teamSegment {
+  display:flex;
+  background:#edf0f3;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:3px;
+  gap:3px;
+}
+
+.segment button,.teamSegment button {
+  min-height:38px;
+  border:0;
+  background:transparent;
+  border-radius:4px;
+  font-size:12px;
+  padding:6px 14px;
+  color:var(--muted);
+  font-weight:500;
+}
+
+.segment button.on,.teamSegment button.on {
+  background:var(--card);
+  color:var(--ink);
+  box-shadow:0 1px 4px #1c2c3b14;
+}
+
+#home .calendarPanel {
+  margin:0;
+}
+
+#home .week {
+  gap:0;
+  border:1px solid var(--line);
+  background:var(--card);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+
+#home .weekDay {
+  border:0;
+  border-radius:0;
+  background:var(--card);
+  box-shadow:none;
+}
+
+#home .weekDay+.weekDay {
+  border-top:1px solid var(--line);
+}
+
+#home .weekDay.today {
+  background:#f3f6f9;
+}
+
+#home .dayHead {
+  padding:16px 20px;
+  background:transparent;
+  border-bottom:1px solid var(--line);
+}
+
+#home .dayName {
+  font-size:15px;
+  font-weight:600;
+}
+
+#home .dayDate {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.todayDot {
+  background:var(--accent);
+}
+
+#home .weekEvent {
+  background:transparent;
+  padding:18px 20px;
+  grid-template-columns:62px 3px minmax(0,1fr) auto;
+  gap:12px;
+  text-align:left;
+}
+
+#home .weekEvent:hover {
+  background:var(--accent-soft);
+}
+
+#home .groupBar {
+  background:var(--groupColor,var(--accent));
+  width:3px;
+  height:32px;
+  border-radius:2px;
+}
+
+#home .course {
+  font-size:13px;
+  font-weight:600;
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
+#home .quickSport {
+  font-size:12px;
+  color:var(--muted);
+  white-space:normal;
+  max-width:160px;
+  text-align:right;
+}
+
+#home .quickSport.planningSport {
+  color:var(--muted);
+}
+
+.time {
+  font-size:12px;
+  color:var(--muted);
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+}
+
+.empty {
+  font-size:12px;
+  color:var(--muted);
+  padding:20px;
+}
+
+.sportIcon {
+  display:none;
+}
+
+.monthCard {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:none;
+}
+
+.monthTop {
+  gap:16px;
+  margin:0 0 24px;
+}
+
+.monthTitle {
+  font-size:20px;
+  font-weight:600;
+}
+
+.monthNav button {
+  width:44px;
+  height:44px;
+  border:1px solid var(--line);
+  border-radius:var(--radius-small);
+  background:var(--card);
+  font-size:20px;
+}
+
+.monthNav button:hover {
+  background:var(--accent-soft);
+}
+
+.weekLabels div {
+  color:var(--muted);
+  font-size:11px;
+  font-weight:500;
+  padding:0 0 14px;
+}
+
+.dayCell {
+  min-height:96px;
+  border-top:1px solid var(--line);
+  padding:8px 4px;
+}
+
+.monthDayButton {
+  padding:0 5px;
+  min-height:80px;
+  align-items:flex-start;
+  border-radius:5px;
+}
+
+.monthDayButton:hover {
+  background:var(--accent-soft);
+}
+
+.dayNum {
+  width:28px;
+  height:28px;
+  font-size:13px;
+  font-weight:500;
+  border-radius:5px;
+}
+
+.dayCell.today .dayNum {
+  background:var(--accent);
+  color:white;
+}
+
+.dayCell.mutedDay {
+  color:var(--muted);
+}
+
+.dayCell.pedago {
+  background:var(--warning-soft);
+}
+
+.dayCell.holiday {
+  background:#f1f3f5;
+}
+
+.eventDot {
+  background:var(--accent);
+  width:4px;
+  height:4px;
+  margin:6px 0 0 12px;
+  border-radius:50%;
+}
+
+.monthDayMeta {
+  display:block;
+  max-width:100%;
+  font-size:11px;
+  color:var(--muted);
+  margin-top:8px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.monthDayMeta strong {
+  display:block;
+  font-size:11px;
+  font-weight:500;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.monthDetails {
+  border-radius:var(--radius);
+  background:var(--card);
+}
+
+.monthDetailsHead {
+  font-size:13px;
+}
+
+.monthEvent {
+  font-size:11px;
+  color:var(--accent);
+}
+
+.planMenu,.toolGrid,.choiceCards {
+  gap:0;
+  border-top:1px solid var(--line);
+}
+
+.planMenuCard,.toolCard,.choiceCard {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  box-shadow:none;
+  padding:24px 8px;
+  grid-template-columns:36px minmax(0,1fr) auto;
+  gap:20px;
+}
+
+.planMenuCard:hover,.toolCard:hover,.choiceCard:hover {
+  background:var(--accent-soft);
+}
+
+.planMenuIcon,.toolIcon,.choiceIcon {
+  width:36px;
+  height:36px;
+  background:transparent;
+  color:var(--accent);
+  border-radius:5px;
+  font-size:16px;
+  font-weight:600;
+}
+
+.planMenuCard strong,.toolCard strong,.choiceCard strong {
+  font-size:17px;
+  font-weight:600;
+  letter-spacing:-.015em;
+}
+
+.planMenuCard small,.toolCard small,.choiceCard small {
+  color:var(--muted);
+  font-size:13px;
+  margin-top:5px;
+}
+
+.groupArrow {
+  color:var(--muted);
+  font-size:24px;
+  font-weight:400;
+}
+
+:is(.placeholder,.planForm,.annualOverview,.annualSetup,.seqOverview,.quickScheduleBox,.teamSetup,.henriBankPanel,.henriBankDetail,.dayPlanCard,.generatedTeam) {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:none;
+  padding:24px;
+}
+
+.placeholder {
+  font-size:14px;
+  color:var(--ink);
+}
+
+.placeholder p {
+  color:var(--muted);
+}
+
+.planGrid,.annualSetupGrid,.exceptionGrid,.teamSetupGrid {
+  gap:20px;
+}
+
+.planField label,.premiumPickerLabel,.annualPdaObjective label {
+  display:block;
+  color:var(--ink);
+  font-size:12px;
+  font-weight:500;
+  margin-bottom:8px;
+}
+
+.planControl,.control,.annualSportSelect,.annualInlineInput,.relationSelect,.premiumPickerButton {
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid #ccd4dd;
+  border-radius:var(--radius-small);
+  min-height:44px;
+  width:100%;
+  font-size:14px;
+  padding:9px 12px;
+}
+
+.planControl:hover {
+  border-color:#93a2b1;
+}
+
+.planControl:disabled {
+  background:#edf0f3;
+  color:var(--muted);
+}
+
+textarea.planControl {
+  min-height:100px;
+  resize:vertical;
+}
+
+.planField {
+  min-width:0;
+}
+
+select {
+  cursor:pointer;
+}
+
+.pdaCategory {
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.5;
+  display:block;
+  margin-bottom:8px;
+}
+
+.planPrimary,.generateBtn,.teamGenerateBtn,.annualBuildBtn {
+  background:var(--accent);
+  color:#fff;
+  border:1px solid var(--accent);
+  border-radius:var(--radius-small);
+  min-height:44px;
+  font-size:14px;
+  font-weight:600;
+  padding:10px 18px;
+  box-shadow:none;
+}
+
+.planPrimary:hover,.generateBtn:hover,.teamGenerateBtn:hover,.annualBuildBtn:hover {
+  background:#30465a;
+}
+
+.planPrimary:disabled,.generateBtn:disabled,.annualBuildBtn:disabled {
+  background:#e2e7ec;
+  border-color:#e2e7ec;
+  color:#677482;
+  opacity:1;
+}
+
+.planSecondary,.itemBtn,.outline,.addSection,.exceptionAddBtn,.teamResetBtn,.teamRegenerate,.annualOverviewBtn,.annualSuggestBtn,.sessionLink {
+  background:var(--card);
+  color:var(--accent);
+  border:1px solid var(--line);
+  border-radius:var(--radius-small);
+  min-height:44px;
+  font-size:13px;
+  font-weight:500;
+  padding:9px 14px;
+  box-shadow:none;
+}
+
+.itemBtn:hover,.planSecondary:hover,.outline:hover,.addSection:hover,.exceptionAddBtn:hover,.teamResetBtn:hover,.sessionLink:hover {
+  background:var(--accent-soft);
+  border-color:#bccbd8;
+}
+
+.itemBtn.primary {
+  background:var(--accent);
+  border-color:var(--accent);
+  color:white;
+}
+
+.itemBtn.primary:hover {
+  background:#30465a;
+}
+
+.itemBtn.danger,.exceptionDelete,.seqMiniBtn.danger {
+  color:var(--danger);
+}
+
+.itemActions,.henriBankActions {
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.annualModeChoices {
+  gap:0;
+  border-top:1px solid var(--line);
+  margin:24px 0;
+}
+
+.annualModeCard,.annualModeCard.primary {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  box-shadow:none;
+  padding:22px 8px;
+  grid-template-columns:36px minmax(0,1fr) auto;
+  gap:16px;
+}
+
+.annualModeCard:hover {
+  background:var(--accent-soft);
+}
+
+.annualModeIcon {
+  background:var(--accent-soft);
+  color:var(--accent);
+  width:36px;
+  height:36px;
+  border-radius:5px;
+  font-size:13px;
+  font-weight:600;
+}
+
+.annualModeCard strong {
+  font-size:15px;
+  font-weight:600;
+}
+
+.annualModeCard small {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.annualSetup h2 {
+  font-size:21px;
+}
+
+.annualSetupText {
+  color:var(--muted);
+  font-size:13px;
+}
+
+.annualSetupEyebrow,.annualSequenceLabel,.annualLabel {
+  color:var(--muted);
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:.04em;
+}
+
+.annualRecommendation {
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-radius:6px;
+  padding:16px;
+}
+
+.annualRecommendation strong {
+  font-size:13px;
+}
+
+.annualRecommendation span {
+  font-size:12px;
+}
+
+.annualRecChip {
+  background:var(--card);
+  border-radius:4px;
+  font-size:11px!important;
+  font-weight:500;
+}
+
+.annualRecNote {
+  font-size:11px!important;
+}
+
+.annualDataWarning,.annualRecommendation.warning {
+  background:var(--warning-soft);
+  color:var(--warning);
+  border:1px solid #e7d6b9;
+  border-radius:6px;
+  padding:16px;
+  font-size:13px;
+}
+
+.annualDataWarningDot {
+  background:var(--warning);
+}
+
+.planStats {
+  gap:0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  margin:24px 0;
+}
+
+.planStat {
+  background:transparent;
+  border:0;
+  border-radius:0;
+  padding:16px 20px;
+}
+
+.planStat+.planStat {
+  border-left:1px solid var(--line);
+}
+
+.planStat small {
+  font-size:12px;
+  color:var(--muted);
+  font-weight:500;
+}
+
+.planStat strong {
+  font-size:28px;
+  font-weight:600;
+}
+
+.planStat.balance-positive strong {
+  color:var(--success);
+}
+
+.planStat.balance-negative strong {
+  color:var(--warning);
+}
+
+.annualOverviewTop strong {
+  font-size:14px;
+}
+
+.annualOverview small {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.annualProgressTrack,.annualMiniProgress,.seqProgressTrack {
+  background:#e6ebef;
+  border-radius:3px;
+}
+
+.annualProgressFill,.annualMiniProgress span,.seqProgressTrack span {
+  background:var(--accent);
+  border-radius:3px;
+}
+
+.annualOverview.over-budget {
+  background:var(--warning-soft);
+}
+
+.annualList,.seqList {
+  padding-left:0;
+  gap:12px;
+}
+
+.annualList::before,.seqList::before {
+  display:none;
+}
+
+.annualItem,.seqLesson,.editBlock,.macroSeqCard,.studentCard,.henriBankCard {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:none;
+  padding:20px;
+}
+
+.annualItem::before,.seqLesson::before {
+  display:none;
+}
+
+.annualSport,.macroSeqSport {
+  font-size:17px;
+  font-weight:600;
+}
+
+.annualItem small,.macroSeqMeta,.annualDateRow,.seqLessonObjective,.seqLessonDate,.seqLessonStructure {
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.annualDatePill,.annualStatus,.compBadge,.seqStatus,.exceptionBadge,.teamQuality span,.teamAverage {
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-radius:4px;
+  font-size:11px;
+  font-weight:500;
+}
+
+.seqStatus.ready {
+  background:var(--success-soft);
+  color:var(--success);
+}
+
+.annualCourseAdjust {
+  background:#f0f3f6;
+  border-radius:5px;
+}
+
+.annualCourseAdjust button,.seqMiniBtn,.orderBtn {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:4px;
+  min-width:40px;
+  min-height:40px;
+  color:var(--accent);
+  font-size:16px;
+  box-shadow:none;
+}
+
+.annualCourseAdjust span {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.dragHandle {
+  color:var(--muted);
+  background:transparent;
+  border-radius:4px;
+}
+
+.annualBlockDetail {
+  background:#f6f8fa;
+  border-radius:6px;
+}
+
+.annualCourseCount {
+  font-size:13px;
+}
+
+.seqHeader,.choiceHero {
+  background:transparent;
+  color:var(--ink);
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  padding:0 0 24px;
+  margin:12px 0 24px;
+  box-shadow:none;
+}
+
+.seqHeader small,.choiceHero small {
+  font-size:12px;
+  color:var(--accent);
+  font-weight:500;
+}
+
+.seqHeader h2,.choiceHero h2 {
+  font-size:28px;
+  margin:8px 0;
+}
+
+.seqHeader p,.choiceHero p {
+  font-size:13px;
+  color:var(--muted);
+}
+
+.seqNum {
+  width:34px;
+  height:34px;
+  border:1px solid var(--line);
+  border-radius:5px;
+  background:transparent;
+  font-size:14px;
+  font-weight:600;
+}
+
+.seqLesson {
+  gap:16px;
+}
+
+.seqLessonBody strong {
+  font-size:15px;
+  font-weight:600;
+}
+
+.seqSaveBar {
+  background:var(--bg);
+  backdrop-filter:none;
+  padding:16px 0;
+  bottom:88px;
+}
+
+.seqSaveBar .planPrimary {
+  box-shadow:none;
+}
+
+.editBlockType {
+  font-size:11px;
+  color:var(--accent);
+  font-weight:500;
+}
+
+.editBlockTitle {
+  font-size:15px;
+  font-weight:600;
+}
+
+.editBlockNotes {
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.editBlockActions {
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.quickBlock {
+  background:transparent;
+  border-radius:5px;
+}
+
+.quickTitle {
+  font-size:20px;
+}
+
+.quickResult {
+  background:var(--card);
+  border-radius:var(--radius);
+}
+
+.settingsSections {
+  display:flex;
+  gap:24px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+  padding-bottom:16px;
+  margin-bottom:28px;
+}
+
+.settingsSections a {
+  font-size:13px;
+  color:var(--muted);
+  text-decoration:none;
+  min-height:32px;
+  display:flex;
+  align-items:center;
+}
+
+.settingsSections a:hover {
+  color:var(--accent);
+}
+
+.settingsIntro {
+  margin:0 0 24px;
+}
+
+.setupStack {
+  gap:0;
+  border-top:1px solid var(--line);
+}
+
+.importCard {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  box-shadow:none;
+  padding:24px 8px;
+  grid-template-columns:40px minmax(0,1fr) auto;
+  gap:16px;
+}
+
+.importCard:hover {
+  background:var(--accent-soft);
+}
+
+.importCard.ready {
+  background:transparent;
+  border-color:var(--line);
+}
+
+.importIcon {
+  width:40px;
+  height:40px;
+  background:transparent;
+  border-radius:5px;
+  color:var(--accent);
+}
+
+.importText strong {
+  font-size:15px;
+  font-weight:600;
+}
+
+.importText span {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.importState {
+  font-size:12px;
+  color:var(--accent);
+  background:var(--accent-soft);
+  border-radius:4px;
+  padding:6px 10px;
+  max-width:200px;
+  text-align:right;
+}
+
+.importCard.ready .importState {
+  background:var(--success-soft);
+  color:var(--success);
+}
+
+.fileInput {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  cursor:pointer;
+}
+
+.importCard {
+  position:relative;
+}
+
+.importCard:focus-within {
+  outline:3px solid #6085a4;
+  outline-offset:3px;
+}
+
+.generateBox {
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  padding:0;
+  margin:24px 0;
+}
+
+.generateHint {
+  font-size:12px;
+}
+
+.setupSuccess,.quickScheduleSuccess,.exceptionImpact {
+  background:var(--success-soft);
+  color:var(--success);
+  border-radius:6px;
+  padding:12px;
+  font-size:13px;
+}
+
+#importLinksReview {
+  margin:24px 0;
+  font-size:13px;
+}
+
+#importLinksReview details {
+  border-top:1px solid var(--line);
+  padding:12px 0;
+}
+
+#importLinksReview summary {
+  min-height:36px;
+  cursor:pointer;
+  font-weight:500;
+}
+
+#importLinksReview textarea {
+  background:var(--card);
+  border:1px solid var(--line);
+  padding:12px;
+  border-radius:5px;
+  color:var(--ink);
+  font-size:13px;
+  line-height:1.7;
+}
+
+.calendarExceptionSection {
+  background:transparent;
+  border:0;
+  border-top:1px solid var(--line);
+  border-radius:0;
+  padding:28px 0;
+  margin-top:36px;
+  scroll-margin-top:100px;
+}
+
+.calendarExceptionHead h2 {
+  font-size:18px;
+}
+
+.calendarExceptionHead p {
+  font-size:13px;
+  color:var(--muted);
+  max-width:640px;
+}
+
+.exceptionForm {
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:24px;
+  border:1px solid var(--line);
+}
+
+.exceptionItem {
+  background:var(--card);
+  border-radius:6px;
+  border-color:var(--line);
+  padding:16px;
+}
+
+.exceptionEmpty {
+  color:var(--muted);
+  font-size:13px;
+}
+
+.henriResetPanel {
+  background:transparent;
+  border:0;
+  border-top:1px solid var(--line);
+  border-radius:0;
+  padding:28px 0;
+  margin-top:24px;
+  scroll-margin-top:100px;
+}
+
+.henriResetPanel p {
+  font-size:13px;
+  color:var(--muted);
+  max-width:650px;
+}
+
+.henriYearResetButton {
+  background:var(--card);
+  color:var(--danger);
+  border:1px solid #e1c6c6;
+  border-radius:5px;
+  min-height:44px;
+  padding:10px 16px;
+  font-size:13px;
+  font-weight:500;
+}
+
+.henriYearResetButton:hover {
+  background:#faf0f0;
+}
+
+#setupDocuments {
+  scroll-margin-top:100px;
+}
+
+.groupList {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:0;
+  border-top:1px solid var(--line);
+}
+
+.groupCard {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  box-shadow:none;
+  padding:24px 8px;
+  text-align:left;
+}
+
+.groupCard:hover {
+  background:var(--accent-soft);
+}
+
+.groupCard strong {
+  font-size:16px;
+  font-weight:600;
+}
+
+.groupCard span span {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:5px;
+}
+
+.studentCard {
+  padding:0;
+}
+
+.studentHead {
+  background:transparent;
+  padding:18px 20px;
+}
+
+.studentName {
+  font-size:14px;
+  font-weight:600;
+}
+
+.studentMeta {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.studentDetails {
+  background:#fafbfc;
+}
+
+.detailLabel {
+  font-size:12px;
+  font-weight:500;
+}
+
+.relationTags span {
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-radius:4px;
+  font-size:12px;
+}
+
+.rating button {
+  background:var(--card);
+  border-radius:5px;
+  color:var(--muted);
+  min-height:40px;
+}
+
+.rating button.on {
+  background:var(--accent);
+  color:white;
+}
+
+.switch {
+  background:#c6ced7;
+  border-radius:999px;
+  min-width:44px;
+  height:28px;
+  border:0;
+}
+
+.switch.on {
+  background:var(--accent);
+}
+
+.switch::after {
+  background:#fff;
+  border-radius:50%;
+  box-shadow:0 1px 3px #182b3d20;
+}
+
+.teamSetupGrid {
+  grid-template-columns:1fr 1fr;
+}
+
+.teamCountButtons {
+  gap:6px;
+}
+
+.teamCountBtn {
+  background:var(--card);
+  color:var(--muted);
+  border:1px solid var(--line);
+  border-radius:5px;
+  min-height:44px;
+  min-width:44px;
+  font-size:13px;
+  font-weight:500;
+}
+
+.teamCountBtn.on {
+  background:var(--accent);
+  color:white;
+  border-color:var(--accent);
+  box-shadow:none;
+}
+
+.teamOptions {
+  gap:16px;
+  margin-top:24px;
+}
+
+.teamOption {
+  padding-top:16px;
+}
+
+.teamOptionText strong {
+  font-size:14px;
+  font-weight:600;
+}
+
+.teamOptionText small {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.teamAttendance {
+  margin-top:24px;
+}
+
+.teamAttendanceHead {
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.teamAttendanceHead strong {
+  font-size:14px;
+}
+
+.teamAttendanceHead span {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.attendanceChips {
+  gap:8px;
+  margin-top:12px;
+}
+
+.attendanceChip {
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:5px;
+  font-size:12px;
+  min-height:40px;
+  padding:8px 12px;
+}
+
+.attendanceChip.absent {
+  background:#f0f2f5;
+  color:var(--muted);
+  text-decoration:line-through;
+}
+
+.teamGenerateActions {
+  margin-top:24px;
+  gap:12px;
+}
+
+.teamResult {
+  display:none;
+  margin-top:24px;
+}
+
+.teamResult.show {
+  display:block;
+}
+
+.generatedTeams {
+  gap:16px;
+}
+
+.teamResultTitle {
+  font-size:19px;
+}
+
+.teamResultMeta {
+  color:var(--muted);
+  font-size:12px;
+}
+
+.generatedTeamHead strong {
+  font-size:15px;
+}
+
+.teamStudent {
+  font-size:13px;
+  border-color:var(--line);
+  padding:10px 0;
+}
+
+.teamStudent small {
+  font-size:11px;
+  color:var(--muted);
+}
+
+.teamQuality span {
+  background:#eef2f5;
+}
+
+.henriBankInfo strong {
+  font-size:14px;
+}
+
+.henriBankInfo span,.henriBankMeta,.henriBankInfo {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.henriBankTitle {
+  font-size:16px;
+  font-weight:600;
+}
+
+.henriBankToolbar {
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.henriBankPdfImport {
+  background:var(--accent-soft);
+  color:var(--accent);
+  border:1px solid var(--line);
+  border-radius:5px;
+  font-size:13px;
+  min-height:44px;
+  padding:12px;
+  cursor:pointer;
+}
+
+.henriBankUpload {
+  display:inline-flex;
+  align-items:center;
+  cursor:pointer;
+}
+
+.henriBankUpload:focus-within,.henriBankPdfImport:focus-within {
+  outline:3px solid #6085a4;
+  outline-offset:3px;
+}
+
+.henriBankDetailHead {
+  font-size:15px;
+}
+
+.henriBankTag {
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-radius:4px;
+  font-size:11px;
+}
+
+.dayPlanGroup {
+  font-size:18px;
+  font-weight:600;
+}
+
+.dayPlanTime,.dayPlanCycle {
+  font-size:12px;
+  color:var(--muted);
+}
+
+.dayPlanSport {
+  font-size:14px;
+  font-weight:500;
+}
+
+.dayPlanSession {
+  font-size:13px;
+  color:var(--muted);
+}
+
+.bottom {
+  background:var(--card);
+  border-top:1px solid var(--line);
+  backdrop-filter:none;
+  z-index:25;
+  padding:6px 12px calc(6px + env(safe-area-inset-bottom));
+}
+
+.bottomin {
+  max-width:600px;
+  grid-template-columns:repeat(4,1fr);
+  gap:4px;
+}
+
+.nav {
+  background:transparent;
+  color:var(--muted);
+  border-radius:5px;
+  font-size:11px;
+  font-weight:500;
+  min-height:58px;
+  gap:5px;
+}
+
+.nav.on {
+  background:var(--accent-soft);
+  color:var(--accent);
+  font-weight:600;
+}
+
+.nav svg {
+  width:20px;
+  height:20px;
+  stroke-width:1.7;
+}
+
+.nav:hover {
+  background:#f0f3f6;
+}
+
+.pickerOverlay {
+  background:#1e2e4052;
+  backdrop-filter:none;
+  padding:20px;
+}
+
+.pickerSheet {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:20px;
+  box-shadow:0 20px 60px #182b3d26;
+  max-height:80vh;
+}
+
+.pickerSheetHead strong {
+  font-size:18px;
+  font-weight:600;
+}
+
+.pickerHandle {
+  background:var(--line);
+  border-radius:3px;
+}
+
+.pickerClose {
+  background:#f1f3f5;
+  color:var(--muted);
+  border:0;
+  border-radius:5px;
+  width:44px;
+  height:44px;
+  font-size:20px;
+}
+
+.pickerChoice {
+  background:var(--card);
+  color:var(--ink);
+  border-radius:5px;
+  min-height:48px;
+  padding:12px;
+}
+
+.pickerChoice strong {
+  font-size:14px;
+  font-weight:500;
+}
+
+.pickerChoice:hover,.pickerChoice.on {
+  background:var(--accent-soft);
+  color:var(--accent);
+}
+
+.pickerCheck {
+  opacity:0;
+  color:var(--accent);
+}
+
+.pickerChoice.on .pickerCheck {
+  opacity:1;
+}
+
+.present {
+  background:var(--accent);
+  color:white;
+  border-radius:5px;
+}
+
+.teamPresent {
+  background:var(--card);
+  border-radius:8px;
+  color:var(--ink);
+}
+
+@keyframes screen-in {
+  from {
+    opacity:.6;
+    transform:translateY(3px);
+  }
+
+  to {
+    opacity:1;
+    transform:none;
+  }
+
+}
+
+@media(min-width:1100px) {
+  .app {
+    padding-left:220px;
+    padding-bottom:0;
+  }
+
+  .top {
+    border-bottom:0;
+    background:transparent;
+    height:56px;
+  }
+
+  .topin {
+    height:56px;
+    justify-content:flex-end;
+  }
+
+  .brandHome {
+    position:fixed;
+    left:28px;
+    top:32px;
+    z-index:40;
+  }
+
+  .pill {
+    position:fixed;
+    left:20px;
+    bottom:24px;
+    width:180px;
+    z-index:40;
+    background:transparent;
+    border:0;
+    padding:12px 16px;
+  }
+
+  .bottom {
+    top:0;
+    bottom:0;
+    right:auto;
+    width:220px;
+    border-top:0;
+    border-right:1px solid var(--line);
+    padding:120px 16px 100px;
+    background:#f0f3f6;
+  }
+
+  .bottomin {
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .nav {
+    display:flex;
+    flex-direction:row;
+    justify-content:flex-start;
+    gap:12px;
+    min-height:46px;
+    padding:12px 16px;
+    font-size:13px;
+  }
+
+  .nav.on {
+    background:var(--card);
+    color:var(--accent);
+  }
+
+  main {
+    padding:16px 48px 64px;
+  }
+
+  .screen {
+    max-width:1040px;
+  }
+
+  #home .week {
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    align-items:stretch;
+  }
+
+  #home .weekDay+.weekDay {
+    border-top:0;
+    border-left:1px solid var(--line);
+  }
+
+  #home .dayHead {
+    padding:16px;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+    min-height:78px;
+  }
+
+  #home .weekEvent {
+    grid-template-columns:3px minmax(0,1fr);
+    gap:6px 10px;
+    padding:18px 14px;
+    align-items:start;
+    min-height:128px;
+  }
+
+  #home .weekEvent .time {
+    grid-column:2;
+  }
+
+  #home .groupBar {
+    grid-column:1;
+    grid-row:1/4;
+    height:100%;
+  }
+
+  #home .course,#home .quickSport {
+    grid-column:2;
+    text-align:left;
+    max-width:none;
+  }
+
+  #home .course {
+    font-size:12px;
+  }
+
+  #home .quickSport {
+    font-size:11px;
+  }
+
+  .seqSaveBar {
+    bottom:0;
+  }
+
+}
+
+@media(min-width:700px) and (max-width:1099px) {
+  main {
+    padding:32px 36px 64px;
+  }
+
+  #home .week {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:0;
+  }
+
+  #home .weekDay {
+    border-bottom:1px solid var(--line);
+  }
+
+  #home .weekDay+.weekDay {
+    border-top:0;
+  }
+
+  #home .weekDay:nth-child(even) {
+    border-left:1px solid var(--line);
+  }
+
+  #home .weekEvent {
+    grid-template-columns:52px 3px minmax(0,1fr);
+    gap:8px 10px;
+    padding:16px;
+  }
+
+  #home .quickSport {
+    grid-column:3;
+    text-align:left;
+    max-width:none;
+  }
+
+  #home .groupBar {
+    grid-row:1/3;
+    grid-column:2;
+    height:100%;
+  }
+
+}
+
+@media(max-width:699px) {
+  main {
+    padding:24px 20px 48px;
+  }
+
+  .topin {
+    padding:14px 20px;
+  }
+
+  .brandCaption {
+    display:none;
+  }
+
+  .brand {
+    font-size:22px;
+  }
+
+  h1 {
+    font-size:27px;
+    margin-bottom:24px;
+  }
+
+  .screenHeading {
+    display:block;
+    margin-bottom:24px;
+  }
+
+  .screenHeading>.itemBtn {
+    margin-top:16px;
+  }
+
+  .todayStamp {
+    display:block;
+    margin-top:8px;
+    font-size:12px;
+  }
+
+  .homeEmpty {
+    display:block;
+    padding:24px;
+  }
+
+  .homeEmpty .planPrimary {
+    width:100%;
+    margin-top:20px;
+  }
+
+  .homeEmpty h2 {
+    font-size:21px;
+  }
+
+  .nextCourse {
+    padding:20px;
+  }
+
+  .nextCourseContext {
+    display:block;
+  }
+
+  .nextCourseContext .screenKicker {
+    display:block;
+    margin-bottom:6px;
+  }
+
+  .nextCourseMain {
+    display:block;
+  }
+
+  .nextCourseMain h2 {
+    font-size:19px;
+  }
+
+  .nextCourseMain .itemBtn {
+    margin-top:16px;
+  }
+
+  .homeActions {
+    gap:4px;
+    margin-bottom:24px;
+  }
+
+  .homeActions .itemBtn {
+    font-size:12px;
+    margin-right:12px;
+  }
+
+  .sectionHead h2 {
+    font-size:15px;
+  }
+
+  .segment button {
+    padding:6px 10px;
+  }
+
+  #home .weekEvent {
+    grid-template-columns:52px 3px minmax(0,1fr);
+    padding:16px;
+    gap:8px 10px;
+  }
+
+  #home .quickSport {
+    grid-column:3;
+    text-align:left;
+    max-width:none;
+  }
+
+  #home .groupBar {
+    grid-column:2;
+    grid-row:1/3;
+    height:100%;
+  }
+
+  #home .course {
+    grid-column:3;
+  }
+
+  #home .dayHead {
+    padding:16px;
+  }
+
+  .monthCard {
+    padding:16px 6px;
+  }
+
+  .monthTop {
+    padding:0 8px;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .monthTitle {
+    font-size:18px;
+  }
+
+  .monthDayMeta {
+    display:none;
+  }
+
+  .dayCell {
+    min-height:60px;
+    padding:6px 2px;
+  }
+
+  .monthDayButton {
+    align-items:center;
+    min-height:48px;
+    padding:0;
+  }
+
+  .dayNum {
+    margin:0;
+    font-size:12px;
+  }
+
+  .eventDot {
+    margin:6px auto 0;
+  }
+
+  .weekLabels div {
+    font-size:10px;
+  }
+
+  .planMenuCard,.toolCard,.choiceCard {
+    padding:22px 0;
+    gap:12px;
+    grid-template-columns:32px minmax(0,1fr) 16px;
+  }
+
+  .planMenuCard strong,.toolCard strong {
+    font-size:16px;
+  }
+
+  .planMenuCard small,.toolCard small {
+    font-size:12px;
+  }
+
+  :is(.placeholder,.planForm,.annualSetup,.annualOverview,.seqOverview,.teamSetup,.henriBankPanel,.dayPlanCard) {
+    padding:20px;
+  }
+
+  .planGrid,.annualSetupGrid,.exceptionGrid,.teamSetupGrid {
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+
+  .annualItem,.seqLesson,.editBlock {
+    padding:16px;
+  }
+
+  .seqLesson {
+    gap:10px;
+  }
+
+  .seqLessonActions {
+    flex-direction:column;
+  }
+
+  .seqMiniBtn {
+    min-height:44px;
+    min-width:44px;
+  }
+
+  .annualModeCard {
+    padding:20px 0;
+    gap:12px;
+  }
+
+  .planStat {
+    padding:16px 12px;
+  }
+
+  .planStat strong {
+    font-size:25px;
+  }
+
+  .importCard {
+    padding:20px 0;
+    grid-template-columns:32px minmax(0,1fr);
+    gap:8px 12px;
+  }
+
+  .importIcon {
+    width:32px;
+    height:36px;
+    grid-row:1/3;
+  }
+
+  .importState {
+    grid-column:2;
+    text-align:left;
+    justify-self:start;
+    max-width:100%;
+  }
+
+  .settingsSections {
+    gap:20px;
+  }
+
+  .teamOption {
+    align-items:flex-start;
+  }
+
+  .teamOptionText {
+    min-width:0;
+  }
+
+  .teamOption .teamSegment {
+    flex-wrap:wrap;
+    min-width:105px;
+  }
+
+  .teamSegment button {
+    font-size:11px;
+    padding:6px 10px;
+    min-height:44px;
+  }
+
+  .teamAttendanceHead {
+    display:block;
+  }
+
+  .teamAttendanceHead span {
+    display:block;
+    margin-top:4px;
+  }
+
+  .generatedTeams {
+    grid-template-columns:1fr;
+  }
+
+  .attendanceChip {
+    min-height:44px;
+  }
+
+  .calendarExceptionHead {
+    align-items:flex-start;
+  }
+
+  .calendarExceptionHead p {
+    font-size:12px;
+  }
+
+  .henriBankPanel .henriBankInfo {
+    display:block;
+  }
+
+  .henriBankInfo span {
+    display:block;
+    margin-top:8px;
+  }
+
+  .henriBankToolbar {
+    display:flex;
+  }
+
+  .seqSaveBar {
+    bottom:82px;
+  }
+
+  .itemActions {
+    flex-wrap:wrap;
+  }
+
+}
+
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after {
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+
+}
+
+.accessibleFile {
+  position:absolute;
+  width:1px;
+  height:1px;
+  clip-path:inset(50%);
+  overflow:hidden;
+}
+
+.tag {
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-radius:4px;
+  font-size:12px;
+}
+
+.compBadge.C1,.compBadge.C2,.compBadge.C3 {
+  background:var(--accent-soft);
+  color:var(--accent);
+}
+
+.annualChangeMethod {
+  color:var(--accent);
+  font-size:13px;
+  font-weight:500;
+}
+
+.exceptionCancel {
+  color:var(--muted);
+  font-size:13px;
+  min-height:44px;
+}
+
+.annualAutoNote {
+  color:var(--muted);
+  font-size:11px;
+}
+
+.annualSaveBar {
+  background:var(--bg);
+}
+
+.planStat.balance-positive,.planStat.balance-negative,.planStat.balance-zero {
+  background:transparent;
+}
+
+h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus {
+  outline:none;
+}
+
+.todayDot {
+  border-radius:50%;
+}
+
+#nextCourseOpen {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
