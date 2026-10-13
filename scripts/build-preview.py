@@ -17,6 +17,7 @@ FILES = ['index.html', 'henri-v560.html', 'henri-design.css', 'henri-layout.css'
 def build(destination):
     if destination.resolve() == SOURCE:
         raise ValueError('La prévisualisation doit avoir son propre dossier.')
+    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=SOURCE, text=True).strip()
     keys = {'henriAnnualBankId:', 'henriDemoSchedule', 'henriSetupComplete',
             'henriTeamHistory', 'henriScheduleConflictIgnores'}
     for filename in FILES:
@@ -35,8 +36,12 @@ def build(destination):
             text = text.replace('<main id="mainContent" tabindex="-1">', '<main id="mainContent" tabindex="-1"><div class="previewNotice" role="note"><strong>Prévisualisation de la refonte</strong><span>Les données de test sont séparées du site habituel.</span><a href="../../" target="_blank" rel="noopener">Ouvrir le site actuel ↗</a></div>')
         if filename == 'henri-design.css':
             text += '\n.previewNotice{max-width:1040px;margin:0 auto 28px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:12px;color:var(--muted)}.previewNotice strong{color:var(--accent);font-size:12px}.previewNotice a{color:var(--accent);margin-left:auto;min-height:32px;display:flex;align-items:center}@media(max-width:699px){.previewNotice{display:block}.previewNotice span{display:block;margin-top:6px}.previewNotice a{margin-top:6px}}\n'
+        if filename.endswith(('.html', '.js')):
+            for asset in FILES:
+                if asset.endswith(('.css', '.js', '.svg')):
+                    text = text.replace('="' + asset + '"', '="' + asset + '?v=' + commit[:8] + '"')
+            text = text.replace('henri-illustrations.svg#', 'henri-illustrations.svg?v=' + commit[:8] + '#')
         (destination / filename).write_text(text)
-    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=SOURCE, text=True).strip()
     (destination / 'manifest.json').write_text(json.dumps({'sourceCommit': commit,
         'previewPath': 'preview/refonte/', 'storagePrefix': 'previewHenriSlate:', 'files': FILES}, indent=2) + '\n')
     (destination / 'README.md').write_text('Prévisualisation isolée de Henri, commit ' + commit + '.\n\n'

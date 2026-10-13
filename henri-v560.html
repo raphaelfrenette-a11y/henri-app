@@ -674,7 +674,7 @@ function renderMonth(){
     const today=key===getLocalTodayKey();
     const hasSomething=entries.length||blocked.length||pedago||hasException||/^Jour [xyz]$/.test(schoolDay||'');
     out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(schoolDay==='Congé'?' holiday':schoolDay==='Pédagogique'?' pedago':'')+(hasException?' exceptionDay':'')+'">'+
-      '<button class="monthDayButton" aria-label="'+escape(d+' '+monthNames[m]+' '+y+(schoolDay?' · '+schoolDay:'')+(entries.length?' · '+entries.length+' cours':'')+(hasException?' · Horaire modifié':''))+'" onclick="openDayPlan(\''+key+'\')">'+
+      '<button class="monthDayButton" aria-label="'+escape(d+' '+monthNames[m]+' '+y+(schoolDay?' · '+schoolDay:'')+(entries.length?' · '+entries.length+' périodes':'')+(hasException?' · Horaire modifié':''))+'" onclick="openDayPlan(\''+key+'\')">'+
         '<span class="dayNum">'+d+'</span>'+
         (hasSomething?'<span class="eventDot"></span>':'')+
         (pedago?'<span class="dayKind">'+HenriVisuals.icon(schoolDay==='Congé'?'sun':'lesson')+'</span>':hasException?'<span class="dayKind">'+HenriVisuals.icon('pause')+'</span>':'')+
