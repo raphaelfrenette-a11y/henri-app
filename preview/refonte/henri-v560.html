@@ -106,7 +106,7 @@
   </div>
 </section>
 <section id="annualPlanner" class="screen">
-  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour à Planifier</button>
   <h1>Planification annuelle</h1>
   <p class="planIntro">Répartis les séquences sur les cours disponibles. Les dates suivent ton calendrier.</p>
   <div class="planForm">
@@ -177,7 +177,7 @@
 </section>
 
 <section id="sequenceSetup" class="screen">
-  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour à Planifier</button>
   <h1>Séquences</h1>
   <p class="planIntro">Les blocs viennent directement de ta planification annuelle. Choisis un bloc, puis son sport et ta méthode de préparation.</p>
   <div class="planForm">
@@ -199,7 +199,7 @@
 </section>
 
 <section id="standaloneSequence" class="screen">
-  <button class="back" onclick="go('sequenceSetup')">‹ Retour aux séquences</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour aux séquences</button>
   <h1>Séquence indépendante</h1>
   <p class="planIntro">Pour créer une séquence qui n’est pas encore liée à la planification annuelle.</p>
   <div class="planForm">
@@ -256,7 +256,7 @@
 </section>
 
 <section id="quickSession" class="screen">
-  <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour à Planifier</button>
   <h1>Séance individuelle</h1>
   <p class="planIntro">Prépare un cours ponctuel rapidement. Il reste indépendant et n’est pas ajouté à une séquence sauf si tu décides de le faire plus tard.</p>
   <div id="quickContext" class="quickScheduleSuccess" style="display:none;margin:0 0 12px"></div>
@@ -294,7 +294,7 @@
 </section>
 
 <section id="teamBuilder" class="screen">
-  <button class="back" onclick="returnFromTeamBuilder()">‹ Retour</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour</button>
   <h1>Générer des équipes</h1>
   <div class="teamSetup">
     <div class="teamSetupGrid">
@@ -356,7 +356,7 @@
 </section>
 
 <section id="settings" class="screen">
-  <button class="back" onclick="go('home')">‹ Retour</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour</button>
   <h1>Paramètres</h1>
   <nav class="settingsSections" aria-label="Sections des paramètres"><a href="#setupDocuments">Documents</a><a href="#calendarExceptions">Exceptions</a><a href="#schoolYearReset">Nouvelle année</a></nav>
   <p class="settingsIntro">Les trois documents nécessaires pour relier tes cours, tes dates et tes élèves.</p>
@@ -452,21 +452,21 @@
   <p class="dataNote">Les profils et les compatibilités sont utilisés pour former les équipes.</p>
 </section>
 <section id="groupProfile" class="screen">
-  <button class="back" onclick="returnFromGroupProfile()">‹ Retour</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour</button>
   <div class="muted" id="groupProfileMeta"></div>
   <h1 id="groupProfileTitle">Groupe</h1>
   <div id="studentList" class="studentList"></div>
 </section>
 
 <section id="dayPlan" class="screen">
-  <button class="back" onclick="go('home')">‹ Retour au calendrier</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour au calendrier</button>
   <div class="muted" id="dayPlanMeta"></div>
   <h1 id="dayPlanTitle">Journée</h1>
   <div id="dayPlanCourses" class="dayPlanList"></div>
 </section>
 
 <section id="courseDetail" class="screen">
-  <button class="back" onclick="go(previousScreen)">‹ Retour</button>
+  <button class="back" onclick="henriGoBack()">‹ Retour</button>
   <div class="muted" id="courseDetailMeta"></div>
   <h1 id="courseDetailTitle">Cours</h1>
   <div class="placeholder">
@@ -482,7 +482,7 @@
   </div>
 </section>
 
-<section id="session" class="screen"><button class="back" onclick="go(previousScreen)">‹ Retour</button><div class="muted" id="sessionMeta"></div><h1 id="sessionTitle"></h1><div class="placeholder"><strong>Séance clé en main</strong><p class="muted">Le contenu pédagogique complet sera branché à la banque Henri. Ce lien confirme le circuit agenda → séance.</p></div></section>
+<section id="session" class="screen"><button class="back" onclick="henriGoBack()">‹ Retour</button><div class="muted" id="sessionMeta"></div><h1 id="sessionTitle"></h1><div class="placeholder"><strong>Séance clé en main</strong><p class="muted">Le contenu pédagogique complet sera branché à la banque Henri. Ce lien confirme le circuit agenda → séance.</p></div></section>
 </main>
 
 <nav class="bottom" aria-label="Navigation principale">
@@ -514,7 +514,39 @@ const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
 if(localStorage.getItem('previewHenriSlate:henriFreshStartVersion')!==HENRI_FRESH_START_VERSION)localStorage.setItem('previewHenriSlate:henriFreshStartVersion',HENRI_FRESH_START_VERSION);
 let previousScreen='home';
+const henriNavigationHistory=[];
+let henriNavigatingBack=false;
+function henriGoBack(){
+  const previous=henriNavigationHistory.pop();
+  if(!previous){go('home');return;}
+  henriNavigatingBack=true;
+  try{
+    go(previous.id);
+    if(previous.id==='home'){
+      if(previous.view)setCalendarView(previous.view);
+      if(Number.isInteger(previous.weekOffset)&&typeof henriWeekOffset!=='undefined'){henriWeekOffset=previous.weekOffset;renderWeek();}
+      if(Number.isInteger(previous.month)&&typeof shownMonth!=='undefined'){shownMonth=previous.month;shownYear=previous.year;renderMonth();}
+    }
+    if(previous.id==='courseDetail'&&previous.courseContext){
+      const {date,index}=previous.courseContext;
+      if((scheduleEntries[date]||[])[index])openCourseEntry(date,index);
+    }
+    requestAnimationFrame(()=>window.scrollTo(0,previous.scrollY||0));
+  }finally{henriNavigatingBack=false;}
+}
 function go(id){
+  const current=document.querySelector('.screen.active')?.id;
+  if(!henriNavigatingBack&&current&&current!==id){
+    henriNavigationHistory.push({
+      id:current,scrollY:window.scrollY,
+      view:current==='home'?(weekView.classList.contains('on')?'week':'month'):null,
+      weekOffset:typeof henriWeekOffset!=='undefined'?henriWeekOffset:0,
+      month:typeof shownMonth!=='undefined'?shownMonth:0,
+      year:typeof shownYear!=='undefined'?shownYear:0,
+      courseContext:current==='courseDetail'&&calendarCourseContext?{...calendarCourseContext}:null
+    });
+    if(henriNavigationHistory.length>60)henriNavigationHistory.shift();
+  }
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
   const section=['home','dayPlan','courseDetail'].includes(id)?'home':['tools','teamBuilder'].includes(id)?'tools':['groups','groupProfile'].includes(id)?'groups':id==='settings'?null:'plan';
   document.querySelectorAll('.nav').forEach(x=>{const active=x.dataset.screen===section;x.classList.toggle('on',active);if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');});
@@ -1521,7 +1553,7 @@ function continueSavedSequence(){
   go('sequenceEditor');
 }
 function openStandaloneSequence(){calendarPlanEditing=false;calendarIndividualEditing=null;fillPlanGroupSelects();go('standaloneSequence')}
-function returnFromSequenceEditor(){if(calendarPlanEditing){calendarPlanEditing=false;openDayPlan(calendarCourseContext.date);return}go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
+function returnFromSequenceEditor(){if(calendarPlanEditing)calendarPlanEditing=false;henriGoBack()}
 // Objectifs élaborés à partir de la PDA EPS secondaire (MÉQ, 2010), C1, C2 et C3.
 // Source : https://cdn-contenu.quebec.ca/cdn-contenu/education/pfeq/secondaire/progressions-apprentissages/PFEQ-progression-apprentissages-education-physique-secondaire.pdf
 // Ce sont des formulations pédagogiques inspirées de la PDA, pas des citations officielles.
@@ -1803,7 +1835,7 @@ function moveSessionBlock(i,delta){
   [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
 }
 function returnFromSessionEditor(){
-  if(calendarPlanEditing){persistCalendarIndividual();henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();calendarPlanEditing=false;calendarIndividualEditing=null;openDayPlan(calendarCourseContext.date);return}
+  if(calendarPlanEditing){persistCalendarIndividual();henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();calendarPlanEditing=false;calendarIndividualEditing=null;henriGoBack();return}
   if(sessionEditorSource==='quick'){henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);renderQuickResult();go('quickSession')}else{henriBankStoreSequence(activeSequence,'Séquence').catch(henriBankWarn);renderSequenceEditor();go('sequenceEditor')}
 }
 function getScheduleConflict(groupId){
