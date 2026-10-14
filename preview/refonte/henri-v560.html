@@ -493,7 +493,7 @@
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
 <script src="henri-planning.js?v=d3c3f1cf"></script>
 <script src="henri-import.js?v=d3c3f1cf"></script>
-<script src="henri-calendar-links.js?v=d3c3f1cf"></script>
+<script src="henri-calendar-links.js?v=76fcf3c3"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -2905,10 +2905,12 @@ function updateGenerateState(){if(typeof renderImportLinksReview==='function')re
 
 function generateMySchedule(){
   refreshImportedLinks();
-  if(!Object.values(setupFiles).every(Boolean)||!HenriImport.review(importedSetupData.teacherSchedule,importedSetupData.schoolCalendar,importedSetupData.groupSheets).ready){
-    alert('Vérifie les associations et les dates indiquées sous tes documents avant de générer ton année.');
+  if(!Object.values(setupFiles).every(Boolean)||!importedSetupData.teacherSchedule||!importedSetupData.schoolCalendar||!importedSetupData.groupSheets?.length){
+    alert('Ajoute tes trois documents et confirme la grille de ton horaire avant de générer.');
     return;
   }
+  const validation=HenriImport.review(importedSetupData.teacherSchedule,importedSetupData.schoolCalendar,importedSetupData.groupSheets);
+  if(validation.errors.length&&!confirm('Henri a relevé des éléments à vérifier :\\n\\n'+validation.errors.slice(0,5).join('\\n')+'\\n\\nTu peux générer maintenant; les cours sans groupe associé ne seront pas placés. Continuer ?'))return;
   const teacher=importedSetupData.teacherSchedule;
   const calendar=importedSetupData.schoolCalendar;
   const groups=importedSetupData.groupSheets;
@@ -2917,7 +2919,7 @@ function generateMySchedule(){
   schoolDays={...calendar};
   scheduleEntries={};
   Object.entries(schoolDays).forEach(([date,cycle])=>{
-    const lessons=sortScheduleEntries(teacher[cycle]||[]);
+    const lessons=sortScheduleEntries(teacher[cycle]||[]).filter(lesson=>groups.some(g=>g.id===lesson.matchedGroupId));
     if(/^Jour \d+$/.test(cycle)&&lessons.length)scheduleEntries[date]=lessons.map(lesson=>({...lesson,annualPlan:null,sequence:null,session:null}));
   });
   localStorage.removeItem('previewHenriSlate:henriDemoSchedule');
