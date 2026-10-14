@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#f7f8fa">
 <link rel="icon" href="henri-icon.svg?v=d3c3f1cf" type="image/svg+xml">
 <link rel="stylesheet" href="henri-layout.css?v=d3c3f1cf">
-<link rel="stylesheet" href="henri-design.css?v=d3c3f1cf">
+<link rel="stylesheet" href="henri-design.css?v=course-numbers-1-d3c3f1cf">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
@@ -574,7 +574,7 @@
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
 <script src="henri-planning.js?v=issue4-keep-1"></script>
 <script src="henri-import.js?v=d3c3f1cf"></script>
-<script src="henri-calendar-links.js?v=issue4-keep-1"></script>
+<script src="henri-calendar-links.js?v=issue4-course-numbers-1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -695,10 +695,7 @@ function henriCalendarGroupLabel(entry){
 function henriCalendarLessonLabel(date,entry){
   if(!isPlanningEntry(entry))return '';
   const position=henriCoursePosition(date,entry);
-  const number=entry.annualBlockId&&Number.isInteger(entry.sessionIndex)?entry.sessionIndex+1:position?.number;
-  const sport=entry.annualPlan||position?.sport||'';
-  if(number===4&&String(sport).trim().toLowerCase()==='ultimate')return 'Évaluation';
-  if(number&&sport)return 'Cours '+number;
+  if(position)return 'Cours '+position.number+(position.total?'/'+position.total:'');
   return entry.isIndividual?'Séance individuelle':'';
 }
 let henriWeekOffset=0;
@@ -743,7 +740,7 @@ function renderWeek(){
         if(groupIndex>=0)groupColor=groupColors[groupIndex%groupColors.length];
         else {let hash=0;for(let c=0;c<groupName.length;c++)hash=((hash*31)+groupName.charCodeAt(c))>>>0;groupColor=groupColors[hash%groupColors.length];}
         const sportLower=sport.toLowerCase();
-        out+='<button class="weekEvent '+HenriVisuals.courseState(entry)+'" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
+        out+='<button class="weekEvent '+HenriVisuals.courseState(entry)+'" style="--groupColor:'+groupColor+'" onclick="openCalendarCourse(\''+key+'\','+originalIndex+')">'+
           '<span class="groupBar" aria-hidden="true"></span>'+
           '<span class="henriWeekEventBody">'+
             '<span class="time">'+entry.time+'</span>'+
@@ -781,7 +778,7 @@ function openDayPlan(date){
     cards.push('<div class="dayPlanCard">'+
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+sport+(henriCalendarLessonLabel(date,entry)?' · '+henriCalendarLessonLabel(date,entry):'')+'</div>'+
-      '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+originalIndex+')">'+session+'</button>'+
+      '<button class="sessionLink" onclick="openCalendarCourse(\''+date+'\','+originalIndex+')">'+session+'</button>'+
       (getEntryGroupId(entry)?'<button class="itemBtn" onclick="openGroup(\''+getEntryGroupId(entry)+'\')">Voir les élèves</button>':'')+
     '</div>');
   });
@@ -915,8 +912,11 @@ function henriCoursePosition(date,entry){
   if(!groupId)return null;
   const blocks=annualPlans[groupId]||[];
   const block=blocks.find(b=>String(b.id)===String(entry.annualBlockId));
-  if(block&&entry.sessionIndex!=null)return {number:Number(entry.sessionIndex)+1,total:calendarSequenceFor(entry)?.sessions.length||Math.max(0,Number(block.courses)||0),sport:block.sport,blockId:block.id,groupId};
-  if(entry.sequenceId&&entry.sessionIndex!=null)return {number:Number(entry.sessionIndex)+1,total:null,sport:entry.annualPlan||'',groupId};
+  if(block){
+    const index=Number.isInteger(entry.courseIndex)?entry.courseIndex:entry.sessionIndex;
+    if(Number.isInteger(index))return {number:index+1,total:Math.max(0,Number(block.courses)||0),sport:block.sport,blockId:block.id,groupId};
+  }
+  if(entry.sequenceId&&Number.isInteger(entry.sessionIndex))return {number:entry.sessionIndex+1,total:calendarSequenceFor(entry)?.sessions.length||null,sport:entry.annualPlan||'',groupId};
   return null;
 }
 function openCourseEntry(date,index){
@@ -986,8 +986,14 @@ function renderMonth(){
         (hasSomething?'<span class="eventDot"></span>':'')+
         (hasNote?'<span title="Note personnelle" style="font-size:10px;color:#9b6434;font-weight:700">●</span>':'')+
         (pedago?'<span class="dayKind">'+HenriVisuals.icon(schoolDay==='Congé'?'sun':'lesson')+'</span>':hasException?'<span class="dayKind">'+HenriVisuals.icon('pause')+'</span>':'')+
-        (entries.length?'<span class="monthDayMeta"><strong>'+escape(entries[0].groupCode||entries[0].group)+'</strong>'+escape(entries[0].time)+(entries.length>1?' · +'+(entries.length-1):'')+'</span>':schoolDay?'<span class="monthDayMeta">'+escape(schoolDay)+'</span>':'')+
+        (schoolDay?'<span class="monthDayMeta">'+escape(schoolDay)+'</span>':'')+
       '</button>'+
+      entries.map(entry=>{
+        const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
+        const sport=entry.annualPlan||(isPlanningEntry(entry)?'À planifier':'Intégration cognitive');
+        const label=henriCalendarLessonLabel(key,entry);
+        return '<button class="monthCourseButton" data-date="'+key+'" data-course-index="'+originalIndex+'" aria-label="'+escape(sport+' · '+label+' · '+henriCalendarGroupLabel(entry)+' · '+entry.time)+'" onclick="openCalendarCourse(&quot;'+key+'&quot;,'+originalIndex+')"><strong>'+escape(sport)+'</strong>'+(label?'<span>'+escape(label)+'</span>':'')+'<small>'+escape(henriCalendarGroupLabel(entry)+' · '+entry.time)+'</small></button>';
+      }).join('')+
     '</div>';
   }
   monthGrid.innerHTML=out;
@@ -2006,7 +2012,13 @@ function openQuickSessionForCourse(date,index){
   quickPrefillCourseKey=courseOccurrenceKey(date,entry);
   fillPlanGroupSelects();
   if(quickGroup)quickGroup.value=group.id;
+  if(entry.annualPlan&&entry.annualPlan!=='À choisir'){
+    if(!Array.from(quickSport.options).some(option=>option.value===entry.annualPlan))quickSport.add(new Option(entry.annualPlan,entry.annualPlan));
+    quickSport.value=entry.annualPlan;
+  }
   handleQuickSportChange();
+  const block=(annualPlans[group.id]||[]).find(block=>block.id===entry.annualBlockId);
+  if(block){quickComp.value=block.comp;refreshQuickObjectiveOptions();}
   quickSessionData=null;
   if(quickResult){quickResult.classList.remove('show');quickResult.innerHTML=''}
   const d=new Date(date+'T12:00:00');
@@ -3424,7 +3436,7 @@ setTimeout(()=>{
 </script>
 <script src="henri-bank-v1.js?v=issue4-keep-1"></script>
 <script src="henri-calendar-pdf.js?v=5efa0d3"></script>
-<script src="henri-ux.js?v=d3c3f1cf"></script>
+<script src="henri-ux.js?v=issue4-course-numbers-1"></script>
 <script src="henri-evaluations.js?v=0b37e7d5"></script>
 </body>
 </html>
