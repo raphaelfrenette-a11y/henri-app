@@ -6,6 +6,14 @@ Les groupes disposent de leur propre espace. Les paramètres regroupent les docu
 
 L’affinage visuel ajoute des formes plus douces et des accents sauge, terre cuite et mauve. `henri-illustrations.svg` contient les pictogrammes locaux et l’illustration de démarrage; `henri-visuals.js` choisit uniquement les repères de présentation. Les états des cours restent lisibles par leur texte et leurs icônes, sans dépendre exclusivement de la couleur. Les animations respectent la réduction des mouvements. Aucun nouveau stockage ni changement de modèle de données n’est introduit.
 
+## Planification
+
+Dans Planification annuelle, le groupe affiché sert à modifier ses blocs. « Choisir les groupes » permet de créer une nouvelle répartition pour un ou plusieurs groupes, chacun selon ses propres périodes. Les anciens blocs et contenus sont archivés avant remplacement. Une année déjà créée reste visible à la réouverture; les sports peuvent être choisis plus tard dans Séquences. Les totaux distinguent périodes et séquences et indiquent les dépassements, sans raccourcir silencieusement les autres blocs.
+
+`henri-planning.js` contient ces parcours et synchronise les références existantes entre groupes, blocs, séquences et calendrier. Les modifications de sport/compétence conservent les activités déjà écrites. Une réduction ou un remplacement de contenus demande confirmation et conserve une copie dans Ma banque. Les erreurs d’écriture sont affichées, et l’enregistrement de l’état partagé tente de restaurer les anciennes valeurs en cas d’échec; cela ne constitue pas une transaction globale entre localStorage et IndexedDB.
+
+`henri-pedagogy.js` fournit des activités de départ locales et modifiables pour les sports proposés. La méthode manuelle produit quatre sections vierges, tandis que Henri fournit des consignes, une progression et des adaptations au niveau. Ces propositions doivent être adaptées par l’enseignant; elles seront enrichies avec les plans sportifs fournis ultérieurement. Le profil secondaire privilégie C2, réserve une part à C3 et limite C1 à une séquence dans la proposition par défaut. Ce choix n’est pas un quota ministériel ni une garantie de couverture du programme. L’accès au PDF officiel PDA a été refusé par le réseau de l’environnement pendant cette intervention; aucune répartition quantitative n’est présentée comme gouvernementale.
+
 Depuis le dépôt, démarrer avec `python3 -m http.server 8000` et ouvrir le serveur dans un navigateur. Aucun build ni compte serveur n’est nécessaire.
 
 ## Documents et calendrier
@@ -25,6 +33,8 @@ Les données restent dans le stockage de ce navigateur. Les bibliothèques PDF.j
 ## Vérification
 
 - `node --test tests/import.test.js` : associations, dates, couverture annuelle et grilles d’horaire.
+- `node --test tests/pedagogy.test.js` : conservation du total des périodes, plafond C1 au secondaire, gabarits vierges et activités de départ pour tous les sports proposés.
+- `python3 tests/planning_browser.py` : imports réels de fichiers texte, recommandation multi-groupes, dix blocs C2, réouverture/enregistrement sans sports, choix Henri/manuel, modifications, annulations et archivage, synchronisation, calendrier, rechargement, erreur de stockage et interfaces de 320 à 1440 pixels.
 - `python3 tests/design_browser.py` : prochain cours, exclusions des cours bloqués et interventions cognitives, accès aux groupes, conservation du groupe sélectionné, formulaires natifs, clavier et focus de la fenêtre de groupe, génération d’équipes, persistance, réduction des animations et absence de débordement sur cinq formats (320 à 1440 pixels).
 - `python3 tests/preview_browser.py` : construction de la prévisualisation, conservation des anciens groupes, profils, plans et contenus de la banque, et isolation des données de production. `scripts/build-preview.py DOSSIER` reconstruit cette prévisualisation avec les mêmes clés de stockage et des ressources versionnées pour éviter les anciens styles en cache.
 - `python3 tests/reference_calendar_browser.py` : calendrier de référence CSS, correspondances avec les onze groupes, cours et interventions distincts, jours de juin à préciser, journée flottante sans décalage du cycle.

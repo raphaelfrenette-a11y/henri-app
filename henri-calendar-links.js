@@ -161,7 +161,7 @@ function openCalendarSequence(date,index){
   calendarCourseContext={date,index};calendarPlanEditing=true;
   const saved=calendarSequenceFor(entry);
   if(saved){activeSequence=JSON.parse(JSON.stringify(saved));renderSequenceEditor();go('sequenceEditor');}
-  else if(entry.annualBlockId)openMacroSequence(getEntryGroupId(entry),entry.annualBlockId);
+  else if(entry.annualBlockId)openMacroSequence(getEntryGroupId(entry),entry.annualBlockId,true);
 }
 function openCalendarSession(date,index){
   const entry=scheduleEntries[date]?.[index];if(!entry)return;

@@ -2401,3 +2401,8 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus {
   align-items:center;
   gap:8px;
 }
+/* Planning feedback and multi-group actions share the existing visual tokens. */
+.actionStatus{max-width:1040px;margin:0 auto 24px;padding:14px 18px;background:var(--success-soft);border:1px solid #c8ddd1;border-radius:var(--radius-small);color:var(--success);font-size:13px;line-height:1.6}
+.actionStatus.actionError{background:var(--warning-soft);border-color:#e7d6b9;color:var(--warning)}
+.annualBulk,.planningReferences{border-top:1px solid var(--line);padding:16px 0;font-size:13px;margin-top:16px}.annualBulk summary,.planningReferences summary{cursor:pointer;min-height:40px;display:list-item;font-weight:500}.planningReferences a{color:var(--accent)}.planningReferences p{color:var(--muted);max-width:700px}
+.annualTargetGroups{display:grid;gap:8px;margin-top:16px}.annualTargetGroups label{display:flex;align-items:center;gap:12px;min-height:44px}.annualTargetGroups input{width:20px;height:20px;flex-shrink:0}.annualCompetenceSummary{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.annualCompetenceSummary span{padding:8px 12px;background:var(--accent-soft);color:var(--accent);border-radius:8px;font-size:12px}.annualHeaderLine{flex-wrap:wrap}.annualMain{min-width:0}.annualCourseAdjust{flex-wrap:wrap}.annualMeta{flex-wrap:wrap}.inlineCompSelect{max-width:100%;min-width:0;min-height:44px}.annualSportSelect{max-width:100%}.annualPdaObjective select,.annualPdaObjective input{max-width:100%;width:100%;min-width:0;min-height:44px;padding:8px;border:1px solid var(--line);border-radius:var(--radius-small);background:var(--card);font:inherit}.seqOverviewFoot{flex-wrap:wrap;gap:12px}.seqOverviewFoot button{min-height:44px}

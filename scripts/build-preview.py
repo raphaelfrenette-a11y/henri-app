@@ -11,7 +11,7 @@ import sys
 
 SOURCE = Path(__file__).resolve().parents[1]
 FILES = ['index.html', 'henri-v560.html', 'henri-design.css', 'henri-layout.css',
-         'henri-ux.js', 'henri-visuals.js', 'henri-import.js', 'henri-calendar-links.js',
+         'henri-ux.js', 'henri-visuals.js', 'henri-pedagogy.js', 'henri-planning.js', 'henri-import.js', 'henri-calendar-links.js',
          'henri-bank-v1.js', 'henri-icon.svg', 'henri-illustrations.svg']
 
 def build(destination):

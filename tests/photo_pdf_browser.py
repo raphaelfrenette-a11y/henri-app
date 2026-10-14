@@ -85,9 +85,13 @@ try{const result=await worker.recognize(process.argv[4]);process.stdout.write(JS
         page.wait_for_function("groupSheetsState.textContent.includes('importé')", timeout=120000)
         assert page.evaluate('groupsData.length===1 && groupsData[0].students.length===8')
         assert page.evaluate('groupsData[0].id') == original_id
+        page.evaluate('openHenriBank()')
+        page.locator('.henriBankPdfImport input').set_input_files(str(tmp / 'horaire.pdf'))
+        page.wait_for_function("(async()=> (await henriBankAll()).some(item=>item.type==='pdf'&&item.sourceText.includes('Jour 1')&&item.sourceText.includes('Jour 2')))()",timeout=60000)
+        assert page.evaluate("!henriBankClone({startCourseKey:'2026-11-23|P1',courseKey:'2026-11-23|P1'}).startCourseKey")
         assert not errors, errors
         assert not dialogs, dialogs
-        print('PASS real photo preprocessing/OCR, multi-page text PDF, scanned PDF OCR, stable group identity and timetable associations.')
+        print('PASS real photo preprocessing/OCR, multi-page text PDF, scanned PDF OCR, stable group identity, timetable associations, PDF bank text and detached reuse.')
         browser.close()
 finally:
     server.shutdown()
