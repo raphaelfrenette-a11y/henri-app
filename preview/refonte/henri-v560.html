@@ -1935,12 +1935,13 @@ function openGroup(id){
 function renderStudents(){
   const g=groupsData.find(x=>x.id===activeGroupId);
   if(!g||!studentList) return;
+  const expanded=new Set([...studentList.querySelectorAll('.studentCard.open')].map(el=>el.id));
   studentList.innerHTML=g.students.map((s,idx)=>{
     const others=g.students.filter(x=>x.id!==s.id);
     const options='<option value="">Ajouter…</option>'+others.map(o=>'<option value="'+o.id+'">'+o.name+'</option>').join('');
     const comp=s.compatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag" onclick="removeRelation(\''+s.id+'\',\'compatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
     const incomp=s.incompatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag bad" onclick="removeRelation(\''+s.id+'\',\'incompatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
-    return '<div class="studentCard" id="student-'+idx+'">'+
+    return '<div class="studentCard'+(expanded.has('student-'+idx)?' open':'')+'" id="student-'+idx+'">'+
       '<button class="studentHead" onclick="toggleStudent('+idx+')"><span><span class="studentName">'+s.name+'</span><span class="studentMeta">Habileté '+s.skill+'/5'+(s.leader?' · Leader':'')+'</span></span><span class="groupArrow">›</span></button>'+
       '<div class="studentDetails">'+
         '<div class="detailRow"><div class="detailLabel"><span>Habiletés sportives</span><span>'+s.skill+'/5</span></div><div class="rating">'+[1,2,3,4,5].map(n=>'<button class="'+(s.skill===n?'on':'')+'" onclick="setSkill(\''+s.id+'\','+n+')">'+n+'</button>').join('')+'</div></div>'+
