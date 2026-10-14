@@ -47,7 +47,7 @@ function henriBankPut(item){return henriBankTransaction('readwrite',s=>s.put(ite
 function henriBankClone(sequence){
   const copy=JSON.parse(JSON.stringify(sequence||{}));
   delete copy.groupId;delete copy.groupName;delete copy.annualBlockId;delete copy.bankId;
-  delete copy.date;delete copy.startDate;delete copy.endDate;
+  delete copy.date;delete copy.startDate;delete copy.endDate;delete copy.startCourseKey;delete copy.courseKey;
   return copy;
 }
 async function henriBankStoreSequence(sequence,mode){
@@ -172,6 +172,8 @@ async function henriBankUse(id){
   if(henriBankUseContext==='annual'){
     const block=(annualPlans[selectedAnnualGroupId]||[]).find(x=>x.id===selectedAnnualBlockId);
     if(!block){alert('Sélectionne d’abord une séquence dans la planification annuelle.');return;}
+    const previous=activeSequence?.groupId===selectedAnnualGroupId&&activeSequence.annualBlockId===block.id?activeSequence:getSavedSequence(selectedAnnualGroupId,block.id);
+    if(previous){if(!confirm('Remplacer les contenus de ce bloc par une copie de la banque ? Une copie des contenus actuels sera conservée.'))return;await archivePlanningSequence(previous);}
     if(sequence.sport&&block.sport!==sequence.sport&&!confirm('La séquence de la banque concerne '+sequence.sport+' plutôt que '+block.sport+'. Remplacer le sport dans le bloc annuel?'))return;
     if(!sequence.sport)sequence.sport=block.sport;
     if(!sequence.sessions.length)return;
@@ -200,7 +202,12 @@ async function henriBankApplyAnnual(id){
   if(!item||!item.annual?.length)return;
   const groupId=document.getElementById('annualGroup')?.value||groupsData[0]?.id;
   if(!groupId){alert('Importe tes groupes de la nouvelle année, puis réutilise cette planification.');return;}
-  if((annualPlans[groupId]||[]).length&&!confirm('Remplacer la planification annuelle du groupe par une copie de celle de la banque? Elle reste conservée dans la banque.'))return;
+  if((annualPlans[groupId]||[]).length){
+    if(!confirm('Remplacer la répartition actuelle par celle de la banque ? Une copie des anciens blocs et séquences sera conservée.'))return;
+    await henriBankStoreAnnual(groupId,annualPlans[groupId]);
+    for(const block of annualPlans[groupId]){const old=getSavedSequence(groupId,block.id);if(old)await archivePlanningSequence(old);}
+    localStorage.removeItem('previewHenriSlate:henriAnnualBankId:'+groupId);
+  }
   const rows=item.annual.map(x=>{
     const block=JSON.parse(JSON.stringify(x.block));
     block.id=henriBankNewId('a');
@@ -217,7 +224,7 @@ async function henriBankApplyAnnual(id){
   });
   saveAnnual();rebuildPlanningAssignments();
   fillPlanGroupSelects();annualGroup.value=groupId;
-  renderAnnualPlanner();go('annualPlanner');
+  renderAnnualPlanner();setAnnualWorkspaceVisible(true);go('annualPlanner');
 }
 async function henriBankPdfOpen(id){
   const item=await henriBankGet(id);
@@ -240,7 +247,7 @@ async function henriBankImportPdf(input){
       const out=await readSetupFile(file);
       await henriBankPut({id:henriBankNewId('pdf'),type:'pdf',title:file.name.replace(/\.pdf$/i,''),
         sport:'',comp:'',count:0,mode:'Document original',year:henriBankYear(),
-        createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),sourceText:out.text||'',
+        createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),sourceText:(out.pages||[out]).map(page=>page.text||'').join('\n'),
         pdf:new Blob([file],{type:'application/pdf'}),pdfName:file.name});
     }catch(e){henriBankWarn(e);}
   }

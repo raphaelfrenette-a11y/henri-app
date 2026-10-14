@@ -10,7 +10,7 @@ window.HenriVisuals = {
     return 'lesson';
   },
   icon(symbol) {
-    return '<svg class="activityIcon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=8d427662#' + symbol + '"></use></svg>';
+    return '<svg class="activityIcon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=b45a8615#' + symbol + '"></use></svg>';
   },
   courseState(entry) {
     if (entry.kind === 'cognitive') return 'cognitiveCourse';

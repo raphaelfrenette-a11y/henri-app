@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Henri · Prévisualisation</title>
 <meta name="theme-color" content="#f7f8fa">
-<link rel="icon" href="henri-icon.svg?v=8d427662" type="image/svg+xml">
-<link rel="stylesheet" href="henri-layout.css?v=8d427662">
-<link rel="stylesheet" href="henri-design.css?v=8d427662">
+<link rel="icon" href="henri-icon.svg?v=b45a8615" type="image/svg+xml">
+<link rel="stylesheet" href="henri-layout.css?v=b45a8615">
+<link rel="stylesheet" href="henri-design.css?v=b45a8615">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
@@ -16,15 +16,16 @@
 <header class="top"><div class="topin"><button class="brandHome" onclick="goHome()" aria-label="Henri, retour au calendrier"><span class="brandMark" aria-hidden="true">h</span><span><span class="brand">Henri</span><span class="brandCaption">Éducation physique</span></span></button><button id="settingsButton" class="pill" onclick="go('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 3 2 2v3l3 2 1 3h5l1-3 3-2v-3l2-2-2-3-3-1-1-3Z"/></svg><span>Paramètres</span></button></div></header>
 <a class="skipLink" href="#mainContent">Aller au contenu</a>
 <main id="mainContent" tabindex="-1"><div class="previewNotice" role="note"><strong>Prévisualisation de la refonte</strong><span>Les données de test sont séparées du site habituel.</span><a href="../../" target="_blank" rel="noopener">Ouvrir le site actuel ↗</a></div>
+<div id="henriActionStatus" class="actionStatus" role="status" aria-live="polite" hidden></div>
 <section id="home" class="screen active">
   <div class="screenHeading"><div><p class="screenKicker">Mon horaire</p><h1>Calendrier</h1></div><span id="todayStamp" class="todayStamp"></span></div>
-  <div id="homeEmpty" class="homeEmpty"><svg class="homeEmptyIllustration" viewBox="0 0 160 110" aria-hidden="true" focusable="false"><use href="henri-illustrations.svg?v=8d427662#start"></use></svg><div><h2>Une année bien en mouvement.</h2><p>Ton horaire, tes groupes et le calendrier scolaire : tout commence avec tes trois documents.</p></div><button class="planPrimary" onclick="go('settings')">Ajouter mes documents</button></div>
+  <div id="homeEmpty" class="homeEmpty"><svg class="homeEmptyIllustration" viewBox="0 0 160 110" aria-hidden="true" focusable="false"><use href="henri-illustrations.svg?v=b45a8615#start"></use></svg><div><h2>Une année bien en mouvement.</h2><p>Ton horaire, tes groupes et le calendrier scolaire : tout commence avec tes trois documents.</p></div><button class="planPrimary" onclick="go('settings')">Ajouter mes documents</button></div>
 
   <div id="nextCourse" class="nextCourse" hidden>
     <div class="nextCourseContext"><span id="nextCourseEyebrow" class="screenKicker">Prochain cours</span><span id="nextCourseWhen"></span></div>
-    <div class="nextCourseMain"><div class="nextCourseIllustration" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use id="nextCourseSymbol" href="henri-illustrations.svg?v=8d427662#lesson"></use></svg><svg class="motionTrail" viewBox="0 0 100 30" focusable="false"><path d="M4 22c18-25 32 12 50-5S76 4 96 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 6"/></svg></div><div class="nextCourseInfo"><h2 id="nextCourseGroup"></h2><p id="nextCoursePlan"></p></div><button id="nextCourseOpen" class="itemBtn primary">Ouvrir le cours <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
+    <div class="nextCourseMain"><div class="nextCourseIllustration" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use id="nextCourseSymbol" href="henri-illustrations.svg?v=b45a8615#lesson"></use></svg><svg class="motionTrail" viewBox="0 0 100 30" focusable="false"><path d="M4 22c18-25 32 12 50-5S76 4 96 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 6"/></svg></div><div class="nextCourseInfo"><h2 id="nextCourseGroup"></h2><p id="nextCoursePlan"></p></div><button id="nextCourseOpen" class="itemBtn primary">Ouvrir le cours <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
   </div>
-  <div class="homeActions" aria-label="Accès rapides"><button class="itemBtn" onclick="openQuickSession()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=8d427662#lesson"></use></svg>Préparer une séance</button><button class="itemBtn" onclick="openAnnualPlanner()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=8d427662#calendar"></use></svg>Planification annuelle</button><button class="itemBtn" onclick="openTeamBuilder()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=8d427662#groups"></use></svg>Former des équipes</button></div>
+  <div class="homeActions" aria-label="Accès rapides"><button class="itemBtn" onclick="openQuickSession()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=b45a8615#lesson"></use></svg>Préparer une séance</button><button class="itemBtn" onclick="openAnnualPlanner()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=b45a8615#calendar"></use></svg>Planification annuelle</button><button class="itemBtn" onclick="openTeamBuilder()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=b45a8615#groups"></use></svg>Former des équipes</button></div>
   <div class="calendarPanel">
     <div class="sectionHead">
       <h2 id="calendarSectionTitle">Cette semaine</h2>
@@ -101,15 +102,17 @@
   <h1>Planification annuelle</h1>
   <p class="planIntro">Répartis les séquences sur les cours disponibles. Les dates suivent ton calendrier.</p>
   <div class="planForm">
-    <div class="planField"><label>Groupe</label><select id="annualGroup" class="planControl" onchange="annualSequenceCount.dataset.manual='0';renderAnnualPlanner()"></select></div>
+    <div class="planField"><label>Groupe affiché</label><select id="annualGroup" class="planControl" onchange="annualGroupChanged()"></select></div>
   </div>
+  <details class="annualBulk"><summary id="annualTargetSummary">Appliquer une nouvelle répartition à plusieurs groupes</summary><p class="planHint">La nouvelle répartition sera calculée pour chaque groupe sélectionné. Le menu ci-dessus sert à afficher et modifier un groupe à la fois.</p><div class="itemActions"><button class="itemBtn" onclick="selectAllAnnualGroups()">Tous les groupes avec des périodes</button><button class="itemBtn" onclick="selectSingleAnnualGroup()">Seulement le groupe affiché</button></div><div id="annualTargetGroups" class="annualTargetGroups"></div></details>
+  <p id="annualAvailability" class="planHint" role="status"></p>
   <div class="annualModeChoices">
     <button id="annualHenriModeBtn" class="annualModeCard primary" onclick="organizeAnnualWithHenri()">
       <span class="annualModeIcon">H</span>
-      <span><strong>Utiliser la recommandation Henri</strong><small>Recommandation pédagogique alignée sur le PFEQ et la Progression des apprentissages (PDA).</small></span>
+      <span><strong>Utiliser la recommandation Henri</strong><small>Proposition modifiable : priorité à C2 au secondaire, une part de C3 et au plus une séquence C1.</small></span>
       <span class="groupArrow">›</span>
     </button>
-    <button class="annualModeCard" onclick="toggleAnnualManualSetup()">
+    <button id="annualManualModeBtn" class="annualModeCard" onclick="toggleAnnualManualSetup()">
       <span class="annualModeIcon">M</span>
       <span><strong>Choisir ma répartition</strong><small>Définir les séquences et leur durée.</small></span>
       <span class="groupArrow">›</span>
@@ -122,8 +125,8 @@
       <h2>Préparer mon année</h2>
       <p class="annualSetupText" id="annualSetupText">Henri reconnaît le niveau de ton groupe. Choisis le nombre de séquences et leur durée pour commencer.</p>
       <div class="annualSetupGrid">
-        <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="20" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
-        <div class="planField"><label>Nombre de cours cible par séquence</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
+        <div class="planField"><label>Nombre de séquences souhaité</label><input id="annualSequenceCount" class="planControl" type="number" min="1" max="500" value="1" oninput="this.dataset.manual='1';updateAnnualRecommendation(false)"></div>
+        <div class="planField"><label>Durée cible · ajustée pour couvrir l’année</label><select id="annualTargetLength" class="planControl" onchange="updateAnnualRecommendation(true)"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
       </div>
       <div id="annualRecommendation" class="annualRecommendation" style="display:none"></div>
       <div id="annualDataWarning"></div>
@@ -133,12 +136,14 @@
       </div>
     </div>
   </div>
+  <details class="planningReferences"><summary>Profil Henri et références pédagogiques</summary><p>Les trois compétences du programme restent à travailler et à évaluer. La répartition proposée est un choix pédagogique Henri; elle ne représente pas des pourcentages gouvernementaux.</p><a href="https://cdn-contenu.quebec.ca/cdn-contenu/education/pfeq/secondaire/progressions-apprentissages/PFEQ-progression-apprentissages-education-physique-secondaire.pdf" target="_blank" rel="noopener">Progression des apprentissages · EPS au secondaire</a><p>Les activités Henri sont des propositions de départ à adapter au groupe, au matériel et au programme, et non des citations du document officiel.</p></details>
   <div id="annualWorkspace" class="annualWorkspace">
   <div class="planStats">
-    <div class="planStat"><small id="annualPossibleLabel">Cours possibles</small><strong id="annualPossible">0</strong></div>
-    <div class="planStat"><small>Planifiés</small><strong id="annualPlanned">0</strong></div>
-    <div class="planStat"><small>Restants</small><strong id="annualRemaining">0</strong></div>
+    <div class="planStat"><small id="annualPossibleLabel">Périodes disponibles</small><strong id="annualPossible">0</strong></div>
+    <div class="planStat"><small>Périodes planifiées</small><strong id="annualPlanned">0</strong></div>
+    <div class="planStat"><small>Périodes restantes</small><strong id="annualRemaining">0</strong></div>
   </div>
+  <div id="annualCompetenceSummary" class="annualCompetenceSummary" role="status"></div>
   <div class="annualOverview">
     <div class="annualOverviewTop"><strong id="annualCoverageText">Année synchronisée</strong><button class="annualOverviewBtn" onclick="openAnnualCalendar()">Voir le calendrier</button></div>
     <div class="annualProgressTrack"><span id="annualProgressFill" class="annualProgressFill"></span></div>
@@ -150,11 +155,12 @@
     <button class="planPrimary" onclick="saveAnnualAndPlanSequences()">Enregistrer ma planification annuelle</button>
     <p class="planHint">Les séquences seront automatiquement créées dans Planifier une séquence avec leur groupe, compétence, moyen d’action, nombre de cours et dates.</p>
   </div>
+  <button class="itemBtn" onclick="fillAnnualRemaining()">Compléter les périodes restantes</button>
   <div id="annualAddForm" class="planForm" style="margin-top:12px;display:none">
     <div class="planGrid">
       <div class="planField"><label>Compétence</label><select id="annualComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
       <div class="planField"><label>Sport / moyen d’action</label><select id="annualSport" class="planControl"><option>À choisir</option><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Course</option><option>Flag football</option><option>Musculation</option><option>Ultimate</option><option>Volleyball</option></select></div>
-      <div class="planField"><label>Nombre de cours</label><input id="annualCourses" class="planControl" type="number" min="1" max="12" value="4"></div>
+      <div class="planField"><label>Périodes dans ce bloc</label><input id="annualCourses" class="planControl" type="number" min="1" max="500" value="4"></div>
     </div>
     <button class="planPrimary" onclick="addAnnualBlock()">Ajouter à l’année</button>
     <p class="planHint">Exemple : s’il reste 4 cours possibles, Henri te le montre immédiatement pour t’aider à terminer l’année avec une séquence de 4 cours.</p>
@@ -165,20 +171,22 @@
 <section id="sequenceSetup" class="screen">
   <button class="back" onclick="go('plan')">‹ Retour à Planifier</button>
   <h1>Séquences</h1>
-  <p class="planIntro">Les sports viennent directement de ta planification annuelle. Choisis le bloc que tu veux maintenant détailler.</p>
+  <p class="planIntro">Les blocs viennent directement de ta planification annuelle. Choisis un bloc, puis son sport et ta méthode de préparation.</p>
   <div class="planForm">
     <div class="planField"><label>Groupe</label><select id="seqGroup" class="planControl" onchange="renderMacroSequences()"></select></div>
   </div>
+  <button class="itemBtn" onclick="openStandaloneSequence()">Créer une séquence indépendante</button>
   <div id="macroSequenceList" class="macroSeqList"></div>
 </section>
 
 <section id="sequenceChoice" class="screen">
-  <button class="back" onclick="go('sequenceSetup')">‹ Retour aux séquences</button>
+  <button class="back" onclick="returnFromSequenceChoice()">‹ Retour aux séquences</button>
   <div id="sequenceChoiceHero" class="choiceHero"></div>
+  <div class="planForm"><div class="planGrid"><div class="planField"><label for="macroSport">Sport / moyen d’action</label><select id="macroSport" class="planControl" onchange="macroCustomSport.hidden=this.value!=='__other__'"></select><input id="macroCustomSport" class="planControl" placeholder="Nom du sport" aria-label="Autre sport" hidden></div><div class="planField"><label for="macroCount">Nombre de séances</label><input id="macroCount" class="planControl" type="number" min="1" max="500"></div><div class="planField"><label for="macroDuration">Durée d’une séance</label><select id="macroDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div></div></div>
   <div id="existingSequenceAction"></div>
   <div class="choiceCards">
-    <button class="choiceCard" onclick="createSequenceFromMacro(false)"><span class="choiceIcon">M</span><span><strong>Construire ma séquence</strong><small>Henri crée les cours et leur structure de base selon la compétence. Tu remplis et modifies ensuite chaque bloc librement.</small></span><span class="groupArrow">›</span></button>
-    <button class="choiceCard" onclick="createSequenceFromMacro(true)"><span class="choiceIcon">H</span><span><strong>Utiliser la planification Henri</strong><small>Henri propose une progression complète adaptée au sport et au nombre de cours. Tout demeure modifiable.</small></span><span class="groupArrow">›</span></button><button class="choiceCard" onclick="openHenriBankForSequence()"><span class="choiceIcon">▣</span><span><strong>Choisir dans ma banque</strong><small>Réutiliser une séquence existante sans modifier l’original.</small></span><span class="groupArrow">›</span></button>
+    <button class="choiceCard" onclick="createSequenceFromMacro(false)"><span class="choiceIcon">M</span><span><strong>Créer ma propre planification</strong><small>Un gabarit vierge : échauffement, deux éducatifs et situation de partie, à remplir librement.</small></span><span class="groupArrow">›</span></button>
+    <button class="choiceCard" onclick="createSequenceFromMacro(true)"><span class="choiceIcon">H</span><span><strong>Utiliser Henri</strong><small>Henri propose une progression complète adaptée au sport et au nombre de cours. Tout demeure modifiable.</small></span><span class="groupArrow">›</span></button><button class="choiceCard" onclick="openHenriBankForSequence()"><span class="choiceIcon">▣</span><span><strong>Choisir dans ma banque</strong><small>Réutiliser une séquence existante sans modifier l’original.</small></span><span class="groupArrow">›</span></button>
   </div>
 </section>
 
@@ -191,11 +199,11 @@
       <div class="planField"><label>Compétence</label><select id="seqComp" class="planControl"><option value="C1">C1 · Agir</option><option value="C2" selected>C2 · Interagir</option><option value="C3">C3 · Mode de vie sain et actif</option></select></div>
       <div class="planField"><label>Sport</label><select id="seqSport" class="planControl"><option>Badminton</option><option>Basketball</option><option>Conditionnement physique</option><option>Dodgeball</option><option>Flag football</option><option>Futsal</option><option>Handball</option><option>Jeux de coopération</option><option>Judo</option><option>Kin-Ball</option><option>Lutte</option><option>Pickleball</option><option>Soccer</option><option>Tennis</option><option>Tennis de table</option><option>Ultimate</option><option>Volleyball</option></select></div>
       <div class="planField"><label>Groupe / niveau</label><select id="standaloneSeqGroup" class="planControl"></select></div>
-      <div class="planField"><label>Nombre de cours</label><select id="seqCount" class="planControl"><option>3</option><option selected>5</option><option>4</option><option>6</option><option>7</option></select></div>
+      <div class="planField"><label>Nombre de séances</label><input id="seqCount" class="planControl" type="number" min="1" max="500" value="5"></div>
       <div class="planField"><label>Durée habituelle</label><select id="seqDuration" class="planControl"><option>60 min</option><option selected>70 min</option><option>75 min</option></select></div>
     </div>
-    <button class="planPrimary" onclick="createSequenceFromTemplate()">Utiliser le gabarit par défaut</button>
-    <button class="planSecondary" onclick="generateSequenceDemo()">Utiliser la planification Henri</button>
+    <button class="planPrimary" onclick="createSequenceFromTemplate()">Créer ma propre planification</button>
+    <button class="planSecondary" onclick="generateSequenceDemo()">Utiliser Henri</button>
     <button class="planSecondary" onclick="openHenriBankForStandalone()">Choisir dans ma banque</button>
   </div>
 </section>
@@ -464,9 +472,11 @@
 </nav>
 </div>
 
-<script src="henri-visuals.js?v=8d427662"></script>
-<script src="henri-import.js?v=8d427662"></script>
-<script src="henri-calendar-links.js?v=8d427662"></script>
+<script src="henri-visuals.js?v=b45a8615"></script>
+<script src="henri-pedagogy.js?v=b45a8615"></script>
+<script src="henri-planning.js?v=b45a8615"></script>
+<script src="henri-import.js?v=b45a8615"></script>
+<script src="henri-calendar-links.js?v=b45a8615"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -561,13 +571,13 @@ function renderWeek(){
         out+='<button class="weekEvent '+HenriVisuals.courseState(entry)+'" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
           '<span class="time">'+entry.time+'</span>'+
           '<span class="groupBar" aria-hidden="true"></span>'+
-          '<span class="course">'+entry.group+'</span>'+
+          '<span class="course">'+planningHtml(entry.group)+'</span>'+
           '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+
         '</button>';
       });
     }
     blocked.forEach(({entry,exception})=>{
-      out+='<button class="weekEvent blockedCourse" style="--groupColor:#9a654b" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+entry.group+'</span><span class="quickSport">'+HenriVisuals.icon('pause')+exception.type+'</span></button>';
+      out+='<button class="weekEvent blockedCourse" style="--groupColor:#9a654b" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+planningHtml(entry.group)+'</span><span class="quickSport">'+HenriVisuals.icon('pause')+exception.type+'</span></button>';
     });
     if(!entries.length&&!blocked.length){
       out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':/^Jour [xyz]$/.test(cycle||'')?'Jour-cycle à préciser · '+cycle:'Aucun cours prévu')+'</div>';
@@ -697,7 +707,8 @@ let activeSequence=JSON.parse(localStorage.getItem('previewHenriSlate:henriActiv
 let savedSequences=JSON.parse(localStorage.getItem('previewHenriSlate:henriSequences')||'{}');
 function sequenceStorageKey(groupId,blockId){return groupId+'::'+blockId}
 function getSavedSequence(groupId,blockId){
-  return savedSequences[sequenceStorageKey(groupId,blockId)]||savedSequences[blockId]||null;
+  const saved=savedSequences[sequenceStorageKey(groupId,blockId)]||savedSequences[blockId];
+  return saved&&(!saved.groupId||saved.groupId===groupId)?saved:null;
 }
 function setSavedSequence(groupId,blockId,sequence){
   savedSequences[sequenceStorageKey(groupId,blockId)]=JSON.parse(JSON.stringify(sequence));
@@ -878,44 +889,8 @@ function fillPlanGroupSelects(){
     if(groupsData.some(group=>group.id===previous))select.value=previous;
   });
 }
-function openAnnualPlanner(){
-  fillPlanGroupSelects();
-  if(annualManualWrap) annualManualWrap.classList.remove('show');
-  setAnnualWorkspaceVisible(false);
-  go('annualPlanner');
-  updateAnnualRecommendation(false);
-}
 function setAnnualWorkspaceVisible(show){
   if(annualWorkspace) annualWorkspace.classList.toggle('show',!!show);
-}
-function toggleAnnualManualSetup(force){
-  if(!annualManualWrap)return;
-  const show=typeof force==='boolean'?force:!annualManualWrap.classList.contains('show');
-  annualManualWrap.classList.toggle('show',show);
-  setAnnualWorkspaceVisible(false);
-  if(show){
-    annualSequenceCount.dataset.manual='0';
-    updateAnnualRecommendation(false);
-    annualManualWrap.scrollIntoView({behavior:'smooth',block:'start'});
-  }
-}
-function organizeAnnualWithHenri(){
-  if(!annualGroup)return;
-  const groupId=annualGroup.value||groupsData[0]?.id;
-  if(!groupId)return;
-  const coverage=getAnnualCoverageStatus(groupId);
-  if(!coverage.complete){
-    toggleAnnualManualSetup(true);
-    updateAnnualRecommendation(false);
-    return;
-  }
-  const rec=getAnnualRecommendation(groupId,5);
-  annualTargetLength.value=5;
-  annualSequenceCount.value=rec.recommended;
-  annualSequenceCount.dataset.manual='0';
-  useAnnualRecommendation();
-  if(annualManualWrap) annualManualWrap.classList.remove('show');
-  setAnnualWorkspaceVisible(true);
 }
 function getGroupCourseDates(groupId){return getGroupCourseOccurrences(groupId).map(slot=>slot.date);}
 
@@ -946,16 +921,6 @@ function getAnnualRanges(groupId,blocks){
 }
 function ensureAnnualPlan(groupId){
   if(!Array.isArray(annualPlans[groupId])) annualPlans[groupId]=[];
-}
-function getAnnualCoverageStatus(groupId){
-  const courseDates=getGroupCourseDates(groupId);
-  const calendarDates=Object.keys(schoolDays||{}).sort();
-  const first=calendarDates[0]||courseDates[0]||null;
-  const last=calendarDates[calendarDates.length-1]||courseDates[courseDates.length-1]||null;
-  let spanDays=0;
-  if(first&&last) spanDays=Math.round((new Date(last+'T12:00:00')-new Date(first+'T12:00:00'))/86400000);
-  const complete=courseDates.length>=10&&spanDays>=180;
-  return {complete,courseDates,first,last,spanDays};
 }
 function inferGroupSchoolLevel(groupId){
   const group=groupsData.find(g=>g.id===groupId);
@@ -1015,113 +980,6 @@ function buildCompetenceOrder(counts){
     ...Array(counts.C3).fill('C3')
   ];
 }
-function getAnnualRecommendation(groupId,targetLength){
-  const coverage=getAnnualCoverageStatus(groupId);
-  const possible=getGroupCourseSlots(groupId);
-  const target=Math.max(1,Number(targetLength)||5);
-  const recommended=Math.max(1,Math.round(possible/target)||1);
-  const profile=getHenriCompetenceProfile(groupId);
-  const competenceCounts=allocateCompetenceCounts(recommended,profile.weights);
-  return {possible,target,recommended,coverage,profile,competenceCounts};
-}
-function distributeAnnualCourses(total,count){
-  count=Math.max(1,Number(count)||1);
-  total=Math.max(0,Number(total)||0);
-  const base=Math.floor(total/count);
-  const extra=total%count;
-  return Array.from({length:count},(_,i)=>Math.max(1,base+(i<extra?1:0)));
-}
-function updateAnnualRecommendation(forceCount=false){
-  if(!annualGroup||!annualTargetLength||!annualSequenceCount||!annualRecommendation)return;
-  const groupId=annualGroup.value||groupsData[0]?.id;
-  if(!groupId)return;
-  const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
-  const coverage=rec.coverage;
-  const loaded=rec.possible;
-  if(!coverage.complete){
-    annualPossible.textContent=loaded;
-    if(annualPossibleLabel) annualPossibleLabel.textContent='Périodes chargées';
-    annualSetupText.textContent='Les données chargées ne couvrent pas encore une année scolaire complète pour ce groupe.';
-    const range=coverage.first&&coverage.last?(formatPlanDate(coverage.first)+' au '+formatPlanDate(coverage.last)):'aucune plage annuelle complète';
-    annualRecommendation.classList.add('warning');
-    annualRecommendation.innerHTML='<strong>Calendrier annuel incomplet</strong><span>Henri voit actuellement '+loaded+' période'+(loaded>1?'s':'')+' pour ce groupe ('+range+'). Il ne fera pas de recommandation annuelle à partir de données partielles.</span>';
-    if(annualDataWarning) annualDataWarning.innerHTML='<div class="annualDataWarning"><span class="annualDataWarningDot"></span><span>Complète le calendrier scolaire et l’horaire maître dans Paramètres. Dès que l’année complète est chargée, Henri calculera automatiquement le nombre de séquences recommandé.</span></div>';
-    if(annualSuggestBtn){annualSuggestBtn.disabled=true;annualSuggestBtn.style.display='none'}
-    if(annualBuildBtn){
-      annualBuildBtn.disabled=false;
-      annualBuildBtn.textContent='Compléter dans Paramètres';
-      annualBuildBtn.onclick=()=>go('settings');
-    }
-    return;
-  }
-  annualRecommendation.classList.remove('warning');
-  if(annualDataWarning) annualDataWarning.innerHTML='';
-  if(annualPossibleLabel) annualPossibleLabel.textContent='Cours possibles';
-  if(annualSuggestBtn){annualSuggestBtn.disabled=false;annualSuggestBtn.style.display='none';annualSuggestBtn.onclick=useAnnualRecommendation}
-  if(annualBuildBtn){annualBuildBtn.disabled=false;annualBuildBtn.onclick=()=>applyAnnualStructure(false)}
-  if(forceCount||annualSequenceCount.dataset.manual!=='1') annualSequenceCount.value=rec.recommended;
-  const requested=Math.max(1,Number(annualSequenceCount.value)||rec.recommended);
-  const chosen=Math.min(requested,Math.max(1,rec.possible));
-  if(requested!==chosen) annualSequenceCount.value=chosen;
-  const distribution=distributeAnnualCourses(rec.possible,chosen);
-  const avg=chosen?(rec.possible/chosen):0;
-  const chosenCounts=allocateCompetenceCounts(chosen,rec.profile.weights);
-  const note=rec.profile.level.type==='preschool'
-    ? '<span class="annualRecNote">Au préscolaire, C1/C2/C3 servent ici de repères Henri pour structurer les activités motrices; ce ne sont pas les compétences officielles du programme-cycle.</span>'
-    : '<span class="annualRecNote">Répartition pédagogique Henri alignée au PFEQ/PDA. Le Ministère ne fixe pas un nombre officiel de séquences par compétence.</span>';
-  annualSetupText.textContent='Ce groupe a '+rec.possible+' période'+(rec.possible>1?'s':'')+' disponible'+(rec.possible>1?'s':'')+' dans l’année. Henri propose une structure adaptée à '+rec.profile.level.label+'.';
-  annualRecommendation.innerHTML='<strong>Recommandation Henri · '+rec.profile.level.label+' · '+rec.recommended+' séquence'+(rec.recommended>1?'s':'')+'</strong>'+
-    '<span>Durée cible : environ '+rec.target+' cours. Avec '+chosen+' séquence'+(chosen>1?'s':'')+', les '+rec.possible+' périodes sont utilisées (moyenne '+avg.toFixed(1).replace('.',',')+').</span>'+
-    '<span class="annualRecBreakdown"><span class="annualRecChip">C1 · '+chosenCounts.C1+'</span><span class="annualRecChip">C2 · '+chosenCounts.C2+'</span><span class="annualRecChip">C3 · '+chosenCounts.C3+'</span></span>'+note;
-  if(annualBuildBtn){
-    annualBuildBtn.textContent='Organiser mes séquences';
-  }
-}
-function useAnnualRecommendation(){
-  if(!annualGroup)return;
-  const rec=getAnnualRecommendation(annualGroup.value,annualTargetLength.value);
-  if(!rec.coverage.complete)return;
-  annualSequenceCount.value=rec.recommended;
-  annualSequenceCount.dataset.manual='0';
-  applyAnnualStructure(true);
-}
-function applyAnnualStructure(useRecommended=false){
-  const groupId=annualGroup?.value;
-  if(!groupId)return;
-  const existingBlocks=annualPlans[groupId]||[];
-  if(existingBlocks.length){
-    const requested=useRecommended?'la recommandation Henri':Math.max(1,Number(annualSequenceCount.value)||1)+' séquence'+(Number(annualSequenceCount.value)>1?'s':'');
-    const ok=confirm('Recréer la planification annuelle avec '+requested+' ?\n\nLes blocs actuels de ce groupe seront remplacés.');
-    if(!ok)return;
-  }
-  ensureAnnualPlan(groupId);
-  const coverage=getAnnualCoverageStatus(groupId);
-  if(!coverage.complete){go('settings');return}
-  const possible=getGroupCourseSlots(groupId);
-  if(possible<=0){alert('Aucune période disponible pour ce groupe. Vérifie d’abord l’horaire et le calendrier scolaire.');return}
-  const rec=getAnnualRecommendation(groupId,annualTargetLength.value);
-  const count=Math.min(possible,Math.max(1,useRecommended?rec.recommended:(Number(annualSequenceCount.value)||1)));
-  annualSequenceCount.value=count;
-  const distribution=distributeAnnualCourses(possible,count);
-  const profile=getHenriCompetenceProfile(groupId);
-  const counts=allocateCompetenceCounts(count,profile.weights);
-  const competenceOrder=useRecommended?buildCompetenceOrder(counts):Array(count).fill('C2');
-  annualPlans[groupId]=distribution.map((courses,i)=>({
-    id:'a'+Date.now()+'-'+i,
-    comp:competenceOrder[i]||'C2',
-    sport:'À choisir',
-    courses,
-    lockedCourses:false,
-    henriRecommended:useRecommended
-  }));
-  delete scheduleConflictIgnores[groupId];
-  saveConflictIgnores();
-  saveAnnual();
-  rebuildPlanningAssignments();
-  if(annualManualWrap) annualManualWrap.classList.remove('show');
-  setAnnualWorkspaceVisible(true);
-  renderAnnualPlanner();
-}
 function getAnnualSportOptions(comp){
   const suggestions={
     C1:['Athlétisme','Badminton','Course','Gymnastique','Natation','Patinage'],
@@ -1171,23 +1029,12 @@ function updateAnnualObjectiveForSportOrComp(block,previous){
   if(!block.objective||getObjectiveSuggestions(previous.sport,previous.comp).includes(block.objective))
     block.objective=getObjectiveSuggestions(block.sport,block.comp)[0]||'';
 }
-function setAnnualBlockComp(id,value){
-  const groupId=annualGroup.value;
-  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
-  if(!block||!['C1','C2','C3'].includes(value))return;
-  const previous={sport:block.sport,comp:block.comp};
-  block.comp=value;
-  updateAnnualObjectiveForSportOrComp(block,previous);
-  saveAnnual();
-  rebuildPlanningAssignments();
-  renderAnnualPlanner();
-}
 function editAnnualCompInline(id){
   const el=document.getElementById('annual-comp-'+id);
   const groupId=annualGroup.value;
   const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
   if(!el||!block)return;
-  el.outerHTML='<select id="annual-comp-'+id+'" class="inlineCompSelect" onchange="setAnnualBlockComp(\''+id+'\',this.value)" onblur="renderAnnualPlanner()">'+
+  el.outerHTML='<select id="annual-comp-'+id+'" class="inlineCompSelect" onchange="setAnnualBlockComp(\''+id+'\',this.value)" onkeydown="if(event.key===&quot;Escape&quot;)renderAnnualPlanner()">'+
     ['C1','C2','C3'].map(c=>'<option value="'+c+'"'+(c===block.comp?' selected':'')+'>'+c+' · '+planCompetenceNames[c]+'</option>').join('')+'</select>';
   document.getElementById('annual-comp-'+id)?.focus();
 }
@@ -1196,24 +1043,8 @@ function editAnnualSportInline(id){
   const groupId=annualGroup.value;
   const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
   if(!el||!block)return;
-  el.outerHTML='<select id="annual-sport-'+id+'" class="annualSportSelect editing" onchange="setAnnualBlockSport(\''+id+'\',this.value)" onblur="renderAnnualPlanner()">'+getAnnualSportOptions(block.comp)+'</select>';
+  el.outerHTML='<select id="annual-sport-'+id+'" class="annualSportSelect editing" onchange="setAnnualBlockSport(\''+id+'\',this.value)" onkeydown="if(event.key===&quot;Escape&quot;)renderAnnualPlanner()">'+getAnnualSportOptions(block.comp)+'</select>';
   document.getElementById('annual-sport-'+id)?.focus();
-}
-function setAnnualBlockSport(id,value){
-  if(!value)return;
-  const groupId=annualGroup.value;
-  const block=(annualPlans[groupId]||[]).find(b=>b.id===id);
-  if(!block)return;
-  const previous={sport:block.sport,comp:block.comp};
-  if(value==='__other__'){
-    const custom=prompt('Sport / moyen d’action','');
-    if(!custom||!custom.trim()){renderAnnualPlanner();return}
-    block.sport=custom.trim();
-  }else block.sport=value;
-  updateAnnualObjectiveForSportOrComp(block,previous);
-  saveAnnual();
-  rebuildPlanningAssignments();
-  renderAnnualPlanner();
 }
 function renderAnnualPlanner(){
   if(!annualGroup) return;
@@ -1229,7 +1060,7 @@ function renderAnnualPlanner(){
   const remaining=Math.max(0,balance);
   const overflow=Math.max(0,-balance);
   if(annualAddForm){
-    annualAddForm.style.display=remaining>0?'block':'none';
+    annualAddForm.style.display='block';
     if(remaining>0&&annualCourses) annualCourses.value=Math.min(12,remaining);
   }
   const placed=Math.min(planned,possible);
@@ -1271,40 +1102,43 @@ function renderAnnualPlanner(){
       if(isOverflow) datesText+=' · '+(r.needed-r.allocated)+' sans date';
     }
     const needsChoice=b.sport==='À choisir';
-    const status=isOverflow?'Sans date':needsChoice?'À compléter':saved?'Séquence prête':'À planifier';
+    const status=isOverflow?'Sans date':needsChoice?'Sport à choisir':saved?'Séquence enregistrée':'À préparer';
     const statusClass=isOverflow?' warn':saved?' ready':'';
     return '<div class="annualItem'+(isOverflow?' overflow':'')+'" draggable="true" data-id="'+b.id+'">'+
       '<div class="annualTop">'+
-        '<button class="dragHandle" type="button" aria-label="Glisser '+b.sport+'" data-drag-id="'+b.id+'">≡</button>'+
+        '<button class="dragHandle" type="button" aria-label="Glisser '+planningHtml(b.sport)+'" data-drag-id="'+b.id+'">≡</button>'+
         '<div class="annualMain">'+
           '<div class="annualHeaderLine"><button id="annual-comp-'+b.id+'" class="compBadge editable" onclick="editAnnualCompInline(\''+b.id+'\')" aria-label="Modifier la compétence">'+b.comp+' · '+planCompetenceNames[b.comp]+'</button><span class="annualStatus'+statusClass+'">'+status+'</span></div>'+
           '<div class="annualSequenceLabel">'+(groupsData.find(g=>g.id===groupId)?.name||'Groupe')+' · Séquence '+(i+1)+'</div>'+
-          (needsChoice?'<select id="annual-sport-'+b.id+'" class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<button id="annual-sport-'+b.id+'" class="annualSport editable" onclick="editAnnualSportInline(\''+b.id+'\')" aria-label="Modifier le moyen d’action">'+b.sport+'</button>')+
+          (needsChoice?'<select id="annual-sport-'+b.id+'" class="annualSportSelect" onchange="setAnnualBlockSport(\''+b.id+'\',this.value)">'+getAnnualSportOptions(b.comp)+'</select>':'<button id="annual-sport-'+b.id+'" class="annualSport editable" onclick="editAnnualSportInline(\''+b.id+'\')" aria-label="Modifier le moyen d’action">'+planningHtml(b.sport)+'</button>')+
           '<div class="annualDatePill'+(isOverflow?' warn':'')+'">'+datesText+'</div>'+getAnnualObjectiveMarkup(b,saved)+
           '<div class="annualMeta"><span class="annualCourseAdjust"><button onclick="adjustAnnualCourses(\''+b.id+'\',-1)" aria-label="Retirer un cours">−</button><span>'+b.courses+' cours'+(!b.lockedCourses?'<small class="annualAutoNote"> auto</small>':'')+'</span><button onclick="adjustAnnualCourses(\''+b.id+'\',1)" aria-label="Ajouter un cours">+</button></span><span>'+r.allocated+'/'+r.needed+' placés</span></div>'+
           '<div class="annualMiniProgress"><span style="width:'+Math.min(100,pct)+'%"></span></div>'+
         '</div>'+
-        '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+b.sport+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+b.sport+'">↓</button></div>'+
+        '<div class="annualReorder"><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',-1)" aria-label="Monter '+planningHtml(b.sport)+'">↑</button><button class="orderBtn" type="button" onclick="moveAnnualBlock(\''+b.id+'\',1)" aria-label="Descendre '+planningHtml(b.sport)+'">↓</button></div>'+
       '</div>'+
       '<div class="itemActions">'+
-        (needsChoice?'':'<button class="itemBtn primary" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+(saved?'Ouvrir la séquence':'Planifier la séquence')+'</button>')+
+        ('<button class="itemBtn primary" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+(saved?'Ouvrir la séquence':'Préparer la séquence')+'</button>')+
         '<button class="itemBtn" onclick="editAnnualBlock(\''+b.id+'\')">Modifier</button>'+
         '<button class="itemBtn danger" onclick="deleteAnnualBlock(\''+b.id+'\')">Supprimer</button>'+
       '</div>'+
     '</div>';
   }).join('');
+  renderAnnualCompetenceSummary(groupId);
   setupAnnualDrag();
 }
 let henriSyncBusy=false;
 function henriPersistSharedState(){
+  const values={'previewHenriSlate:henriAnnualPlans':annualPlans,'previewHenriSlate:henriSequences':savedSequences,'previewHenriSlate:henriIndividualSessions':individualSessions,'previewHenriSlate:henriCalendarExceptions':calendarExceptions,'previewHenriSlate:henriGroupsData':groupsData,'previewHenriSlate:henriActiveSequence':activeSequence};
+  const previous={};
   try{
-    localStorage.setItem('previewHenriSlate:henriAnnualPlans',JSON.stringify(annualPlans));
-    localStorage.setItem('previewHenriSlate:henriSequences',JSON.stringify(savedSequences));
-    localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
-    localStorage.setItem('previewHenriSlate:henriCalendarExceptions',JSON.stringify(calendarExceptions));
-    if(typeof groupsData!=='undefined')localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
-    if(activeSequence)localStorage.setItem('previewHenriSlate:henriActiveSequence',JSON.stringify(activeSequence));
-  }catch(e){}
+    for(const key of Object.keys(values))previous[key]=localStorage.getItem(key);
+    for(const [key,value] of Object.entries(values))value===null?localStorage.removeItem(key):localStorage.setItem(key,JSON.stringify(value));
+  }catch(error){
+    for(const [key,value] of Object.entries(previous))try{value===null?localStorage.removeItem(key):localStorage.setItem(key,value)}catch(_){}
+    planningReport('Enregistrement impossible. Le stockage du navigateur est peut-être plein ou indisponible; exporte tes données avant de continuer.',true);
+    throw error;
+  }
 }
 function henriSyncSharedData(options={}){
   if(henriSyncBusy)return;
@@ -1327,116 +1161,15 @@ function henriSyncSharedData(options={}){
     henriSyncBusy=false;
   }
 }
-function henriSyncSequenceToAnnual(){
-  if(activeSequence?.startCourseKey){savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));return}
-  if(!activeSequence?.annualBlockId)return;
-  const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
-  if(!block)return;
-  block.comp=activeSequence.comp;
-  block.sport=activeSequence.sport;
-  block.objective=activeSequence.objective||'';
-  block.courses=activeSequence.sessions?.length||block.courses;
-  savedSequences[sequenceStorageKey(activeSequence.groupId,activeSequence.annualBlockId)]=JSON.parse(JSON.stringify(activeSequence));
-}
 function saveAnnual(){
-  localStorage.setItem('previewHenriSlate:henriAnnualPlans',JSON.stringify(annualPlans));
+  synchronizeAnnualSequences();
+  henriPersistSharedState();
   if(annualGroup?.value){
     delete scheduleConflictIgnores[annualGroup.value];
     saveConflictIgnores();
   }
   if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
   if(typeof henriBankStoreAnnual==='function'&&annualGroup?.value)henriBankStoreAnnual(annualGroup.value,annualPlans[annualGroup.value]||[]).catch(henriBankWarn);
-}
-function addAnnualBlock(){
-  const groupId=annualGroup.value;
-  ensureAnnualPlan(groupId);
-  const courses=Math.max(1,Number(annualCourses.value)||1);
-  const id='a'+Date.now();
-  annualPlans[groupId].push({id,comp:annualComp.value,sport:annualSport.value,objective:getObjectiveSuggestions(annualSport.value,annualComp.value)[0]||'',courses,lockedCourses:true});
-  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
-}
-function rebalanceAnnualDurations(groupId,changedId=null,requestedCourses=null){
-  const blocks=annualPlans[groupId]||[];
-  const total=getGroupCourseSlots(groupId);
-  if(!blocks.length||total<=0)return false;
-
-  const snapshot=blocks.map(b=>({courses:b.courses,lockedCourses:b.lockedCourses}));
-  const changed=changedId?blocks.find(b=>b.id===changedId):null;
-  if(changed&&requestedCourses!==null){
-    changed.courses=Math.max(1,Math.min(20,Number(requestedCourses)||1));
-    changed.lockedCourses=true;
-  }
-
-  let locked=blocks.filter(b=>b.lockedCourses);
-  let unlocked=blocks.filter(b=>!b.lockedCourses);
-
-  if(!unlocked.length&&blocks.length>1){
-    const fallback=blocks.slice().reverse().find(b=>b.id!==changedId)||blocks[0];
-    fallback.lockedCourses=false;
-    locked=blocks.filter(b=>b.lockedCourses);
-    unlocked=blocks.filter(b=>!b.lockedCourses);
-  }
-
-  const lockedTotal=locked.reduce((sum,b)=>sum+Number(b.courses||0),0);
-  const remaining=total-lockedTotal;
-  if(remaining<unlocked.length||remaining<0){
-    blocks.forEach((b,i)=>{
-      b.courses=snapshot[i].courses;
-      b.lockedCourses=snapshot[i].lockedCourses;
-    });
-    return false;
-  }
-
-  if(unlocked.length){
-    const distribution=distributeAnnualCourses(remaining,unlocked.length);
-    unlocked.forEach((b,i)=>b.courses=distribution[i]);
-  }else if(blocks.length===1){
-    blocks[0].courses=total;
-  }
-  return true;
-}
-function adjustAnnualCourses(id,delta){
-  const groupId=annualGroup.value;
-  const b=(annualPlans[groupId]||[]).find(x=>x.id===id);
-  if(!b)return;
-  b.courses=Math.max(1,Math.min(20,Number(b.courses||1)+delta));
-  b.lockedCourses=true;
-  delete scheduleConflictIgnores[groupId];
-  saveConflictIgnores();
-  saveAnnual();
-  rebuildPlanningAssignments();
-  renderAnnualPlanner();
-}
-function editAnnualBlock(id){
-  const groupId=annualGroup.value, b=(annualPlans[groupId]||[]).find(x=>x.id===id);if(!b)return;
-  const previous={sport:b.sport,comp:b.comp};
-  const sport=prompt('Sport / moyen d’action',b.sport==='À choisir'?'':b.sport);if(sport!==null&&sport.trim())b.sport=sport.trim();
-  const comp=prompt('Compétence : C1, C2 ou C3',b.comp);
-  if(comp&&['C1','C2','C3'].includes(comp.toUpperCase()))b.comp=comp.toUpperCase();
-  updateAnnualObjectiveForSportOrComp(b,previous);
-  const n=prompt('Nombre de cours',b.courses);
-  if(n!==null&&Number(n)>0){
-    b.courses=Math.max(1,Math.min(20,Number(n)));
-    b.lockedCourses=true;
-  }
-  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
-}
-function deleteAnnualBlock(id){
-  const groupId=annualGroup.value;
-  const block=(annualPlans[groupId]||[]).find(x=>x.id===id);
-  if(!block)return;
-  if(!confirm('Supprimer cette séquence de la planification annuelle?'))return;
-  annualPlans[groupId]=(annualPlans[groupId]||[]).filter(x=>x.id!==id);
-  delete savedSequences[sequenceStorageKey(groupId,id)];
-  if(savedSequences[id]?.groupId===groupId) delete savedSequences[id];
-  localStorage.setItem('previewHenriSlate:henriSequences',JSON.stringify(savedSequences));
-  if(activeSequence?.annualBlockId===id&&activeSequence?.groupId===groupId){
-    activeSequence=null;
-    localStorage.removeItem('previewHenriSlate:henriActiveSequence');
-  }
-  saveAnnual();
-  rebuildPlanningAssignments();
-  renderAnnualPlanner();
 }
 
 function moveAnnualBlock(id,delta){
@@ -1445,7 +1178,7 @@ function moveAnnualBlock(id,delta){
   const i=blocks.findIndex(b=>b.id===id), j=i+delta;
   if(i<0||j<0||j>=blocks.length) return;
   [blocks[i],blocks[j]]=[blocks[j],blocks[i]];
-  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();
+  saveAnnual();rebuildPlanningAssignments();renderAnnualPlanner();planningReport('Bloc déplacé. Les dates ont été recalculées.');
 }
 function commitAnnualDomOrder(){
   const groupId=annualGroup.value;
@@ -1544,23 +1277,8 @@ function saveIndividualSessions(){
 }
 function rebuildPlanningAssignments(){rebuildCalendarPlanning();}
 
-function saveAnnualAndPlanSequences(){
-  const groupId=annualGroup?.value;
-  if(!groupId)return;
-  const blocks=annualPlans[groupId]||[];
-  if(!blocks.length)return;
-  if(blocks.some(b=>!b.sport||b.sport==='À choisir')){
-    alert('Choisis un moyen d’action pour chaque séquence avant d’enregistrer la planification annuelle.');
-    return;
-  }
-  saveAnnual();
-  rebuildPlanningAssignments();
-  fillPlanGroupSelects();
-  if(seqGroup) seqGroup.value=groupId;
-  renderMacroSequences();
-  go('sequenceSetup');
-}
 function openSequenceSetup(){
+  calendarPlanEditing=false;calendarIndividualEditing=null;
   fillPlanGroupSelects();
   renderMacroSequences();
   go('sequenceSetup');
@@ -1568,12 +1286,12 @@ function openSequenceSetup(){
 function renderMacroSequences(){
   if(!seqGroup||!macroSequenceList) return;
   const groupId=seqGroup.value||groupsData[0]?.id;
-  if(!groupId) return;
+  if(!groupId){macroSequenceList.textContent='Importe tes groupes dans Paramètres pour préparer des séquences.';return;}
   ensureAnnualPlan(groupId);
   const blocks=annualPlans[groupId]||[];
   const ranges=getAnnualRanges(groupId,blocks);
   if(!blocks.length){
-    macroSequenceList.innerHTML='<div class="placeholder">Aucun sport dans la planification annuelle de ce groupe.</div>';
+    macroSequenceList.innerHTML='<div class="placeholder">Aucun bloc annuel pour ce groupe. Crée une répartition dans Planification annuelle ou une séquence indépendante.</div>';
     return;
   }
   macroSequenceList.innerHTML=blocks.map((b,i)=>{
@@ -1581,25 +1299,10 @@ function renderMacroSequences(){
     const range=r.start&&r.end?(r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end)):'Dates à venir';
     const saved=getSavedSequence(groupId,b.id);
     return '<button class="macroSeqCard" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+
-      '<span><span class="compBadge">'+b.comp+'</span><span class="macroSeqSport">'+b.sport+'</span><span class="macroSeqMeta">'+b.courses+' cours · '+range+'</span><span class="seqStatus'+(saved?' ready':'')+'">'+(saved?'Séquence enregistrée':'À planifier')+'</span></span>'+
+      '<span><span class="compBadge">'+b.comp+'</span><span class="macroSeqSport">'+planningHtml(b.sport)+'</span><span class="macroSeqMeta">'+b.courses+' séances · '+range+'</span><span class="seqStatus'+(saved?' ready':'')+'">'+(saved?'Séquence enregistrée':'À planifier')+'</span></span>'+
       '<span class="groupArrow">›</span>'+
     '</button>';
   }).join('');
-}
-function openMacroSequence(groupId,blockId){
-  selectedAnnualGroupId=groupId;
-  selectedAnnualBlockId=blockId;
-  const blocks=annualPlans[groupId]||[];
-  const block=blocks.find(b=>b.id===blockId);
-  if(!block) return;
-  const i=blocks.findIndex(b=>b.id===blockId);
-  const range=getAnnualRanges(groupId,blocks)[i];
-  const group=groupsData.find(g=>g.id===groupId);
-  const rangeText=range?.start&&range?.end?(range.start===range.end?formatPlanDate(range.start):formatPlanDate(range.start)+' au '+formatPlanDate(range.end)):'Dates à venir';
-  sequenceChoiceHero.innerHTML='<small>'+block.comp+' · '+planCompetenceNames[block.comp]+'</small><h2>'+block.sport+'</h2><p>'+group.name+' · '+block.courses+' cours · '+rangeText+'</p>';
-  const saved=getSavedSequence(groupId,blockId);
-  existingSequenceAction.innerHTML=saved?'<button class="planPrimary" onclick="continueSavedSequence()">Continuer / modifier ma séquence</button>':'';
-  go('sequenceChoice');
 }
 function continueSavedSequence(){
   const saved=getSavedSequence(selectedAnnualGroupId,selectedAnnualBlockId);
@@ -1608,28 +1311,7 @@ function continueSavedSequence(){
   renderSequenceEditor();
   go('sequenceEditor');
 }
-function createSequenceFromMacro(useHenri){
-  const blocks=annualPlans[selectedAnnualGroupId]||[];
-  const block=blocks.find(b=>b.id===selectedAnnualBlockId);
-  const group=groupsData.find(g=>g.id===selectedAnnualGroupId);
-  if(!block||!group) return;
-  activeSequence=makeSequence({
-    comp:block.comp,
-    sport:block.sport,
-    groupId:selectedAnnualGroupId,
-    groupName:group.name,
-    count:Number(block.courses),
-    duration:'70 min',
-    annualBlockId:block.id,
-    useHenri
-  });
-  activeSequence.objective=block.objective||getObjectiveSuggestions(block.sport,block.comp)[0]||'';
-  activeSequence.bankCreationMode=useHenri?'Planification Henri':'Création manuelle';
-  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(henriBankWarn);
-  renderSequenceEditor();
-  go('sequenceEditor');
-}
-function openStandaloneSequence(){fillPlanGroupSelects();go('standaloneSequence')}
+function openStandaloneSequence(){calendarPlanEditing=false;calendarIndividualEditing=null;fillPlanGroupSelects();go('standaloneSequence')}
 function returnFromSequenceEditor(){if(calendarPlanEditing){calendarPlanEditing=false;openDayPlan(calendarCourseContext.date);return}go(activeSequence?.annualBlockId?'sequenceChoice':'standaloneSequence')}
 // Objectifs élaborés à partir de la PDA EPS secondaire (MÉQ, 2010), C1, C2 et C3.
 // Source : https://cdn-contenu.quebec.ca/cdn-contenu/education/pfeq/secondaire/progressions-apprentissages/PFEQ-progression-apprentissages-education-physique-secondaire.pdf
@@ -1747,9 +1429,9 @@ function renderObjectiveSelector(kind,current=''){
   if(!select)return;
   const suggestions=getObjectiveSuggestions(sport,comp);
   const matched=suggestions.includes(current);
-  select.innerHTML=objectiveOptionsHTML(sport,comp,current);
+  select.innerHTML='<option value="">Choisir un objectif…</option>'+objectiveOptionsHTML(sport,comp,current);
   if(current&&matched)select.value=current;
-  else select.value=current?'__custom__':(suggestions[0]||'__custom__');
+  else select.value=current?'__custom__':'';
   if(custom)custom.value=matched?'':(current||'');
   if(wrap)wrap.style.display=select.value==='__custom__'?'':'none';
   const category=document.getElementById(kind+'PdaCategory');
@@ -1808,60 +1490,8 @@ function defaultBlockSet(comp){
     {type:'Situation d’intégration',title:'À planifier',minutes:30}
   ];
 }
-function henriSequencePlan(sport,count){
-  const plans={
-    'Ultimate':[
-      ['Créer des options de passe','Se rendre disponible et occuper l’espace libre.'],
-      ['Se démarquer efficacement','Créer une séparation avant de recevoir.'],
-      ['Enchaîner passes et déplacements','Synchroniser les actions avec les partenaires.'],
-      ['Défendre les espaces','Marquer et protéger les corridors de passe.'],
-      ['Élaborer une stratégie','Observer, décider et ajuster collectivement.']
-    ],
-    'Badminton':[
-      ['Contrôler l’échange','Stabiliser les frappes et le replacement.'],
-      ['Créer de la profondeur','Utiliser le dégagement pour repousser l’adversaire.'],
-      ['Déplacer l’adversaire','Alterner profondeur et largeur.'],
-      ['Construire le point','Choisir une frappe selon la position adverse.'],
-      ['Réinvestir en match','Adapter ses choix dans une opposition réelle.']
-    ],
-    'Flag football':[
-      ['Occuper l’espace libre','Offrir une solution au porteur.'],
-      ['Se démarquer','Créer une séparation avec son défenseur.'],
-      ['Synchroniser les tracés','Coordonner les déplacements offensifs.'],
-      ['Défendre les corridors','Fermer les options de passe.'],
-      ['Ajuster une stratégie','Lire le jeu et modifier les choix collectifs.']
-    ]
-  };
-  return Array.from({length:count},(_,i)=>{
-    const source=plans[sport]?.[i%Math.min(plans[sport]?.length||1,count)];
-    return source||['Cours '+(i+1)+' · '+sport,'Progresser dans le principe ciblé de la séquence.'];
-  });
-}
-function makeSequence({comp,sport,groupId,groupName,count,duration,annualBlockId=null,useHenri=false}){
-  const suggested=henriSequencePlan(sport,count);
-  return {
-    id:'seq-'+Date.now(),annualBlockId,comp,sport,groupId,groupName,duration,
-    objective:getObjectiveSuggestions(sport,comp)[0]||'',
-    sessions:
-    Array.from({length:count},(_,i)=>({
-      title:useHenri?suggested[i][0]:'Cours '+(i+1)+' · '+sport,
-      objective:getObjectiveSuggestions(sport,comp)[i%getObjectiveSuggestions(sport,comp).length]||'Objectif à préciser.',
-      blocks:defaultBlockSet(comp).map(b=>({...b}))
-    }))
-  };
-}
 function createSequenceFromTemplate(){buildStandaloneSequence(false)}
 function generateSequenceDemo(){buildStandaloneSequence(true)}
-function buildStandaloneSequence(useHenri){
-  const group=groupsData.find(g=>g.id===standaloneSeqGroup.value);
-  activeSequence=makeSequence({
-    comp:seqComp.value,sport:seqSport.value,groupId:standaloneSeqGroup.value,groupName:group?.name||'',
-    count:Number(seqCount.value),duration:seqDuration.value,useHenri
-  });
-  activeSequence.bankCreationMode=useHenri?'Planification Henri':'Création manuelle';
-  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(henriBankWarn);
-  renderSequenceEditor();go('sequenceEditor');
-}
 function getSequenceDates(sequence){return getSequenceOccurrences(sequence).map(slot=>slot.date);}
 
 function formatSequenceDate(date){
@@ -1879,7 +1509,7 @@ function changeActiveSequenceComp(value){
   activeSequence.comp=value;
   const currentObjective=activeSequence.objective||'';
   const suggestions=getObjectiveSuggestions(activeSequence.sport,value);
-  if(!currentObjective||getObjectiveSuggestions(activeSequence.sport,'C1').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C2').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C3').includes(currentObjective)){
+  if((!currentObjective&&activeSequence.bankCreationMode!=='Création manuelle')||getObjectiveSuggestions(activeSequence.sport,'C1').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C2').includes(currentObjective)||getObjectiveSuggestions(activeSequence.sport,'C3').includes(currentObjective)){
     activeSequence.objective=suggestions[0]||currentObjective;
   }
   henriSyncSequenceToAnnual();
@@ -1898,7 +1528,7 @@ function renderSequenceEditor(){
   const first=dates[0]||null;
   const last=dates[Math.min(dates.length,total)-1]||null;
   const rangeText=first&&last?(first===last?formatPlanDate(first):formatPlanDate(first)+' au '+formatPlanDate(last)):'Hors calendrier';
-  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+activeSequence.sport+'</h2><p>'+activeSequence.groupName+' · '+total+' cours · '+activeSequence.duration+' · '+rangeText+'</p>';
+  sequenceHeader.innerHTML='<small>'+activeSequence.comp+' · '+planCompetenceNames[activeSequence.comp]+'</small><h2>'+planningHtml(activeSequence.sport)+'</h2><p>'+planningHtml(activeSequence.groupName)+' · '+total+' cours · '+activeSequence.duration+' · '+rangeText+'</p>';
   if(sequenceCompSelect){
     sequenceCompSelect.value=activeSequence.comp;
   }
@@ -1917,9 +1547,9 @@ function renderSequenceEditor(){
       '<button class="seqNum" onclick="openSessionEditor('+i+',\'sequence\')" aria-label="Ouvrir le cours '+(i+1)+'">'+(i+1)+'</button>'+
       '<button class="seqLessonBody" style="border:0;background:transparent;padding:0;text-align:left" onclick="openSessionEditor('+i+',\'sequence\')">'+
         '<span class="seqLessonTop"><span class="seqLessonDate'+(!date&&(activeSequence.annualBlockId||activeSequence.startCourseKey)?' unscheduled':'')+'">'+formatSequenceDate(date)+(occurrences[i]?' · '+occurrences[i].entry.time:'')+'</span></span>'+
-        '<strong>'+session.title+'</strong>'+
-        '<span class="seqLessonObjective">'+objective+'</span>'+
-        '<span class="seqLessonStructure">'+structure+'</span>'+
+        '<strong>'+planningHtml(session.title)+'</strong>'+
+        '<span class="seqLessonObjective">'+planningHtml(objective)+'</span>'+
+        '<span class="seqLessonStructure">'+planningHtml(structure)+'</span>'+
       '</button>'+
       '<span class="seqLessonActions">'+
         '<button class="seqMiniBtn" onclick="moveSequenceLesson('+i+',-1)" aria-label="Monter ce cours">↑</button>'+
@@ -1932,15 +1562,8 @@ function renderSequenceEditor(){
 function normalizeGenericSequenceTitles(){
   if(!activeSequence)return;
   activeSequence.sessions.forEach((session,i)=>{
-    if(/^Cours \d+ · /.test(session.title||'')) session.title='Cours '+(i+1)+' · '+activeSequence.sport;
+    if(/^(Cours|Séance) \d+ · /.test(session.title||'')&&(session.title||'').split(' · ').length===2) session.title='Séance '+(i+1)+' · '+activeSequence.sport;
   });
-}
-function addSequenceLesson(){
-  if(!activeSequence)return;
-  activeSequence.sessions.push({title:'Cours '+(activeSequence.sessions.length+1)+' · '+activeSequence.sport,objective:getObjectiveSuggestions(activeSequence.sport,activeSequence.comp)[0]||'Objectif à préciser.',blocks:defaultBlockSet(activeSequence.comp).map(b=>({...b}))});
-  normalizeGenericSequenceTitles();
-  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
-  renderSequenceEditor();
 }
 function moveSequenceLesson(index,delta){
   if(!activeSequence)return;
@@ -1950,37 +1573,6 @@ function moveSequenceLesson(index,delta){
   normalizeGenericSequenceTitles();
   henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
   renderSequenceEditor();
-}
-function deleteSequenceLesson(index){
-  if(!activeSequence||activeSequence.sessions.length<=1)return;
-  if(!confirm('Supprimer ce cours de la séquence?'))return;
-  activeSequence.sessions.splice(index,1);
-  normalizeGenericSequenceTitles();
-  henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
-  renderSequenceEditor();
-}
-function saveSequence(){
-  if(!activeSequence)return;
-  henriSyncSequenceToAnnual();
-  localStorage.setItem('previewHenriSlate:henriActiveSequence',JSON.stringify(activeSequence));
-  if(activeSequence.annualBlockId){
-    const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);
-    if(block&&Number(block.courses)!==activeSequence.sessions.length){
-      if(!rebalanceAnnualDurations(activeSequence.groupId,block.id,activeSequence.sessions.length)){
-        alert('Cette séquence est trop longue pour les périodes restantes de l’année.');
-        return;
-      }
-      saveAnnual();
-    }
-    setSavedSequence(activeSequence.groupId,activeSequence.annualBlockId,activeSequence);
-    rebuildPlanningAssignments();
-    if(annualGroup?.value===activeSequence.groupId) renderAnnualPlanner();
-  }
-  if(activeSequence.startCourseKey)savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));
-  henriSyncSharedData({skipSequenceEditor:true});
-  henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode||'Créée dans Henri').catch(henriBankWarn);
-  if(activeSequence.annualBlockId)henriBankStoreAnnual(activeSequence.groupId,annualPlans[activeSequence.groupId]||[]).catch(henriBankWarn);
-  alert(activeSequence.annualBlockId||activeSequence.startCourseKey?'Séquence enregistrée et calendrier mis à jour.':'Séquence enregistrée dans Henri.');
 }
 function openSessionEditor(index,source){
   sessionEditorSource=source||'sequence';
@@ -1994,27 +1586,12 @@ function openSessionEditor(index,source){
   go('sessionEditor');
 }
 function renderSessionBlocks(session){
-  editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+henriBankHtml(b.type)+'</div><div class="editBlockTitle">'+henriBankHtml(b.title)+'</div>'+(b.notes?'<div class="editBlockNotes">'+henriBankHtml(b.notes)+'</div>':'')+'</div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
+  editBlocks.innerHTML=session.blocks.map((b,i)=>'<div class="editBlock"><div class="editBlockTop"><div><div class="editBlockType">'+henriBankHtml(b.type)+'</div><div class="editBlockTitle">'+henriBankHtml(b.title||'Contenu à écrire')+'</div>'+(b.notes?'<div class="editBlockNotes">'+henriBankHtml(b.notes)+'</div>':'')+'</div><div class="time">'+b.minutes+' min</div></div><div class="editBlockActions"><button class="itemBtn" onclick="editSessionBlock('+i+')">Modifier</button><button class="itemBtn" onclick="moveSessionBlock('+i+',-1)">↑</button><button class="itemBtn" onclick="moveSessionBlock('+i+',1)">↓</button><button class="itemBtn danger" onclick="deleteSessionBlock('+i+')">Supprimer</button></div></div>').join('');
 }
 function currentEditableSession(){return sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[activeSessionIndex]}
-function editSessionBlock(i){
-  const s=currentEditableSession(),b=s?.blocks[i];if(!b)return;
-  const title=prompt('Titre de la section',b.title);if(title!==null&&title.trim())b.title=title.trim();
-  const mins=prompt('Durée (minutes)',b.minutes);if(mins!==null&&Number(mins)>0)b.minutes=Number(mins);
-  if(b.notes!==undefined){const note=prompt('Description complète / notes PDF',b.notes);if(note!==null)b.notes=note;}
-  renderSessionBlocks(s);
-  henriSyncSequenceToAnnual();henriPersistSharedState();
-}
 function moveSessionBlock(i,delta){
   const s=currentEditableSession();if(!s)return;const j=i+delta;if(j<0||j>=s.blocks.length)return;
   [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
-}
-function deleteSessionBlock(i){const s=currentEditableSession();if(!s)return;s.blocks.splice(i,1);renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState()}
-function addSessionSection(){
-  const s=currentEditableSession();if(!s)return;
-  const type=prompt('Type de section','Éducatif');if(!type)return;
-  const title=prompt('Titre','Nouvelle activité')||'Nouvelle activité';
-  s.blocks.push({type,title,minutes:10});renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
 }
 function returnFromSessionEditor(){
   if(calendarPlanEditing){persistCalendarIndividual();henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();calendarPlanEditing=false;calendarIndividualEditing=null;openDayPlan(calendarCourseContext.date);return}
@@ -2042,31 +1619,14 @@ function renderScheduleConflict(groupId){
     return '<div class="conflictIgnored">Avis ignoré · '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' demeure'+(conflict.overflow>1?'nt':'')+' sans date à la fin de l’année.</div>';
   }
   const rows=conflict.blocks.map(b=>
-    '<div class="conflictSeq"><span><b>'+b.sport+'</b><small>'+b.comp+' · actuellement '+b.courses+' cours</small></span>'+
-    '<input id="conflict-'+b.id+'" type="number" min="1" max="20" value="'+b.courses+'" aria-label="Nombre de cours pour '+b.sport+'">'+
+    '<div class="conflictSeq"><span><b>'+planningHtml(b.sport)+'</b><small>'+b.comp+' · actuellement '+b.courses+' cours</small></span>'+
+    '<input id="conflict-'+b.id+'" type="number" min="1" max="500" value="'+b.courses+'" aria-label="Nombre de cours pour '+planningHtml(b.sport)+'">'+
     '<button class="conflictApply" onclick="applyConflictSequenceCount(\''+groupId+'\',\''+b.id+'\')">Appliquer</button></div>'
   ).join('');
   return '<div class="scheduleConflict"><strong>Conflit d’horaire · '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' sans période</strong>'+
     '<p>Le déplacement dépasse les périodes disponibles avant la fin de l’année. Réduis le nombre de séances d’une séquence au choix, ou ignore l’avis.</p>'+
     '<div class="conflictSeqList">'+rows+'</div>'+
     '<button class="conflictIgnore" onclick="ignoreScheduleConflict(\''+groupId+'\')">Ignorer l’avis et conserver le dépassement</button></div>';
-}
-function applyConflictSequenceCount(groupId,blockId){
-  const input=document.getElementById('conflict-'+blockId);
-  const value=Math.max(1,Number(input?.value)||1);
-  const block=(annualPlans[groupId]||[]).find(b=>b.id===blockId);
-  if(!block)return;
-  if(!rebalanceAnnualDurations(groupId,blockId,value))return;
-  delete scheduleConflictIgnores[groupId];
-  saveConflictIgnores();
-  saveAnnual();
-  rebuildPlanningAssignments();
-  if(annualGroup?.value===groupId) renderAnnualPlanner();
-  const conflict=getScheduleConflict(groupId);
-  const msg=conflict.overflow
-    ? 'Ajustement appliqué · il reste '+conflict.overflow+' séance'+(conflict.overflow>1?'s':'')+' sans période.'
-    : 'Horaire ajusté · toutes les séances ont maintenant une date.';
-  if(document.getElementById('quickSession')?.classList.contains('active')) renderQuickResult(msg);
 }
 function ignoreScheduleConflict(groupId){
   const conflict=getScheduleConflict(groupId);
@@ -3245,7 +2805,7 @@ setTimeout(()=>{
   updateGenerateState();
 },0);
 </script>
-<script src="henri-bank-v1.js?v=8d427662"></script>
-<script src="henri-ux.js?v=8d427662"></script>
+<script src="henri-bank-v1.js?v=b45a8615"></script>
+<script src="henri-ux.js?v=b45a8615"></script>
 </body>
 </html>
