@@ -4,7 +4,8 @@ const assert=require('node:assert/strict');
  const browser=await chromium.launch({headless:true,...(process.env.HENRI_CHROMIUM?{executablePath:process.env.HENRI_CHROMIUM}:require('node:fs').existsSync('/usr/bin/chromium')?{executablePath:'/usr/bin/chromium'}:{}),args:['--no-sandbox']});
  try{
  const page=await browser.newPage({viewport:{width:1024,height:768}});page.setDefaultTimeout(8000);const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
- await page.goto((process.env.HENRI_TEST_URL||'http://127.0.0.1:8765')+'/preview/refonte/henri-v560.html');
+ await page.goto((process.env.HENRI_TEST_URL||'http://127.0.0.1:8765')+'/preview/refonte/');
+ assert.match(page.url(),/henri-v560\.html/);
  await page.evaluate(()=>{
   groupsData=[{id:'g1',name:'G1',students:[]},{id:'g2',name:'G2',students:[]}];annualPlans={};savedSequences={};activeSequence=null;calendarExceptions=[];individualSessions=[];
   const teacher={'Jour 1':[{time:'8 h 10',period:1,group:'G1',matchedGroupId:'g1',kind:'course',activity:'Éducation physique'}],'Jour 2':[{time:'9 h 35',period:2,group:'G2',matchedGroupId:'g2',kind:'course',activity:'Éducation physique'}]};

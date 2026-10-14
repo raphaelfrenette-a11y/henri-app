@@ -20,6 +20,8 @@ Toutes les clés localStorage ci-dessus utilisent le préfixe `previewHenriSlate
 
 ## Corrections
 
+- Entrée de prévisualisation ramenée à v560 : `main` pointait vers v561, non validée selon le mandat.
+
 - Suppression de l’extension automatique d’Ultimate jusqu’au 28 octobre et du décalage spécial de ses quatre séances.
 - Les cinq périodes du bloc accueillent les séances 1 à 4 puis « À planifier ». Les blocs suivants conservent leur offset annuel.
 - Création = brouillon; l’enregistrement explicite ouvre les groupes puis valide toutes les affectations avant la persistance. Une erreur dans un groupe annule toutes les affectations nouvelles.
