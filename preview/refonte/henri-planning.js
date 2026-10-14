@@ -190,7 +190,7 @@ function editAnnualBlock(id){
   if(!['C1','C2','C3'].includes(comp.toUpperCase())||!/^\d+$/.test(courses)||Number(courses)<1){planningReport('Indique une compétence C1/C2/C3 et un nombre entier positif.',true);return;}
   return updateAnnualBlock(id,{sport:sport.trim()||'À choisir',comp:comp.toUpperCase(),courses:Number(courses)});
 }
-async async function deleteAnnualBlock(id){
+async function deleteAnnualBlock(id){
   const groupId=annualGroup.value,block=(annualPlans[groupId]||[]).find(b=>b.id===id);if(!block)return;
   if(!confirm('Supprimer ce bloc annuel ? Sa séquence, si elle existe, sera conservée dans Ma banque.'))return;
   const sequence=activeSequence?.groupId===groupId&&activeSequence.annualBlockId===id?activeSequence:getSavedSequence(groupId,id);
