@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Henri · Prévisualisation</title>
 <meta name="theme-color" content="#f7f8fa">
-<link rel="icon" href="henri-icon.svg?v=17c8596b" type="image/svg+xml">
-<link rel="stylesheet" href="henri-layout.css?v=17c8596b">
-<link rel="stylesheet" href="henri-design.css?v=17c8596b">
+<link rel="icon" href="henri-icon.svg?v=d3c3f1cf" type="image/svg+xml">
+<link rel="stylesheet" href="henri-layout.css?v=d3c3f1cf">
+<link rel="stylesheet" href="henri-design.css?v=d3c3f1cf">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
@@ -19,13 +19,13 @@
 <div id="henriActionStatus" class="actionStatus" role="status" aria-live="polite" hidden></div>
 <section id="home" class="screen active">
   <div class="screenHeading"><div><p class="screenKicker">Mon horaire</p><h1>Calendrier</h1></div><span id="todayStamp" class="todayStamp"></span></div>
-  <div id="homeEmpty" class="homeEmpty"><svg class="homeEmptyIllustration" viewBox="0 0 160 110" aria-hidden="true" focusable="false"><use href="henri-illustrations.svg?v=17c8596b#start"></use></svg><div><h2>Une année bien en mouvement.</h2><p>Ton horaire, tes groupes et le calendrier scolaire : tout commence avec tes trois documents.</p></div><button class="planPrimary" onclick="go('settings')">Ajouter mes documents</button></div>
+  <div id="homeEmpty" class="homeEmpty"><svg class="homeEmptyIllustration" viewBox="0 0 160 110" aria-hidden="true" focusable="false"><use href="henri-illustrations.svg?v=d3c3f1cf#start"></use></svg><div><h2>Une année bien en mouvement.</h2><p>Ton horaire, tes groupes et le calendrier scolaire : tout commence avec tes trois documents.</p></div><button class="planPrimary" onclick="go('settings')">Ajouter mes documents</button></div>
 
   <div id="nextCourse" class="nextCourse" hidden>
     <div class="nextCourseContext"><span id="nextCourseEyebrow" class="screenKicker">Prochain cours</span><span id="nextCourseWhen"></span></div>
-    <div class="nextCourseMain"><div class="nextCourseIllustration" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use id="nextCourseSymbol" href="henri-illustrations.svg?v=17c8596b#lesson"></use></svg><svg class="motionTrail" viewBox="0 0 100 30" focusable="false"><path d="M4 22c18-25 32 12 50-5S76 4 96 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 6"/></svg></div><div class="nextCourseInfo"><h2 id="nextCourseGroup"></h2><p id="nextCoursePlan"></p></div><button id="nextCourseOpen" class="itemBtn primary">Ouvrir le cours <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
+    <div class="nextCourseMain"><div class="nextCourseIllustration" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use id="nextCourseSymbol" href="henri-illustrations.svg?v=d3c3f1cf#lesson"></use></svg><svg class="motionTrail" viewBox="0 0 100 30" focusable="false"><path d="M4 22c18-25 32 12 50-5S76 4 96 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 6"/></svg></div><div class="nextCourseInfo"><h2 id="nextCourseGroup"></h2><p id="nextCoursePlan"></p></div><button id="nextCourseOpen" class="itemBtn primary">Ouvrir le cours <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
   </div>
-  <div class="homeActions" aria-label="Accès rapides"><button class="itemBtn" onclick="openQuickSession()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=17c8596b#lesson"></use></svg>Préparer une séance</button><button class="itemBtn" onclick="openAnnualPlanner()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=17c8596b#calendar"></use></svg>Planification annuelle</button><button class="itemBtn" onclick="openTeamBuilder()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=17c8596b#groups"></use></svg>Former des équipes</button></div>
+  <div class="homeActions" aria-label="Accès rapides"><button class="itemBtn" onclick="openQuickSession()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=d3c3f1cf#lesson"></use></svg>Préparer une séance</button><button class="itemBtn" onclick="openAnnualPlanner()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=d3c3f1cf#calendar"></use></svg>Planification annuelle</button><button class="itemBtn" onclick="openTeamBuilder()"><svg class="activityIcon" aria-hidden="true" viewBox="0 0 24 24"><use href="henri-illustrations.svg?v=d3c3f1cf#groups"></use></svg>Former des équipes</button></div>
   <div class="calendarPanel">
     <div class="sectionHead">
       <h2 id="calendarSectionTitle">Cette semaine</h2>
@@ -472,11 +472,11 @@
 </nav>
 </div>
 
-<script src="henri-visuals.js?v=17c8596b"></script>
-<script src="henri-pedagogy.js?v=17c8596b"></script>
-<script src="henri-planning.js?v=17c8596b"></script>
-<script src="henri-import.js?v=17c8596b"></script>
-<script src="henri-calendar-links.js?v=17c8596b"></script>
+<script src="henri-visuals.js?v=d3c3f1cf"></script>
+<script src="henri-pedagogy.js?v=d3c3f1cf"></script>
+<script src="henri-planning.js?v=d3c3f1cf"></script>
+<script src="henri-import.js?v=d3c3f1cf"></script>
+<script src="henri-calendar-links.js?v=d3c3f1cf"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -562,7 +562,7 @@ function renderWeek(){
     if(entries.length){
       entries.forEach((entry)=>{
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
-        let sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'À planifier');
+        let sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'À planifier');
         if(sport==='À choisir') sport='À planifier';
         const groupColors=['#425d73','#647d8c','#697b73','#7b7488'];
         const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
@@ -598,8 +598,8 @@ function openDayPlan(date){
   const cards=[];
   entries.forEach(entry=>{
     const originalIndex=(scheduleEntries[date]||[]).indexOf(entry);
-    const sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'Sport à planifier');
-    const session=entry.session||(entry.kind==='cognitive'?'Intervention cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
+    const sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Sport à planifier');
+    const session=entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
     cards.push('<div class="dayPlanCard">'+
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+sport+'</div>'+
@@ -629,7 +629,7 @@ function openCourseEntry(date,index){
   if(!entry) return;
   calendarCourseContext={date,index};
   renderCoursePlanningActions(entry,date,index);
-  if(!entry.annualPlan&&!entry.isIndividual&&entry.kind!=='cognitive'){
+  if(!entry.annualPlan&&!entry.isIndividual&&isPlanningEntry(entry)){
     openQuickSessionForCourse(date,index);
     return;
   }
@@ -639,9 +639,9 @@ function openCourseEntry(date,index){
   courseDetailMeta.textContent=date+' · '+entry.time;
   courseDetailGroup.textContent=entry.group;
   courseDetailCycle.textContent=schoolDays[date]||'';
-  courseSessionTitle.textContent=entry.planData?.title||entry.session||(entry.kind==='cognitive'?'Intervention cognitive':'Séance à planifier');
-  if(entry.kind==='cognitive'){
-    coursePlanContent.textContent='Intervention cognitive · '+entry.time+(entry.endTime?' à '+entry.endTime:'')+(entry.durationMinutes?' · '+entry.durationMinutes+' min':'')+'. Ce bloc est affiché dans ton horaire et ne compte pas comme une séance d’éducation physique.';
+  courseSessionTitle.textContent=entry.planData?.title||entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Séance à planifier');
+  if(HenriImport.isCognitive(entry)){
+    coursePlanContent.textContent='Intégration cognitive · '+entry.time+(entry.endTime?' à '+entry.endTime:'')+(entry.durationMinutes?' · '+entry.durationMinutes+' min':'')+'. Ce bloc est affiché dans ton horaire et ne compte pas comme une séance d’éducation physique.';
     go('courseDetail');return;
   }
 
@@ -1648,7 +1648,7 @@ function openQuickSession(){
 }
 function openQuickSessionForCourse(date,index){
   const entry=(scheduleEntries[date]||[])[index];
-  if(!entry)return;
+  if(!entry||!isPlanningEntry(entry))return;
   const group=groupsData.find(g=>g.id===getEntryGroupId(entry));
   if(!group)return;
   calendarPlanEditing=false;calendarIndividualEditing=null;
@@ -2795,9 +2795,9 @@ function generateMySchedule(){
   henriSyncSharedData({skipSequenceEditor:true});
   const entries=Object.values(scheduleEntries).flat();
   const total=entries.filter(isPlanningEntry).length;
-  const cognitive=entries.filter(entry=>entry.kind==='cognitive').length;
+  const cognitive=entries.filter(entry=>HenriImport.isCognitive(entry)).length;
   const dates=Object.keys(schoolDays).sort();
-  setupSuccess.textContent='Année générée du '+formatPlanDate(dates[0])+' au '+formatPlanDate(dates.at(-1))+' · '+groupsData.length+' groupes · '+total+' cours placés'+(cognitive?' · '+cognitive+' interventions cognitives':'')+'.';
+  setupSuccess.textContent='Année générée du '+formatPlanDate(dates[0])+' au '+formatPlanDate(dates.at(-1))+' · '+groupsData.length+' groupes · '+total+' cours placés'+(cognitive?' · '+cognitive+' blocs d’intégration cognitive':'')+'.';
   setupSuccess.classList.add('show');
   const pending=Object.values(schoolDays).filter(type=>/^Jour [xyz]$/.test(type)).length;
   if(pending)setupSuccess.textContent+=' '+pending+' jours-cycle restent à préciser, sans cours attribué.';
@@ -2831,7 +2831,7 @@ setTimeout(()=>{
   updateGenerateState();
 },0);
 </script>
-<script src="henri-bank-v1.js?v=17c8596b"></script>
-<script src="henri-ux.js?v=17c8596b"></script>
+<script src="henri-bank-v1.js?v=d3c3f1cf"></script>
+<script src="henri-ux.js?v=d3c3f1cf"></script>
 </body>
 </html>

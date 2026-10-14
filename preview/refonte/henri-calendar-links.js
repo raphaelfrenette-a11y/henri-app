@@ -7,7 +7,7 @@ function mergeImportedGroups(incoming,existing){
   const result=[];
   for(const group of incoming){
     const candidates=[...new Map([...existing,...result].map(g=>[g.id,g])).values()];
-    const previous=HenriImport.matchGroup(group.name,candidates);
+    const previous=HenriImport.matchGroup(group.sourceCodes?.[0]||group.name,candidates);
     const target=result.find(g=>g.id===previous?.id);
     const students=group.students.map(student=>{
       const old=previous?.students.find(s=>normalizeGroupAlias(s.name)===normalizeGroupAlias(student.name));
@@ -42,7 +42,7 @@ function renderImportLinksReview(){
   if(report.ready){const p=document.createElement('p');p.textContent='Les documents sont reliés. Vérifie les cours ci-dessous, puis génère ton année.';container.append(p);}
   for(const [day,lessons] of Object.entries(teacher||{})){
     const details=document.createElement('details'),heading=document.createElement('summary');
-    heading.textContent=day+' · '+lessons.length+' cours';details.append(heading);
+    heading.textContent=day+' · '+lessons.filter(isPlanningEntry).length+' cours d’éducation physique'+(lessons.some(HenriImport.isCognitive)?' · intégration cognitive':'');details.append(heading);
     lessons.forEach((lesson,index)=>{
       const row=document.createElement('div');row.className='planField';row.style.padding='8px';
       const label=document.createElement('label');label.textContent=(lesson.groupCode||lesson.group)+' · '+(lesson.time||'Période à préciser')+(lesson.kind==='cognitive'?' · Intervention cognitive':'');row.append(label);
@@ -55,6 +55,11 @@ function renderImportLinksReview(){
       const time=document.createElement('input');time.className='planControl';time.value=lesson.time;time.placeholder='8 h 10 ou Période 1';time.setAttribute('aria-label',day+' cours '+(index+1)+' : heure ou période');
       time.onchange=()=>{if(!/^(?:\d{1,2}\s*h\s*\d{2}|\d{1,2}:\d{2}|Période\s*\d{1,2})$/i.test(time.value)||scheduleTimeMinutes(time.value)>=1440){alert('Indique une heure comme 8 h 10 ou une période comme Période 1.');return}lesson.time=time.value;const period=time.value.match(/Période\s*(\d+)/i);lesson.period=period?Number(period[1]):null;localStorage.setItem('previewHenriSlate:henriImportedTeacherSchedule',JSON.stringify(teacher));renderImportLinksReview();};
       row.append(time);details.append(row);
+      const kind=document.createElement('select');kind.className='planControl';kind.setAttribute('aria-label',day+' créneau '+(index+1)+' : type');
+      kind.add(new Option('Cours d’éducation physique','course'));kind.add(new Option('Intégration cognitive · devoirs (20 min)','cognitive'));
+      kind.value=HenriImport.isCognitive(lesson)?'cognitive':'course';
+      kind.onchange=()=>{lesson.kind=kind.value;lesson.activity=kind.value==='cognitive'?'Intégration cognitive':'Éducation physique';if(kind.value==='cognitive'){lesson.period=null;lesson.durationMinutes=20;}localStorage.setItem('previewHenriSlate:henriImportedTeacherSchedule',JSON.stringify(teacher));renderImportLinksReview();};
+      row.append(kind);
     });container.append(details);
   }
   if(calendar){
@@ -67,7 +72,7 @@ function renderImportLinksReview(){
   }
 }
 
-function isPlanningEntry(entry){return entry.kind!=='cognitive';}
+function isPlanningEntry(entry){return !HenriImport.isCognitive(entry);}
 function courseOccurrenceKey(date,entry){return date+'|'+(entry.period?'P'+entry.period:entry.time);}
 function getGroupCourseOccurrences(groupId){
   return Object.keys(scheduleEntries).sort().flatMap(date=>getVisibleScheduleEntries(date).filter(entry=>isPlanningEntry(entry)&&getEntryGroupId(entry)===groupId).map(entry=>({date,key:courseOccurrenceKey(date,entry),entry,index:scheduleEntries[date].indexOf(entry)})));
@@ -147,9 +152,9 @@ function scheduleStandaloneSequence(){
 function renderCoursePlanningActions(entry,date,index){
   const container=document.getElementById('coursePlanningActions');container.replaceChildren();
   const add=(text,fn)=>{const button=document.createElement('button');button.className='itemBtn';button.textContent=text;button.onclick=fn;container.append(button);};
-  if(entry.kind!=='cognitive'&&entry.planData)add('Ouvrir la séance',()=>openCalendarSession(date,index));
-  else if(entry.kind!=='cognitive')add('Préparer cette séance',()=>openQuickSessionForCourse(date,index));
-  if(entry.annualBlockId||entry.sequenceId)add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
+  if(isPlanningEntry(entry)&&entry.planData)add('Ouvrir la séance',()=>openCalendarSession(date,index));
+  else if(isPlanningEntry(entry))add('Préparer cette séance',()=>openQuickSessionForCourse(date,index));
+  if(isPlanningEntry(entry)&&(entry.annualBlockId||entry.sequenceId))add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
   const groupId=getEntryGroupId(entry),group=groupsData.find(g=>g.id===groupId);
   if(group)add('Voir les '+group.students.length+' élèves',()=>openGroup(groupId));
 }
@@ -157,14 +162,14 @@ function calendarSequenceFor(entry){
   return entry.annualBlockId?getSavedSequence(getEntryGroupId(entry),entry.annualBlockId):Object.values(savedSequences).find(s=>s.id===entry.sequenceId);
 }
 function openCalendarSequence(date,index){
-  const entry=scheduleEntries[date]?.[index];if(!entry)return;
+  const entry=scheduleEntries[date]?.[index];if(!entry||!isPlanningEntry(entry))return;
   calendarCourseContext={date,index};calendarPlanEditing=true;
   const saved=calendarSequenceFor(entry);
   if(saved){activeSequence=JSON.parse(JSON.stringify(saved));renderSequenceEditor();go('sequenceEditor');}
   else if(entry.annualBlockId)openMacroSequence(getEntryGroupId(entry),entry.annualBlockId,true);
 }
 function openCalendarSession(date,index){
-  const entry=scheduleEntries[date]?.[index];if(!entry)return;
+  const entry=scheduleEntries[date]?.[index];if(!entry||!isPlanningEntry(entry))return;
   calendarCourseContext={date,index};calendarPlanEditing=true;
   if(entry.isIndividual){
     const individual=individualSessions.find(x=>x.id===entry.individualId);if(!individual)return;

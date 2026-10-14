@@ -144,7 +144,8 @@
         const periods=[...preceding.matchAll(/\b(?:p[eé]riode|p)\s*(\d{1,2})\b/gi)];
         const t=times.at(-1),p=periods.at(-1);
         const time=t&&Number(t[1])<24&&Number(t[2])<60?Number(t[1])+' h '+t[2]:p?'Période '+Number(p[1]):'';
-        (out['Jour '+day]??=[]).push({time,period:p?Number(p[1]):null,group:course[0].replace(/\s+/g,' ').trim(),groupCode:course[0],matchedGroupId:null,activity:'Éducation physique'});
+        const cognitive=/cognit/i.test(preceding);
+        (out['Jour '+day]??=[]).push({time,period:cognitive?null:p?Number(p[1]):null,kind:cognitive?'cognitive':'course',durationMinutes:cognitive?20:null,group:course[0].replace(/\s+/g,' ').trim(),groupCode:course[0],matchedGroupId:null,activity:cognitive?'Intégration cognitive':'Éducation physique'});
       });
     });
     return out;
@@ -154,6 +155,9 @@
       const group=groups.find(g=>g.id===lesson.matchedGroupId)||matchGroup(lesson.groupCode||lesson.group,groups);
       return {...lesson,group:group?.name||lesson.groupCode||lesson.group,matchedGroupId:group?.id||null};
     })]));
+  }
+  function isCognitive(entry){
+    return entry?.kind==='cognitive'||/cognit/i.test(entry?.activity||'');
   }
   function wordsWithLabels(words){
     const items=(words||[]).filter(w=>w.bbox&&Number(w.confidence??100)>=20);
@@ -202,6 +206,13 @@
       }
     }
     if(!columns.length)return {};
+    const ordered=columns.map(c=>c[columnAxis]).sort((a,b)=>a-b);
+    const spacing=Math.min(...ordered.slice(1).map((v,i)=>v-ordered[i]));
+    for(const word of header.filter(w=>clockValues(w.text).length)){
+      if(Math.abs(nearest(columns,word[columnAxis],columnAxis)[columnAxis]-word[columnAxis])>spacing*.4){
+        columns.push({...word,period:null,kind:'course'});
+      }
+    }
     columns.sort((a,b)=>a[columnAxis]-b[columnAxis]);
     for(const column of columns)column.clocks=[];
     for(const word of header){
@@ -213,6 +224,9 @@
       column.time=clocks[0]?.text||(column.period?'Période '+column.period:'');
       column.endTime=clocks[1]?.text||null;
       column.durationMinutes=clocks.length>=2?clocks[1].minutes-clocks[0].minutes:null;
+      // A separate unnumbered 20-minute column is supervision, not a PE period.
+      if(column.kind==='course'&&column.period===null&&column.durationMinutes===20)column.kind='cognitive';
+      if(column.kind==='cognitive')column.period=null;
     }
     const out={};
     for(const day of days)if(day.day>=1&&day.day<=20)out['Jour '+day.day]??=[];
@@ -222,7 +236,7 @@
       // An unreadable day label must not move its courses to an adjacent day.
       if(Math.abs(day[dayAxis]-word[dayAxis])>rowSpacing*.65)continue;
       if(day.day<1||day.day>20||column.kind==='lunch')continue;
-      (out['Jour '+day.day]??=[]).push({time:column.time,endTime:column.endTime,durationMinutes:column.durationMinutes,period:column.period,kind:column.kind,group:word.text,groupCode:word.text,activity:column.kind==='cognitive'?'Intervention cognitive':'Éducation physique'});
+      (out['Jour '+day.day]??=[]).push({time:column.time,endTime:column.endTime,durationMinutes:column.durationMinutes,period:column.period,kind:column.kind,group:word.text,groupCode:word.text,activity:column.kind==='cognitive'?'Intégration cognitive':'Éducation physique'});
     }
     return out;
   }
@@ -262,6 +276,6 @@
     if(dates.some(d=>validDate(...d.split('-'))!==d||!label(calendar[d])))errors.push('Des dates ou jours scolaires sont invalides.');
     return {errors,warnings,pendingDates,dates,cycleDates,lessons,unlinked,missing,ready:!errors.length};
   }
-  const api={aliases,matchGroup,rosterLines,validDate,label,calendarText,calendarNumberGrid,decouvreursReference,scheduleText,scheduleGrid,wordsWithLabels,relink,review};
+  const api={aliases,matchGroup,rosterLines,validDate,label,calendarText,calendarNumberGrid,decouvreursReference,scheduleText,scheduleGrid,wordsWithLabels,relink,review,isCognitive};
   if(typeof module!=='undefined')module.exports=api;else root.HenriImport=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
