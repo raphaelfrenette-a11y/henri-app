@@ -31,7 +31,7 @@ function choose(date,index){
  option('Créer ma propre planification','Préparer manuellement cette séance.',()=>{el.remove();openQuickSessionForCourse(date,index);}),
  option('Utiliser Henri','Ouvrir la préparation de séance et ses options.',()=>{el.remove();openQuickSessionForCourse(date,index);}),
  option('Importer ma planification PDF','Associer le document complet à plusieurs cours consécutifs.',()=>{el.remove();importForm(date,index);}),
- option('Choisir dans ma banque','Retrouver une planification enregistrée.',()=>{el.remove();if(typeof henriBankOpen==='function')henriBankOpen();else {go('planning');}})
+ option('Choisir dans ma banque','Retrouver une planification enregistrée.',()=>{el.remove();if(typeof openHenriBank==='function')openHenriBank('standalone');else alert('Banque indisponible.');})
  );
 }
 function importForm(date,index){
