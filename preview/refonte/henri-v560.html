@@ -588,10 +588,12 @@ function henriCalendarGroupLabel(entry){
 }
 function henriCalendarLessonLabel(date,entry){
   if(!isPlanningEntry(entry))return '';
-  if(entry.isIndividual)return 'Séance spéciale';
-  if(entry.annualBlockId&&Number.isInteger(entry.sessionIndex))return 'Cours '+(entry.sessionIndex+1);
   const position=henriCoursePosition(date,entry);
-  return position&&entry.annualPlan?'Cours '+position.number:'';
+  const number=entry.annualBlockId&&Number.isInteger(entry.sessionIndex)?entry.sessionIndex+1:position?.number;
+  const sport=entry.annualPlan||position?.sport||'';
+  if(number===4&&String(sport).trim().toLowerCase()==='ultimate')return 'Évaluation';
+  if(number&&sport)return 'Cours '+number;
+  return entry.isIndividual?'Séance individuelle':'';
 }
 function renderWeek(){
   if(!weekGrid) return;
