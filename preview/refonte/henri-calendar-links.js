@@ -96,6 +96,18 @@ function getDatedSequenceOccurrences(sequence){
   }
   return result;
 }
+const henriSequenceJumpsKey='previewHenriSlate:sequenceJumps:v1';
+function henriReadSequenceJumps(){
+  try{return JSON.parse(localStorage.getItem(henriSequenceJumpsKey)||'{}');}
+  catch(error){console.warn('Lecture des ajustements de séquence impossible',error);return {};}
+}
+function henriSequenceJumpId(groupId,slot){return String(groupId)+'|'+slot.key;}
+function henriSaveSequenceJump(groupId,slot,target){
+  const jumps=henriReadSequenceJumps();
+  jumps[henriSequenceJumpId(groupId,slot)]=target;
+  localStorage.setItem(henriSequenceJumpsKey,JSON.stringify(jumps));
+  rebuildPlanningAssignments();
+}
 function getGroupAnnualOccurrences(groupId){
   const reserved=new Set(datedSequences(groupId).flatMap(getDatedSequenceOccurrences).map(s=>s.key));
   return getGroupCourseOccurrences(groupId).filter(s=>!individualForOccurrence(groupId,s)&&!reserved.has(s.key));
@@ -123,7 +135,17 @@ function rebuildCalendarPlanning(){
       const saved=getSavedSequence(group.id,block.id);
       for(let index=0;index<Math.max(0,Number(block.courses)||0);index++)queue.push({annualPlan:block.sport,annualBlockId:block.id,sequenceId:saved?.id||null,sequence:saved?'Séquence planifiée':'Séquence à planifier',sessionIndex:index,session:'Séance '+(index+1)+'/'+block.courses,planData:saved?.sessions[index]||null});
     }
-    getGroupAnnualOccurrences(group.id).forEach((slot,index)=>{if(queue[index])Object.assign(slot.entry,queue[index]);});
+    const jumps=henriReadSequenceJumps();
+    let queueIndex=0;
+    getGroupAnnualOccurrences(group.id).forEach(slot=>{
+      const jump=jumps[henriSequenceJumpId(group.id,slot)];
+      if(jump){
+        const target=queue.findIndex((item,i)=>i>=queueIndex&&item.annualBlockId===jump.blockId&&item.sessionIndex===jump.sessionIndex);
+        if(target>=queueIndex)queueIndex=target;
+      }
+      if(queue[queueIndex])Object.assign(slot.entry,queue[queueIndex]);
+      queueIndex++;
+    });
   }
   localStorage.setItem('previewHenriSlate:henriScheduleEntries',JSON.stringify(scheduleEntries));
   rebuildCalendarEvents();renderMonth();renderWeek();
@@ -154,9 +176,33 @@ function renderCoursePlanningActions(entry,date,index){
   const add=(text,fn)=>{const button=document.createElement('button');button.className='itemBtn';button.textContent=text;button.onclick=fn;container.append(button);};
   if(isPlanningEntry(entry)&&entry.planData)add('Ouvrir la séance',()=>openCalendarSession(date,index));
   else if(isPlanningEntry(entry))add('Préparer cette séance',()=>openQuickSessionForCourse(date,index));
+  if(isPlanningEntry(entry)&&!entry.isIndividual)add('Remplacer cette période',()=>openQuickSessionForCourse(date,index));
+  if(isPlanningEntry(entry)&&entry.annualBlockId)add('Changer de cours dans la séquence',()=>henriChooseSequenceCourse(date,index));
   if(isPlanningEntry(entry)&&(entry.annualBlockId||entry.sequenceId))add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
   const groupId=getEntryGroupId(entry),group=groupsData.find(g=>g.id===groupId);
   if(group)add('Voir les '+group.students.length+' élèves',()=>openGroup(groupId));
+}
+function henriChooseSequenceCourse(date,index){
+  const entry=scheduleEntries[date]?.[index];
+  const groupId=entry&&getEntryGroupId(entry);
+  const slot=groupId&&getGroupCourseOccurrences(groupId).find(s=>s.key===courseOccurrenceKey(date,entry));
+  if(!slot||!entry.annualBlockId)return;
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===entry.annualBlockId);
+  if(!block)return;
+  const current=Number(entry.sessionIndex)||0;
+  const count=Math.max(0,Number(block.courses)||0);
+  const options=Array.from({length:Math.max(0,count-current)},(_,i)=>{
+    const n=current+i+1;
+    return n+' — '+(block.sport==='Ultimate'&&n===4?'Évaluation':'Cours '+n);
+  });
+  if(options.length<2){alert('Il n’y a pas de cours suivant dans cette séquence.');return;}
+  const answer=prompt('Choisir le numéro du cours à faire maintenant pour ce groupe :\\n'+options.join('\\n')+'\\n\\nLes cours intermédiaires seront sautés, mais resteront dans la banque.',String(current+1));
+  if(answer===null)return;
+  const number=Number(answer);
+  if(!Number.isInteger(number)||number<=current+1||number>count){alert('Choisis un numéro de cours suivant valide.');return;}
+  if(!confirm('Passer directement au cours '+number+' ? Les cours intermédiaires seront sautés pour ce groupe seulement.'))return;
+  henriSaveSequenceJump(groupId,slot,{blockId:block.id,sessionIndex:number-1});
+  openCourseEntry(date,index);
 }
 function calendarSequenceFor(entry){
   return entry.annualBlockId?getSavedSequence(getEntryGroupId(entry),entry.annualBlockId):Object.values(savedSequences).find(s=>s.id===entry.sequenceId);
