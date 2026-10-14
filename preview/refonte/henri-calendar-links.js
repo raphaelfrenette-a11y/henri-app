@@ -110,7 +110,10 @@ function henriSaveSequenceJump(groupId,slot,target){
 }
 function getGroupAnnualOccurrences(groupId){
   const reserved=new Set(datedSequences(groupId).flatMap(getDatedSequenceOccurrences).map(s=>s.key));
-  return getGroupCourseOccurrences(groupId).filter(s=>!reserved.has(s.key));
+  return getGroupCourseOccurrences(groupId).filter(slot=>{
+    const individual=individualForOccurrence(groupId,slot);
+    return !reserved.has(slot.key)&&!individual?.independent;
+  });
 }
 function getSequenceOccurrences(sequence){
   if(sequence?.startCourseKey)return getDatedSequenceOccurrences(sequence);
@@ -317,4 +320,20 @@ function openCalendarCourse(date,index){
     }
   }
   openCourseEntry(date,index);
+}
+
+function henriCourseIsEvaluation(entry){
+  if(!isPlanningEntry(entry))return false;
+  const groupId=getEntryGroupId(entry);
+  const sequence=calendarSequenceFor(entry);
+  const block=(annualPlans[groupId]||[]).find(block=>block.id===entry.annualBlockId);
+  const count=sequence?.sessions.length?Math.min(sequence.sessions.length,Number(block?.courses)||sequence.sessions.length):Number(block?.courses)||0;
+  const index=Number.isInteger(entry.courseIndex)?entry.courseIndex:entry.sessionIndex;
+  return count>0&&index===count-1;
+}
+function henriCalendarEvaluationButton(date,entry,index){
+  if(!henriCourseIsEvaluation(entry))return '';
+  const planned=typeof henriEvalForCourse==='function'?henriEvalForCourse(entry):[];
+  const label=planned.length?'Ouvrir l’évaluation planifiée':'Évaluation non planifiée';
+  return '<button type="button" class="calendarEvaluationButton" data-date="'+date+'" aria-label="'+planningHtml(label)+'" '+(planned.length?'onclick="henriEvalOpenCalendar(&quot;'+date+'&quot;,'+index+')"':'disabled title="Planifie d’abord une évaluation dans Planifier."')+'>Évaluation'+(planned.length?' →':' · À planifier')+'</button>';
 }

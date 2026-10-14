@@ -4,7 +4,7 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 function app(){
   const store=new Map();
-  const c={console:{...console,error(){}},structuredClone,crypto:require('node:crypto').webcrypto,window:{addEventListener(){}},document:{getElementById(){return null;}},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},groupsData:[{id:'g1',name:'G1'}],annualPlans:{g1:[{id:'u',sport:'Ultimate',courses:5},{id:'b',sport:'Badminton',courses:3}]},savedSequences:{},activeSequence:null,individualSessions:[],scheduleEntries:{},ensureAnnualPlan(){},rebuildCalendarEvents(){},renderMonth(){},renderWeek(){},individualForOccurrence(){return null;},getSavedSequence(g,b){return c.savedSequences[g+'::'+b]||null;},sequenceStorageKey:(g,b)=>g+'::'+b};
+  const c={HenriImport:{isCognitive:()=>false},console:{...console,error(){}},structuredClone,crypto:require('node:crypto').webcrypto,window:{addEventListener(){}},document:{getElementById(){return null;}},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},groupsData:[{id:'g1',name:'G1'}],annualPlans:{g1:[{id:'u',sport:'Ultimate',courses:5},{id:'b',sport:'Badminton',courses:3}]},savedSequences:{},activeSequence:null,individualSessions:[],scheduleEntries:{},ensureAnnualPlan(){},rebuildCalendarEvents(){},renderMonth(){},renderWeek(){},individualForOccurrence(){return null;},getSavedSequence(g,b){return c.savedSequences[g+'::'+b]||null;},sequenceStorageKey:(g,b)=>g+'::'+b};
   for(let i=0;i<8;i++)c.scheduleEntries['2026-10-'+String(19+i).padStart(2,'0')]=[{time:'8:00',groupId:'g1'}];
   const occurrences=g=>Object.entries(c.scheduleEntries).flatMap(([date,entries])=>entries.filter(e=>e.groupId===g).map(entry=>({date,key:date+'|'+g,entry})));
   vm.createContext(c);
@@ -66,4 +66,19 @@ test('annual course ordinal exists even without a saved session',()=>{
 test('standalone lesson occupies its numbered annual period without shifting the next sport',()=>{
  const c=app();c.individualSessions.push({id:'individual',groupId:'g1',courseKey:'2026-10-23|g1',sport:'Ultimate',title:'Séance seule',blocks:[]});c.rebuildCalendarPlanning();
  const slots=c.getGroupCourseOccurrences('g1');assert.equal(slots[4].entry.individualId,'individual');assert.equal(slots[4].entry.courseIndex,4);assert.equal(slots[4].entry.courseTotal,5);assert.equal(slots[5].entry.annualBlockId,'b');
+});
+test('annual multi-group application preserves four-course blocks with spare periods',async()=>{
+ const c=app();c.annualPlans.g1=[{id:'u',sport:'Ultimate',comp:'C2',courses:4},{id:'f',sport:'Conditionnement physique',comp:'C3',courses:4}];c.groupsData.push({id:'g2',name:'G2'});
+ for(let i=0;i<10;i++)c.scheduleEntries['2026-11-'+String(1+i).padStart(2,'0')]=[{groupId:'g2',time:'9:00'}];
+ c.annualGroup={value:'g1'};c.annualTargetIds=()=>['g1','g2'];c.henriPersistSharedState=()=>{};c.getGroupCourseSlots=id=>c.getGroupAnnualOccurrences(id).length;c.rebuildPlanningAssignments=c.rebuildCalendarPlanning;c.go=()=>{};c.setCalendarView=()=>{};
+ await c.saveAnnualAndPlanSequences();assert.deepEqual(Array.from(c.annualPlans.g2,b=>b.courses),[4,4]);assert.notEqual(c.annualPlans.g2[0].id,'u');
+ const slots=c.getGroupCourseOccurrences('g2');assert.equal(slots[3].entry.courseTotal,4);assert.equal(slots[4].entry.annualPlan,'Conditionnement physique');assert.equal(slots[7].entry.courseTotal,4);assert.equal(slots[8].entry.annualBlockId,null);assert.equal(slots[9].entry.annualBlockId,null);
+});
+test('standalone lesson on a spare period reduces capacity without expanding annual blocks',()=>{
+ const c=app();c.annualPlans.g1=[{id:'u',sport:'Ultimate',courses:4}];c.individualSessions.push({id:'free',groupId:'g1',courseKey:'2026-10-23|g1',independent:true,sport:'Jeux',title:'Séance seule',blocks:[]});c.rebuildCalendarPlanning();
+ assert.equal(c.getGroupAnnualOccurrences('g1').length,7);const slots=c.getGroupCourseOccurrences('g1');assert.equal(slots[4].entry.individualId,'free');assert.equal(slots[4].entry.annualBlockId,null);assert.equal(slots[3].entry.courseTotal,4);assert.equal(slots[5].entry.annualBlockId,null);
+});
+test('an old oversized sequence never adds a fifth calendar course to an annual block of four',()=>{
+ const c=app();c.annualPlans.g1=[{id:'u',sport:'Ultimate',courses:4}];c.savedSequences['g1::u'].sessions.push({id:'extra',title:'Ancienne séance 5',blocks:[]});c.rebuildCalendarPlanning();
+ const slots=c.getGroupCourseOccurrences('g1');assert.equal(slots.filter(s=>s.entry.annualBlockId==='u').length,4);assert.equal(slots[3].entry.courseTotal,4);assert.equal(slots[4].entry.annualBlockId,null);c.getEntryGroupId=e=>e.groupId;assert.equal(c.henriCourseIsEvaluation(slots[3].entry),true);assert.equal(c.henriCourseIsEvaluation(slots[4].entry),false);
 });

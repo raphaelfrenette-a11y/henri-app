@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#f7f8fa">
 <link rel="icon" href="henri-icon.svg?v=d3c3f1cf" type="image/svg+xml">
 <link rel="stylesheet" href="henri-layout.css?v=d3c3f1cf">
-<link rel="stylesheet" href="henri-design.css?v=course-numbers-1-d3c3f1cf">
+<link rel="stylesheet" href="henri-design.css?v=evaluation-links-1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
@@ -572,9 +572,9 @@
 
 <script src="henri-visuals.js?v=d3c3f1cf"></script>
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
-<script src="henri-planning.js?v=issue4-keep-1"></script>
+<script src="henri-planning.js?v=annual-exact-counts-1"></script>
 <script src="henri-import.js?v=d3c3f1cf"></script>
-<script src="henri-calendar-links.js?v=issue4-course-numbers-1"></script>
+<script src="henri-calendar-links.js?v=evaluation-links-1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -749,7 +749,7 @@ function renderWeek(){
             (henriCalendarLessonLabel(key,entry)?'<span class="henriWeekLesson">'+planningHtml(henriCalendarLessonLabel(key,entry))+'</span>':'')+
             (getCourseNote(key,entry).trim()?'<span class="henriWeekNote" title="Note personnelle">● Note</span>':'')+
           '</span>'+
-        '</button>';     });
+        '</button>'+henriCalendarEvaluationButton(key,entry,originalIndex);     });
     }
     blocked.forEach(({entry,exception})=>{
       out+='<button class="weekEvent blockedCourse" style="--groupColor:#9a654b" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+planningHtml(entry.group)+'</span><span class="quickSport">'+HenriVisuals.icon('pause')+exception.type+'</span></button>';
@@ -779,6 +779,7 @@ function openDayPlan(date){
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+sport+(henriCalendarLessonLabel(date,entry)?' · '+henriCalendarLessonLabel(date,entry):'')+'</div>'+
       '<button class="sessionLink" onclick="openCalendarCourse(\''+date+'\','+originalIndex+')">'+session+'</button>'+
+      henriCalendarEvaluationButton(date,entry,originalIndex)+
       (getEntryGroupId(entry)?'<button class="itemBtn" onclick="openGroup(\''+getEntryGroupId(entry)+'\')">Voir les élèves</button>':'')+
     '</div>');
   });
@@ -992,7 +993,7 @@ function renderMonth(){
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
         const sport=entry.annualPlan||(isPlanningEntry(entry)?'À planifier':'Intégration cognitive');
         const label=henriCalendarLessonLabel(key,entry);
-        return '<button class="monthCourseButton" data-date="'+key+'" data-course-index="'+originalIndex+'" aria-label="'+escape(sport+' · '+label+' · '+henriCalendarGroupLabel(entry)+' · '+entry.time)+'" onclick="openCalendarCourse(&quot;'+key+'&quot;,'+originalIndex+')"><strong>'+escape(sport)+'</strong>'+(label?'<span>'+escape(label)+'</span>':'')+'<small>'+escape(henriCalendarGroupLabel(entry)+' · '+entry.time)+'</small></button>';
+        return '<button class="monthCourseButton" data-date="'+key+'" data-course-index="'+originalIndex+'" aria-label="'+escape(sport+' · '+label+' · '+henriCalendarGroupLabel(entry)+' · '+entry.time)+'" onclick="openCalendarCourse(&quot;'+key+'&quot;,'+originalIndex+')"><strong>'+escape(sport)+'</strong>'+(label?'<span>'+escape(label)+'</span>':'')+'<small>'+escape(henriCalendarGroupLabel(entry)+' · '+entry.time)+'</small></button>'+henriCalendarEvaluationButton(key,entry,originalIndex);
       }).join('')+
     '</div>';
   }
@@ -1411,7 +1412,7 @@ function renderAnnualPlanner(){
     annualSyncText.textContent=overflow
       ? 'La planification dépasse de '+overflow+' cours les périodes disponibles. Henri conserve l’ordre et te montre quoi ajuster.'
       : remaining
-        ? remaining+' cours restent disponibles. Déplace un bloc et toutes les dates suivantes se recalculent.'
+        ? remaining+' périodes restent disponibles : ajoute un bloc annuel ou des séances individuelles.'
         : 'Toute l’année disponible est placée. Déplace un bloc et toutes les dates suivantes se recalculent.';
   }
   if(annualConflict) annualConflict.innerHTML=renderScheduleConflict(groupId);
@@ -2093,6 +2094,8 @@ function scheduleQuickSession(){
     objective:quickSessionData.objective,
     comp:quickSessionData.comp,
     courseKey:slot.key,
+    annualBlockId:slot.entry.annualBlockId||null,
+    independent:!slot.entry.annualBlockId,
     time:slot.entry.time,
     blocks:quickSessionData.blocks.map(b=>({...b}))
   });
@@ -2111,7 +2114,7 @@ function scheduleQuickSession(){
       individualSessions.push({
         id:'ind-'+Date.now()+'-'+String(group.id),date:match.date,groupId:group.id,groupName:group.name,
         sport:quickSessionData.sport,title:quickSessionData.title,duration:quickSessionData.duration,
-        objective:quickSessionData.objective,comp:quickSessionData.comp,courseKey:match.key,time:match.entry.time,
+        objective:quickSessionData.objective,comp:quickSessionData.comp,courseKey:match.key,annualBlockId:match.entry.annualBlockId||null,independent:!match.entry.annualBlockId,time:match.entry.time,
         blocks:quickSessionData.blocks.map(b=>({...b}))
       });
     }
@@ -3437,6 +3440,6 @@ setTimeout(()=>{
 <script src="henri-bank-v1.js?v=issue4-keep-1"></script>
 <script src="henri-calendar-pdf.js?v=5efa0d3"></script>
 <script src="henri-ux.js?v=issue4-course-numbers-1"></script>
-<script src="henri-evaluations.js?v=0b37e7d5"></script>
+<script src="henri-evaluations.js?v=evaluation-links-1"></script>
 </body>
 </html>

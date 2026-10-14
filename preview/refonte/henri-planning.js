@@ -203,43 +203,43 @@ async function deleteAnnualBlock(id){
     saveAnnual();renderAnnualPlanner();planningReport('Bloc retiré. Les autres blocs et leurs contenus sont conservés.');
   }catch(error){const snapshot=JSON.parse(before);annualPlans=snapshot.annualPlans;savedSequences=snapshot.savedSequences;activeSequence=snapshot.activeSequence;planningError(error);renderAnnualPlanner();}
 }
-function saveAnnualAndPlanSequences(){
+async function saveAnnualAndPlanSequences(){
+  if(planningActionBusy)return;
   const sourceId=annualGroup.value;
   if(!requirePlanningGroup(sourceId))return;
   const source=annualPlans[sourceId];
   if(!source?.length){planningReport('Crée ta répartition avant de l’enregistrer.',true);return;}
   const ids=annualTargetIds();
   if(!ids.length){planningReport('Sélectionne au moins un groupe.',true);return;}
+  const replaced=ids.filter(id=>id!==sourceId&&annualPlans[id]?.length);
+  if(replaced.length&&!confirm('Remplacer la planification annuelle de '+replaced.length+' groupe(s) par une copie avec les mêmes nombres de cours ? Les plans précédents seront archivés.'))return;
+  planningActionBusy=true;
   const snapshot=JSON.stringify({annualPlans,savedSequences,activeSequence});
+  let committed=false;
   try{
-    // The edited annual plan is the template for all selected groups.
-    // Keep each group's actual number of available teaching periods.
+    for(const id of replaced){
+      await henriBankStoreAnnual(id,annualPlans[id]);
+      for(const block of annualPlans[id]){const old=getSavedSequence(id,block.id);if(old)await archivePlanningSequence(old);}
+    }
     for(const id of ids){
       if(id===sourceId)continue;
-      const available=getGroupCourseSlots(id);
-      if(!available)continue;
-      const total=source.reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
-      let allocated=0;
-      annualPlans[id]=source.map((block,index)=>{
-        const end=total?Math.round(source.slice(0,index+1).reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0)*available/total):0;
-        const courses=Math.max(0,end-allocated);allocated=end;
-        return {...block,id:planningId('annual'),courses};
-      }).filter(b=>b.courses>0);
-      // Previously saved sequences refer to the old annual block IDs; leave them
-      // in the bank rather than associating them with a different sport.
+      // Copy the teacher's exact counts; spare periods never extend a sport.
+      annualPlans[id]=source.map(block=>({...JSON.parse(JSON.stringify(block)),id:planningId('annual')}));
     }
-    henriPersistSharedState();
+    henriPersistSharedState();committed=true;
     rebuildPlanningAssignments();
     renderMonth();renderWeek();
     for(const id of ids)if(annualPlans[id]?.length&&typeof henriBankStoreAnnual==='function')henriBankStoreAnnual(id,annualPlans[id]).catch(planningError);
     go('home');setCalendarView('month');
-    planningReport('Planification appliquée au calendrier pour '+ids.length+' groupe(s), selon leurs périodes réelles.');
+    const total=source.reduce((sum,block)=>sum+Number(block.courses),0);
+    const balances=ids.map(id=>{const group=groupsData.find(group=>group.id===id),balance=getGroupCourseSlots(id)-total;return group.name+' : '+(balance>=0?balance+' périodes restantes':(-balance)+' cours sans période disponible');});
+    planningReport('Planification appliquée avec les nombres de cours conservés. '+balances.join(' · '));
   }catch(error){
-    const before=JSON.parse(snapshot);
-    annualPlans=before.annualPlans;savedSequences=before.savedSequences;activeSequence=before.activeSequence;
+    if(!committed){const before=JSON.parse(snapshot);annualPlans=before.annualPlans;savedSequences=before.savedSequences;activeSequence=before.activeSequence;}
     planningError(error);
-  }
+  }finally{planningActionBusy=false;}
 }
+
 function openMacroSequence(groupId,blockId,fromCalendar=false){
   calendarPlanEditing=fromCalendar;calendarIndividualEditing=null;
   const block=(annualPlans[groupId]||[]).find(b=>b.id===blockId),group=requirePlanningGroup(groupId);if(!block||!group)return;
