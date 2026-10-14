@@ -30,6 +30,17 @@
 #courseDetail #coursePersonalNotes .itemBtn{margin-top:12px;min-height:44px}
 #courseDetail #henriCourseJumpPicker{flex-basis:100%;margin-top:12px!important;background:var(--surface,#fff)}
 @media(max-width:640px){#courseDetail .placeholder{padding:19px 17px}#courseDetail .henriCourseEvalActions .itemBtn{width:100%}}
+
+/* Weekly cards: one fluid content column; never overlap on narrow iPad columns. */
+#home .weekEvent{display:grid;grid-template-columns:3px minmax(0,1fr);gap:12px;align-items:stretch;min-width:0;padding:15px 13px}
+#home .weekEvent>.groupBar{grid-column:1;grid-row:1;height:auto;min-height:34px;width:3px;align-self:stretch}
+#home .henriWeekEventBody{grid-column:2;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;width:100%}
+#home .henriWeekEventBody>.time,#home .henriWeekEventBody>.course,#home .henriWeekEventBody>.quickSport,#home .henriWeekLesson,#home .henriWeekNote{position:static;grid-column:auto;grid-row:auto;max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal;line-height:1.4;margin:0}
+#home .henriWeekEventBody>.time{font-size:12px;white-space:nowrap}
+#home .henriWeekEventBody>.course{font-size:13px;font-weight:650}
+#home .henriWeekEventBody>.quickSport{width:auto;display:inline-flex;flex-wrap:wrap;gap:5px;padding:5px 8px;font-size:12px}
+#home .henriWeekLesson{display:block;font-size:11px;color:var(--muted);opacity:.9}
+#home .henriWeekNote{display:block;font-size:11px;color:#9b6434;font-weight:650}
 </style>
 </head>
 <body>
@@ -706,14 +717,15 @@ function renderWeek(){
         const groupColor=groupColors[groupIndex%groupColors.length];
         const sportLower=sport.toLowerCase();
         out+='<button class="weekEvent '+HenriVisuals.courseState(entry)+'" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
-          '<span class="time">'+entry.time+'</span>'+
           '<span class="groupBar" aria-hidden="true"></span>'+
-          '<span class="course">'+planningHtml(henriCalendarGroupLabel(entry))+'</span>'+
-          '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+ 
-          (henriCalendarLessonLabel(key,entry)?'<span style="grid-column:3 / -1;grid-row:auto;display:block;min-width:0;font-size:11px;line-height:1.45;opacity:.75;white-space:normal;overflow-wrap:anywhere">'+henriCalendarLessonLabel(key,entry)+'</span>':'')+
-          (getCourseNote(key,entry).trim()?'<span title="Note personnelle" style="grid-column:3 / -1;grid-row:auto;display:block;min-width:0;font-size:11px;line-height:1.45;color:#9b6434;font-weight:650;white-space:normal">● Note</span>':'')+
-        '</button>';
-      });
+          '<span class="henriWeekEventBody">'+
+            '<span class="time">'+entry.time+'</span>'+
+            '<span class="course">'+planningHtml(henriCalendarGroupLabel(entry))+'</span>'+
+            '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+planningHtml(sport)+'</span>'+
+            (henriCalendarLessonLabel(key,entry)?'<span class="henriWeekLesson">'+planningHtml(henriCalendarLessonLabel(key,entry))+'</span>':'')+
+            (getCourseNote(key,entry).trim()?'<span class="henriWeekNote" title="Note personnelle">● Note</span>':'')+
+          '</span>'+
+        '</button>';     });
     }
     blocked.forEach(({entry,exception})=>{
       out+='<button class="weekEvent blockedCourse" style="--groupColor:#9a654b" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+planningHtml(entry.group)+'</span><span class="quickSport">'+HenriVisuals.icon('pause')+exception.type+'</span></button>';
