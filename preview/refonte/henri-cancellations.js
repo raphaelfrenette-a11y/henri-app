@@ -46,3 +46,27 @@ function henriOpenCancellationForm(date,index=null){
   const cancel=document.createElement('button');cancel.className='itemBtn';cancel.textContent='Fermer';cancel.onclick=()=>panel.remove();
   panel.append(title,hint,list,field,apply,cancel);dayPlanCourses.prepend(panel);panel.scrollIntoView({block:'start'});
 }
+
+// Teacher-requested outing: apply only the two explicit course codes on this date.
+// The per-code marker also respects a later deliberate restoration by the teacher.
+function henriApplyOctober16Outing(){
+  const date='2026-10-16',key='previewHenriSlate:outing2026-10-16:v1';
+  try{
+    const done=JSON.parse(localStorage.getItem(key)||'{"codes":[]}');
+    const targets=new Set(['EDU4G201','EDU4G202'].filter(code=>!done.codes.includes(code)));
+    if(!targets.size)return;
+    const matched=new Set(),indices=[];
+    (scheduleEntries[date]||[]).forEach((entry,index)=>{
+      if(!isPlanningEntry(entry))return;
+      const groupId=getEntryGroupId(entry),group=groupsData.find(group=>group.id===groupId);
+      if(!group)return;
+      const values=[entry.groupCode,entry.group,group.name,group.id,...(group.sourceCodes||[])];
+      const codes=values.flatMap(value=>Array.from(String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').matchAll(/EDU4G20?([12])(?!\d)/g),match=>'EDU4G20'+match[1]));
+      const code=codes.find(code=>targets.has(code));if(!code)return;
+      matched.add(code);if(!getCalendarException(date,groupId,entry))indices.push(index);
+    });
+    if(!matched.size)return;
+    if(indices.length&&!henriCancelCourses(date,indices,'Sortie scolaire'))return;
+    localStorage.setItem(key,JSON.stringify({at:new Date().toISOString(),codes:[...new Set([...done.codes,...matched])]}));
+  }catch(error){planningError(error);}
+}

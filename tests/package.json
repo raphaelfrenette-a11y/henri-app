@@ -11,7 +11,8 @@
     "browser:roster": "cd .. && node tests/browser-teacher-roster.cjs",
     "unit:ultimate-repair": "cd .. && node tests/ultimate-migration.test.cjs",
     "browser:ultimate-repair": "cd .. && node tests/browser-ultimate-migration.cjs",
-    "browser:cancellations": "cd .. && node tests/browser-cancellations.cjs"
+    "browser:cancellations": "cd .. && node tests/browser-cancellations.cjs",
+    "browser:friday-outing": "cd .. && node tests/browser-friday-outing.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"
