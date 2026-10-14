@@ -166,7 +166,16 @@ function rebuildCalendarPlanning(){
     const queue=[];
     for(const block of annualPlans[group.id]){
       const saved=getSavedSequence(group.id,block.id);
-      for(let index=0;index<Math.max(0,Number(block.courses)||0);index++)queue.push({annualPlan:block.sport,annualBlockId:block.id,sequenceId:saved?.id||null,sequence:saved?'Séquence planifiée':'Séquence à planifier',sessionIndex:index,session:'Séance '+(index+1)+'/'+block.courses,planData:saved?.sessions[index]||null});
+      for(let index=0;index<Math.max(0,Number(block.courses)||0);index++){
+        const isExtendedUltimate=String(block.sport||'').trim().toLowerCase()==='ultimate'
+          &&(annualPlans[group.id]||[]).some(b=>String(b.sport||'').trim().toLowerCase()==='badminton')
+          &&Number(block.courses)>4;
+        // The extra Ultimate periods are practice/revision at the start, not a fifth lesson.
+        // Keep the exact same number of calendar slots so badminton dates do not move.
+        const lessonIndex=isExtendedUltimate?Math.max(0,index-(Number(block.courses)-4)):index;
+        const lessonTotal=isExtendedUltimate?4:Number(block.courses);
+        queue.push({annualPlan:block.sport,annualBlockId:block.id,sequenceId:saved?.id||null,sequence:saved?'Séquence planifiée':'Séquence à planifier',sessionIndex:lessonIndex,session:'Séance '+(lessonIndex+1)+'/'+lessonTotal,planData:saved?.sessions[lessonIndex]||null});
+      }
     }
     const jumps=henriReadSequenceJumps();
     let queueIndex=0;
