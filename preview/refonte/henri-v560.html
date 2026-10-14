@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#f7f8fa">
 <link rel="icon" href="henri-icon.svg?v=d3c3f1cf" type="image/svg+xml">
 <link rel="stylesheet" href="henri-layout.css?v=d3c3f1cf">
-<link rel="stylesheet" href="henri-design.css?v=discreet-eval-cancel-1">
+<link rel="stylesheet" href="henri-design.css?v=eval-button-centered-1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
@@ -575,8 +575,8 @@
 <script src="henri-planning.js?v=annual-exact-counts-1"></script>
 <script src="henri-import.js?v=teacher-roster-removal-1"></script>
 <script src="henri-ultimate-migration.js?v=ultimate-four-1"></script>
-<script src="henri-calendar-links.js?v=course-cancel-1"></script>
-<script src="henri-cancellations.js?v=course-cancel-1"></script>
+<script src="henri-calendar-links.js?v=eval-button-centered-1"></script>
+<script src="henri-cancellations.js?v=outing-oct16-1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -3406,6 +3406,7 @@ function generateMySchedule(){
   localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
   rebuildPlanningAssignments();
   henriSyncSharedData({skipSequenceEditor:true});
+  henriApplyOctober16Outing();
   const entries=Object.values(scheduleEntries).flat();
   const total=entries.filter(isPlanningEntry).length;
   const cognitive=entries.filter(entry=>HenriImport.isCognitive(entry)).length;
@@ -3426,6 +3427,7 @@ if(savedSchoolDays) schoolDays=savedSchoolDays;
 
 henriEnsureSessionIds();
 rebuildPlanningAssignments();
+henriApplyOctober16Outing();
 renderWeek();
 renderGroups();
 fillTeamBuilderGroups();

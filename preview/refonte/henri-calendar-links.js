@@ -339,5 +339,5 @@ function henriCalendarEvaluationButton(date,entry,index){
   if(!henriCourseIsEvaluation(entry))return '';
   const planned=typeof henriEvalForCourse==='function'?henriEvalForCourse(entry):[];
   const label=planned.length?'Ouvrir l’évaluation planifiée':'Évaluation non planifiée';
-  return '<button type="button" class="calendarEvaluationButton" data-date="'+date+'" aria-label="'+planningHtml(label)+'" '+(planned.length?'onclick="henriEvalOpenCalendar(&quot;'+date+'&quot;,'+index+')"':'disabled title="Planifie d’abord une évaluation dans Planifier."')+'>Évaluation'+(planned.length?' →':' · À planifier')+'</button>';
+  return '<button type="button" class="calendarEvaluationButton" data-date="'+date+'" aria-label="'+planningHtml(label)+'" '+(planned.length?'onclick="henriEvalOpenCalendar(&quot;'+date+'&quot;,'+index+')"':'disabled title="Planifie d’abord une évaluation dans Planifier."')+'>Évaluation'+(planned.length?' ›':'')+'</button>';
 }
