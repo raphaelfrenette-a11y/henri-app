@@ -24,7 +24,7 @@ const assert=require('node:assert/strict');
  await page.locator('#coursePlanningActions').getByRole('button',{name:'Créer une séance seule',exact:true}).click();assert.equal(await page.locator('#quickSport').inputValue(),'Badminton');assert.match(await page.locator('#quickContext').innerText(),/23 oct/);
  await page.evaluate(()=>{buildQuickSession();scheduleQuickSession();});
  const state=await page.evaluate(()=>{const slots=getGroupCourseOccurrences('g1');return {fifth:slots[4].entry.isIndividual,rank:henriCalendarLessonLabel(slots[4].date,slots[4].entry),next:slots[5].entry.annualBlockId,date:slots[5].date};});
- assert.deepEqual(state,{fifth:true,rank:'Cours 5/5',next:'v',date:'2026-10-24'});
+ assert.deepEqual(state,{fifth:true,rank:'Séance individuelle',next:'v',date:'2026-10-24'});
  await page.reload();await month();await page.locator('.monthCourseButton[data-date="2026-10-23"]').click();assert.equal(await page.locator('.screen.active').getAttribute('id'),'sessionEditor');assert.match(await page.locator('#editSessionTitle').innerText(),/Badminton/);
  // An entirely unplanned block still has course numbers and a sequence creation path.
  await page.evaluate(()=>{savedSequences={};activeSequence=null;henriPersistSharedState();rebuildPlanningAssignments();});await month();await third.click();
