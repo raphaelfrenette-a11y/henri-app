@@ -574,6 +574,7 @@
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
 <script src="henri-planning.js?v=annual-exact-counts-1"></script>
 <script src="henri-import.js?v=teacher-roster-removal-1"></script>
+<script src="henri-ultimate-migration.js?v=ultimate-four-1"></script>
 <script src="henri-calendar-links.js?v=evaluation-links-1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
@@ -1007,6 +1008,7 @@ function changeMonth(delta){
 }
 
 const planCompetenceNames={C1:'Agir',C2:'Interagir',C3:'Mode de vie sain et actif'};
+try{const repair=HenriUltimateRepair.repair(localStorage);if(repair.changed)planningReport('Ultimate corrigé à 4 cours dans '+new Set(repair.affected.map(item=>item.groupId)).size+' groupe(s). Évaluation au cours 4; données précédentes sauvegardées.');}catch(error){console.error('Correction Ultimate 4 cours',error);planningReport('Correction Ultimate impossible : '+error.message,true);}
 let annualPlans=JSON.parse(localStorage.getItem('previewHenriSlate:henriAnnualPlans')||'{}');
 let activeSequence=JSON.parse(localStorage.getItem('previewHenriSlate:henriActiveSequence')||'null');
 let savedSequences=JSON.parse(localStorage.getItem('previewHenriSlate:henriSequences')||'{}');
