@@ -58,3 +58,12 @@ test('explicit jumps remain inside their annual block',()=>{
 test('new draft does not replace previously saved sequence implicitly',()=>{
   const c=app();c.activeSequence=structuredClone(c.savedSequences['g1::u']);c.activeSequence.id='new-draft';c.activeSequence.sessions[0].title='Draft';c.henriSyncSequenceToAnnual();assert.equal(c.savedSequences['g1::u'].sessions[0].title,'Séance 1');
 });
+test('annual course ordinal exists even without a saved session',()=>{
+ const c=app();c.rebuildCalendarPlanning();const slots=c.getGroupCourseOccurrences('g1');
+ assert.equal(slots[4].entry.courseIndex,4);assert.equal(slots[4].entry.courseTotal,5);assert.equal(slots[4].entry.sessionIndex,null);
+ assert.equal(slots[7].entry.courseIndex,2);assert.equal(slots[7].entry.courseTotal,3);assert.equal(slots[7].entry.planData,null);
+});
+test('standalone lesson occupies its numbered annual period without shifting the next sport',()=>{
+ const c=app();c.individualSessions.push({id:'individual',groupId:'g1',courseKey:'2026-10-23|g1',sport:'Ultimate',title:'Séance seule',blocks:[]});c.rebuildCalendarPlanning();
+ const slots=c.getGroupCourseOccurrences('g1');assert.equal(slots[4].entry.individualId,'individual');assert.equal(slots[4].entry.courseIndex,4);assert.equal(slots[4].entry.courseTotal,5);assert.equal(slots[5].entry.annualBlockId,'b');
+});

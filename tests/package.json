@@ -3,7 +3,10 @@
   "private": true,
   "scripts": {
     "unit": "cd .. && node tests/sequence-keep.test.cjs",
-    "browser": "cd .. && node tests/browser-sequence-keep.cjs"
+    "browser": "cd .. && node tests/browser-sequence-keep.cjs",
+    "browser:course-numbers": "cd .. && node tests/browser-course-numbers.cjs"
   },
-  "devDependencies": { "playwright": "1.62.1" }
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
 }

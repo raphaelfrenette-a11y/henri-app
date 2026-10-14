@@ -110,7 +110,7 @@ function henriSaveSequenceJump(groupId,slot,target){
 }
 function getGroupAnnualOccurrences(groupId){
   const reserved=new Set(datedSequences(groupId).flatMap(getDatedSequenceOccurrences).map(s=>s.key));
-  return getGroupCourseOccurrences(groupId).filter(s=>!individualForOccurrence(groupId,s)&&!reserved.has(s.key));
+  return getGroupCourseOccurrences(groupId).filter(s=>!reserved.has(s.key));
 }
 function getSequenceOccurrences(sequence){
   if(sequence?.startCourseKey)return getDatedSequenceOccurrences(sequence);
@@ -131,7 +131,7 @@ function getSequenceOccurrences(sequence){
 }
 function rebuildCalendarPlanning(){
   if(typeof groupsData==='undefined')return;
-  for(const entry of Object.values(scheduleEntries).flat())Object.assign(entry,{annualPlan:null,sequence:null,session:null,annualBlockId:null,sequenceId:null,sessionIndex:null,sessionId:null,individualId:null,planData:null,isIndividual:false});
+  for(const entry of Object.values(scheduleEntries).flat())Object.assign(entry,{annualPlan:null,sequence:null,session:null,annualBlockId:null,sequenceId:null,sessionIndex:null,sessionId:null,courseIndex:null,courseTotal:null,individualId:null,planData:null,isIndividual:false});
   for(const group of groupsData){
     ensureAnnualPlan(group.id);
     for(const slot of getGroupCourseOccurrences(group.id)){
@@ -144,7 +144,7 @@ function rebuildCalendarPlanning(){
       const saved=getSavedSequence(group.id,block.id);
       for(let index=0;index<Math.max(0,Number(block.courses)||0);index++){
         const session=saved?.sessions[index];
-        queue.push({annualPlan:block.sport,annualBlockId:block.id,sequenceId:session?saved.id:null,sequence:session?'Séquence planifiée':'Séquence à planifier',sessionIndex:session?index:null,sessionId:session?.id||null,session:session?'Séance '+(index+1)+'/'+saved.sessions.length:'À planifier',planData:session||null});
+        queue.push({annualPlan:block.sport,annualBlockId:block.id,courseIndex:index,courseTotal:Number(block.courses),sequenceId:session?saved.id:null,sequence:session?'Séquence planifiée':'Séquence à planifier',sessionIndex:session?index:null,sessionId:session?.id||null,session:session?'Séance '+(index+1)+'/'+saved.sessions.length:'À planifier',planData:session||null});
       }
     }
     const jumps=henriReadSequenceJumps();
@@ -155,6 +155,8 @@ function rebuildCalendarPlanning(){
       const jump=jumps[henriSequenceJumpId(group.id,slot)];
       const blockStart=queue.findIndex(item=>item.annualBlockId===blockId);
       const periodIndex=index-blockStart;
+      // A standalone session replaces this period without moving later blocks.
+      if(slot.entry.isIndividual){Object.assign(slot.entry,{annualBlockId:base.annualBlockId,courseIndex:base.courseIndex,courseTotal:base.courseTotal});return;}
       if(jump?.blockId===blockId&&Number.isInteger(jump.sessionIndex)&&jump.sessionIndex>periodIndex+lessonOffset)lessonOffset=jump.sessionIndex-periodIndex;
       const target=queue[index+lessonOffset];
       if(target?.annualBlockId===blockId)Object.assign(slot.entry,target);
@@ -223,10 +225,13 @@ function renderCoursePlanningActions(entry,date,index){
     add('Supprimer cette séance',()=>henriDeleteIndividualFromCourse(date,index));
   }else{
     if(isPlanningEntry(entry)&&entry.planData)add('Ouvrir la séance',()=>openCalendarSession(date,index));
-    else if(isPlanningEntry(entry))add('Préparer cette séance',()=>openQuickSessionForCourse(date,index));
+    else if(isPlanningEntry(entry)){
+      if(entry.annualBlockId)add(getSavedSequence(getEntryGroupId(entry),entry.annualBlockId)?'Créer / compléter la séquence':'Créer la séquence',()=>openCalendarSequence(date,index));
+      add('Créer une séance seule',()=>openQuickSessionForCourse(date,index));
+    }
     if(isPlanningEntry(entry))add('Remplacer cette période',()=>openQuickSessionForCourse(date,index));
-    if(isPlanningEntry(entry)&&entry.annualBlockId)add('Changer de cours dans la séquence',()=>henriChooseSequenceCourse(date,index));
-    if(isPlanningEntry(entry)&&(entry.annualBlockId||entry.sequenceId))add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
+    if(isPlanningEntry(entry)&&entry.planData&&entry.annualBlockId)add('Changer de cours dans la séquence',()=>henriChooseSequenceCourse(date,index));
+    if(isPlanningEntry(entry)&&entry.planData&&(entry.annualBlockId||entry.sequenceId))add('Ouvrir la séquence',()=>openCalendarSequence(date,index));
   }
 }
 function henriChooseSequenceCourse(date,index){
@@ -298,4 +303,18 @@ function persistCalendarIndividual(){
   individualSessions[index]={...individualSessions[index],...updated};
   localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
   rebuildPlanningAssignments();
+}
+
+// Calendar cards open the exact session; unplanned cards show both creation paths.
+function openCalendarCourse(date,index){
+  const entry=scheduleEntries[date]?.[index];if(!entry)return;
+  if(isPlanningEntry(entry)){
+    const individual=henriIndividualAtCourse(date,entry);
+    const saved=calendarSequenceFor(entry);
+    const sessionIndex=entry.sessionId?saved?.sessions.findIndex(session=>session.id===entry.sessionId):entry.sessionIndex;
+    if(individual||(Number.isInteger(sessionIndex)&&sessionIndex>=0&&saved?.sessions[sessionIndex])){
+      openCalendarSession(date,index);return;
+    }
+  }
+  openCourseEntry(date,index);
 }
