@@ -93,7 +93,7 @@
 <section id="henriBank" class="screen">
   <button id="henriBankBackBtn" class="back" onclick="henriBankBack()">‹ Retour à Planifier</button>
   <h1>Ma banque de planifications</h1>
-  <p class="planIntro">Tes créations restent disponibles d’année en année. Réutiliser une séquence crée une copie sans modifier l’original.</p>
+  <p class="planIntro">Tes créations restent disponibles d’année en année. Réutiliser une séquence crée une copie sans modifier l’original.</p><div class="henriBankPanel" style="margin-bottom:14px"><button class="planMenuCard" onclick="henriEvalOpenBank()"><span class="planMenuIcon">✓</span><span><strong>Mes évaluations</strong><small>Grilles, groupes et résultats des élèves.</small></span><span class="groupArrow">›</span></button></div>
   <div class="henriBankPanel">
     <div class="henriBankInfo"><strong id="henriBankCount">Ma banque</strong><span>Tes contenus sont enregistrés sur cet appareil. Exporte-les avant de changer d’appareil.</span></div>
     <input id="henriBankSearch" class="planControl" placeholder="Rechercher une planification…" oninput="henriBankRefresh()" aria-label="Rechercher des planifications">
@@ -105,7 +105,7 @@
     <div id="henriBankDetail" class="henriBankDetail" style="display:none"></div>
   </div>
 </section>
-<section id="annualPlanner" class="screen">
+<section id="henriEvaluations" class="screen"><button class="back" onclick="henriGoBack()">‹ Retour</button><h1>Mes évaluations</h1><p class="planIntro">Grilles réutilisables et évaluations par élève.</p><div id="henriEvalContent" class="henriBankPanel"></div></section><section id="annualPlanner" class="screen">
   <button class="back" onclick="henriGoBack()">‹ Retour à Planifier</button>
   <h1>Planification annuelle</h1>
   <p class="planIntro">Répartis les séquences sur les cours disponibles. Les dates suivent ton calendrier.</p>
@@ -477,7 +477,7 @@
   <div class="placeholder" style="margin-top:10px">
     <strong id="courseSessionTitle">Séance</strong>
     <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
-    <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div>
+    <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div><div id="henriCourseEvaluations" class="itemActions" style="margin-top:12px"></div>
     <div id="courseStudentActions" class="itemActions" style="margin-top:12px"></div><div id="courseSavedTeams" style="margin-top:12px"></div>
     <div id="coursePersonalNotes" style="margin-top:16px"><label for="coursePersonalNote" class="detailLabel">Note personnelle pour cette période</label><textarea id="coursePersonalNote" rows="3" style="width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="Ex. Rappeler une consigne aux élèves"></textarea><button class="itemBtn" type="button" onclick="saveCoursePersonalNote(document.getElementById(&quot;coursePersonalNote&quot;).value)">Enregistrer la note</button> <small id="coursePersonalNoteStatus" class="muted">À enregistrer</small></div>
   </div>
@@ -859,6 +859,7 @@ function openCourseEntry(date,index){
   if(!entry) return;
   calendarCourseContext={date,index};
   renderCoursePlanningActions(entry,date,index);
+  if(typeof henriEvalCourseActions==='function')henriEvalCourseActions(entry,date,index);
   renderCourseStudentActions(entry,date,index);
   showCoursePersonalNote(date,entry);
   // Keep the course detail accessible even before a lesson has been planned.
@@ -3335,5 +3336,6 @@ setTimeout(()=>{
 </script>
 <script src="henri-bank-v1.js?v=d3c3f1cf"></script>
 <script src="henri-ux.js?v=d3c3f1cf"></script>
+<script src="henri-evaluations.js?v=1"></script>
 </body>
 </html>
