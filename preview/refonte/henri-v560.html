@@ -470,6 +470,7 @@
     <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
     <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div>
     <div id="courseStudentActions" class="itemActions" style="margin-top:12px"></div>
+    <div id="coursePersonalNotes" style="margin-top:16px"><label for="coursePersonalNote" class="detailLabel">Note personnelle pour cette période</label><textarea id="coursePersonalNote" rows="3" style="width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="Ex. Rappeler une consigne aux élèves" oninput="saveCoursePersonalNote(this.value)"></textarea><small id="coursePersonalNoteStatus" class="muted">Enregistrement automatique</small></div>
   </div>
 </section>
 
@@ -683,16 +684,40 @@ function openCourseTeamBuilder(date,index){
   selectTeamGroup(String(id));
   go('teamBuilder');
 }
+const coursePersonalNotesKey='previewHenriSlate:coursePersonalNotes:v1';
+function getCoursePersonalNoteKey(date,entry){
+  return String(getEntryGroupId(entry)||entry.matchedGroupId||entry.groupCode||entry.group)+'|'+courseOccurrenceKey(date,entry);
+}
+function showCoursePersonalNote(date,entry){
+  const input=document.getElementById('coursePersonalNote');
+  if(!input)return;
+  try{
+    const notes=JSON.parse(localStorage.getItem(coursePersonalNotesKey)||'{}');
+    input.value=notes[getCoursePersonalNoteKey(date,entry)]||'';
+    document.getElementById('coursePersonalNoteStatus').textContent='Enregistrement automatique';
+  }catch(error){console.error('Lecture des notes',error);}
+}
+function saveCoursePersonalNote(value){
+  const context=calendarCourseContext;
+  const entry=context&&(scheduleEntries[context.date]||[])[context.index];
+  if(!entry)return;
+  const status=document.getElementById('coursePersonalNoteStatus');
+  try{
+    const notes=JSON.parse(localStorage.getItem(coursePersonalNotesKey)||'{}');
+    const key=getCoursePersonalNoteKey(context.date,entry);
+    if(value)notes[key]=value;else delete notes[key];
+    localStorage.setItem(coursePersonalNotesKey,JSON.stringify(notes));
+    if(status)status.textContent='Note enregistrée';
+  }catch(error){if(status)status.textContent='Impossible d’enregistrer la note';console.error(error);}
+}
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
   calendarCourseContext={date,index};
   renderCoursePlanningActions(entry,date,index);
   renderCourseStudentActions(entry,date,index);
-  if(!entry.annualPlan&&!entry.isIndividual&&isPlanningEntry(entry)){
-    openQuickSessionForCourse(date,index);
-    return;
-  }
+  showCoursePersonalNote(date,entry);
+  // Keep the course detail accessible even before a lesson has been planned.
   previousScreen=document.querySelector('.screen.active')?.id||'home';
   const sport=entry.annualPlan||entry.activity||'Cours';
   courseDetailTitle.textContent=sport;
