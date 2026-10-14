@@ -171,25 +171,49 @@ function scheduleStandaloneSequence(){
   henriPersistSharedState();rebuildPlanningAssignments();renderSequenceEditor();
   alert('Séquence placée dans le calendrier. Tu peux ouvrir chaque séance depuis son cours.');
 }
+function henriIndividualAtCourse(date,entry){
+  const groupId=getEntryGroupId(entry);
+  if(!groupId)return null;
+  const slot=getGroupCourseOccurrences(groupId).find(s=>s.key===courseOccurrenceKey(date,entry));
+  return slot?individualForOccurrence(groupId,slot):null;
+}
+function henriEditIndividualFromCourse(date,index){
+  const entry=scheduleEntries[date]?.[index];
+  const individual=entry&&henriIndividualAtCourse(date,entry);
+  if(!individual)return;
+  const title=prompt('Titre de cette séance individuelle :',individual.title||'');
+  if(title===null)return;
+  if(!title.trim()){alert('Le titre ne peut pas être vide.');return;}
+  individual.title=title.trim();
+  localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
+  rebuildPlanningAssignments();
+  openCourseEntry(date,index);
+}
+function henriDeleteIndividualFromCourse(date,index){
+  const entry=scheduleEntries[date]?.[index];
+  const individual=entry&&henriIndividualAtCourse(date,entry);
+  if(!individual||!confirm('Supprimer cette séance individuelle uniquement pour cette période ? La planification annuelle reprendra sa place.'))return;
+  individualSessions=individualSessions.filter(x=>x.id!==individual.id);
+  localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
+  rebuildPlanningAssignments();
+  openCourseEntry(date,index);
+}
 function renderCoursePlanningActions(entry,date,index){
   const container=document.getElementById('coursePlanningActions');container.replaceChildren();
   const add=(text,fn)=>{const button=document.createElement('button');button.className='itemBtn';button.textContent=text;button.onclick=fn;container.append(button);};
-  if(isPlanningEntry(entry)&&entry.planData)add('Ouvrir la séance',()=>openCalendarSession(date,index));
-  else if(isPlanningEntry(entry))add('Préparer cette séance',()=>openQuickSessionForCourse(date,index));
-  if(isPlanningEntry(entry)&&entry.isIndividual){
-    add('Modifier cette séance',()=>openCalendarSession(date,index));
-    add('Supprimer cette séance',()=>{
-      const individual=individualSessions.find(x=>x.id===entry.individualId);
-      if(!individual||!confirm('Supprimer cette séance individuelle de ce cours ? La planification annuelle reprendra sa place et les autres groupes ne seront pas modifiés.'))return;
-      individualSessions=individualSessions.filter(x=>x.id!==individual.id);
-      localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
-      rebuildPlanningAssignments();
-      openCourseEntry(date,index);
-    });
-  }else if(isPlanningEntry(entry))add('Remplacer cette période',()=>openQuickSessionForCourse(date,index));
-  if(isPlanningEntry(entry)&&entry.annualBlockId)add('Changer de cours dans la séquence',()=>henriChooseSequenceCourse(date,index));
-  if(isPlanningEntry(entry)&&(entry.annualBlockId||entry.sequenceId))add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
-  const groupId=getEntryGroupId(entry),group=groupsData.find(g=>g.id===groupId);
+  const individual=isPlanningEntry(entry)?henriIndividualAtCourse(date,entry):null;
+  if(individual){
+    add('Modifier le titre',()=>henriEditIndividualFromCourse(date,index));
+    add('Modifier le contenu',()=>openCalendarSession(date,index));
+    add('Supprimer cette séance',()=>henriDeleteIndividualFromCourse(date,index));
+  }else{
+    if(isPlanningEntry(entry)&&entry.planData)add('Ouvrir la séance',()=>openCalendarSession(date,index));
+    else if(isPlanningEntry(entry))add('Préparer cette séance',()=>openQuickSessionForCourse(date,index));
+    if(isPlanningEntry(entry))add('Remplacer cette période',()=>openQuickSessionForCourse(date,index));
+    if(isPlanningEntry(entry)&&entry.annualBlockId)add('Changer de cours dans la séquence',()=>henriChooseSequenceCourse(date,index));
+    if(isPlanningEntry(entry)&&(entry.annualBlockId||entry.sequenceId))add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
+  }
+  const groupId=getEntryGroupId(entry),group=groupsData.find(g=>String(g.id)===String(groupId));
   if(group)add('Voir les '+group.students.length+' élèves',()=>openGroup(groupId));
 }
 function henriChooseSequenceCourse(date,index){
@@ -227,8 +251,8 @@ function openCalendarSequence(date,index){
 function openCalendarSession(date,index){
   const entry=scheduleEntries[date]?.[index];if(!entry||!isPlanningEntry(entry))return;
   calendarCourseContext={date,index};calendarPlanEditing=true;
-  if(entry.isIndividual){
-    const individual=individualSessions.find(x=>x.id===entry.individualId);if(!individual)return;
+  const individual=henriIndividualAtCourse(date,entry);
+  if(individual){
     calendarIndividualEditing=individual.id;quickSessionData=JSON.parse(JSON.stringify(individual));openSessionEditor(0,'quick');
   }else{
     const saved=calendarSequenceFor(entry);if(!saved)return;
