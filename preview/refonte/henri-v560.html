@@ -290,7 +290,7 @@
 </section>
 
 <section id="teamBuilder" class="screen">
-  <button class="back" onclick="go('tools')">‹ Retour aux outils</button>
+  <button class="back" onclick="returnFromTeamBuilder()">‹ Retour</button>
   <h1>Générer des équipes</h1>
   <div class="teamSetup">
     <div class="teamSetupGrid">
@@ -473,7 +473,7 @@
     <strong id="courseSessionTitle">Séance</strong>
     <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
     <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div>
-    <div id="courseStudentActions" class="itemActions" style="margin-top:12px"></div>
+    <div id="courseStudentActions" class="itemActions" style="margin-top:12px"></div><div id="courseSavedTeams" style="margin-top:12px"></div>
     <div id="coursePersonalNotes" style="margin-top:16px"><label for="coursePersonalNote" class="detailLabel">Note personnelle pour cette période</label><textarea id="coursePersonalNote" rows="3" style="width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="Ex. Rappeler une consigne aux élèves"></textarea><button class="itemBtn" type="button" onclick="saveCoursePersonalNote(document.getElementById(&quot;coursePersonalNote&quot;).value)">Enregistrer la note</button> <small id="coursePersonalNoteStatus" class="muted">À enregistrer</small></div>
   </div>
 </section>
@@ -694,12 +694,62 @@ function openDayPlan(date){
   go('dayPlan');
 }
 
+const henriCourseTeamsKey='previewHenriSlate:courseTeams:v1';
+let henriTeamCourseContext=null;
+function henriReadCourseTeams(){
+  try{return JSON.parse(localStorage.getItem(henriCourseTeamsKey)||'{}');}
+  catch(error){console.warn('Lecture des équipes impossible',error);return {};}
+}
+function henriCourseTeamId(date,entry){return getCoursePersonalNoteKey(date,entry);}
+function henriRenderCourseTeams(date,entry){
+  const target=document.getElementById('courseSavedTeams');
+  if(!target)return;
+  const saved=henriReadCourseTeams()[henriCourseTeamId(date,entry)];
+  if(!saved?.teams?.length){target.innerHTML='';return;}
+  const group=groupsData.find(g=>String(g.id)===String(getEntryGroupId(entry)));
+  const students=group?.students||[];
+  const findName=id=>students.find(student=>String(student.id)===String(id))?.name||'Élève non trouvé';
+  target.replaceChildren();
+  const heading=document.createElement('strong');heading.textContent='Équipes de cette période';
+  target.append(heading);
+  const absent=document.createElement('p');absent.className='muted';
+  absent.textContent=saved.absent?.length?'Absents : '+saved.absent.map(findName).join(', '):'Aucun absent indiqué';
+  target.append(absent);
+  saved.teams.forEach((ids,index)=>{
+    const block=document.createElement('div');block.style.cssText='padding:10px 0;border-top:1px solid var(--line)';
+    const title=document.createElement('strong');title.textContent='Équipe '+(index+1);
+    const names=document.createElement('div');names.textContent=ids.map(findName).join(' · ');
+    block.append(title,names);target.append(block);
+  });
+}
+function henriSaveCourseTeams(){
+  const context=henriTeamCourseContext;
+  if(!context||!generatedTeamData.length)return;
+  const entry=(scheduleEntries[context.date]||[])[context.index];
+  if(!entry||String(getEntryGroupId(entry))!==String(teamGroup?.value))return;
+  try{
+    const saved=henriReadCourseTeams();
+    saved[henriCourseTeamId(context.date,entry)]={
+      teams:generatedTeamData.map(team=>team.map(student=>student.id)),
+      absent:[...teamBuilderAbsent],updatedAt:new Date().toISOString()
+    };
+    localStorage.setItem(henriCourseTeamsKey,JSON.stringify(saved));
+    henriRenderCourseTeams(context.date,entry);
+  }catch(error){console.error('Enregistrement des équipes impossible',error);alert('Impossible d’enregistrer les équipes de cette période.');}
+}
+function returnFromTeamBuilder(){
+  if(henriTeamCourseContext){
+    const context=henriTeamCourseContext;henriTeamCourseContext=null;
+    openCourseEntry(context.date,context.index);
+  }else go('tools');
+}
 function renderCourseStudentActions(entry,date,index){
   const target=document.getElementById('courseStudentActions');
   if(!target)return;
   const groupId=getEntryGroupId(entry);
   const group=groupsData.find(g=>String(g.id)===String(groupId));
   if(!group){target.innerHTML='';return;}
+  henriRenderCourseTeams(date,entry);
   target.innerHTML='<button class="itemBtn" onclick="openCourseStudents(\''+date+'\','+index+')">Voir les '+group.students.length+' élèves</button>'+
     '<button class="itemBtn" onclick="openCourseTeamBuilder(\''+date+'\','+index+')">Générer les équipes</button>';
 }
@@ -712,8 +762,17 @@ function openCourseTeamBuilder(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   const id=entry&&getEntryGroupId(entry);
   if(!id)return;
+  henriTeamCourseContext={date,index};
   fillTeamBuilderGroups();
   selectTeamGroup(String(id));
+  const saved=henriReadCourseTeams()[henriCourseTeamId(date,entry)];
+  if(saved){
+    teamBuilderAbsent=new Set(saved.absent||[]);
+    renderTeamAttendance();
+    const group=groupsData.find(g=>String(g.id)===String(id));
+    generatedTeamData=(saved.teams||[]).map(team=>team.map(studentId=>group?.students.find(student=>String(student.id)===String(studentId))).filter(Boolean));
+    if(generatedTeamData.length)renderGeneratedTeams();
+  }
   go('teamBuilder');
 }
 const coursePersonalNotesKey='previewHenriSlate:coursePersonalNotes:v1';
@@ -2154,6 +2213,7 @@ function saveTeamHistory(){
   localStorage.setItem('previewHenriSlate:henriTeamHistory',JSON.stringify(teamHistory));
 }
 function openTeamBuilder(){
+  henriTeamCourseContext=null;
   fillTeamBuilderGroups();
   teamBuilderGroupChanged();
   go('teamBuilder');
@@ -2371,6 +2431,7 @@ function generateTeams(){
   teamHistory.push({date:new Date().toISOString(),groupId:group.id,teams:generatedTeamData.map(team=>team.map(s=>s.id))});
   saveTeamHistory();
   renderGeneratedTeams();
+  henriSaveCourseTeams();
 }
 function countCompatibilityIssues(teams){
   let incompatible=0,compatibleTogether=0,compatibleTotal=0;
