@@ -368,6 +368,11 @@
       <input class="fileInput" id="schoolCalendarFile" type="file" multiple accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('schoolCalendar',this)">
     </label>
 
+    <div style="margin:-6px 0 14px 0;padding:13px 16px;border:1px solid #dce5ec;border-radius:12px;background:#f8fafc">
+      <div style="font-weight:600;margin-bottom:5px">Calendrier des Découvreurs · secondaire 2026–2027</div>
+      <div style="color:#64748b;font-size:13px;margin-bottom:10px">Tu utilises le calendrier montré sur ta photo? Charge les dates, les jours-cycle, les congés et les journées pédagogiques sans passer par la reconnaissance de photo.</div>
+      <button type="button" class="itemBtn" onclick="useDecouvreursCalendar2026()">Utiliser ce calendrier 2026–2027</button>
+    </div>
     <label class="importCard" id="groupSheetsCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.6-3.2 2.5-5 5.5-5s5 1.8 5.5 5M14.5 15.2c2.8-.6 5 .8 6 3.8"/></svg></span>
       <span class="importText"><strong>Listes de groupes</strong><span>Photos, PDF ou CSV · sélection multiple permise</span></span>
@@ -2797,6 +2802,21 @@ async function parseSchoolCalendarDocs(docs){
   return out;
 }
 
+function useDecouvreursCalendar2026(){
+  // Le calendrier de référence est généré à partir des dates scolaires 2026-2027
+  // déjà intégrées dans HenriImport, indépendamment de la qualité de la photo.
+  const reference=HenriImport.decouvreursReference('Centre de services scolaire des Découvreurs Secondaire 2026-2027');
+  if(!reference||Object.keys(reference).length<170){alert('Le calendrier de référence n’est pas disponible.');return;}
+  importedSetupData.schoolCalendar=reference;
+  setupFiles.schoolCalendar=true;
+  localStorage.setItem('previewHenriSlate:henriImportedSchoolCalendar',JSON.stringify(reference));
+  const state=document.getElementById('schoolCalendarState');
+  state.textContent='Calendrier 2026–2027 chargé · '+Object.keys(reference).length+' dates';
+  document.getElementById('schoolCalendarCard').classList.add('ready');
+  refreshImportedLinks();
+  updateGenerateState();
+  henriSyncSharedData({skipSequenceEditor:true});
+}
 async function handleSetupFile(type,input){
   const files=[...(input.files||[])];
   const state=document.getElementById(type+'State');
@@ -2851,7 +2871,7 @@ async function handleSetupFile(type,input){
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
       const days=Object.keys(parsed).length;
-      if(days<5)throw new Error('Calendrier non reconnu. Essaie de cadrer la page complète, incluant les 12 mois et la légende du bas.');
+      if(days<5)throw new Error('La lecture automatique de cette image n’a pas trouvé assez de dates. Pour le calendrier des Découvreurs 2026–2027, utilise le bouton « Utiliser ce calendrier 2026–2027 » sous la zone d’importation.');
       const cycles=Object.values(parsed).filter(v=>/^Jour /.test(v)).length;
       const specials=Object.values(parsed).filter(v=>v==='Pédagogique'||v==='Congé').length;
       importedSetupData.schoolCalendar=parsed;
