@@ -1911,6 +1911,8 @@ let activeGroupId=null;
 setTimeout(fillPlanGroupSelects,0);
 function saveGroups(){
   localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
+  localStorage.setItem('previewHenriSlate:henriImportedGroups',JSON.stringify(groupsData));
+  importedSetupData.groupSheets=groupsData;
   if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
 }
 function renderGroups(){
