@@ -1942,7 +1942,7 @@ function renderQuickResult(message=''){
     '<div class="quickScheduleBox"><strong>Ajouter à l’horaire</strong><p>Choisis un cours de '+quickSessionData.groupName+'. Henri insère cette séance et décale automatiquement les séquences déjà prévues.</p>'+
       '<select id="quickScheduleDate" class="planControl">'+options+'</select>'+
       '<button class="planPrimary" onclick="scheduleQuickSession()">Insérer dans l’horaire</button>'+
-      '<label style="display:flex;align-items:center;gap:8px;margin:12px 0"><input type="checkbox" id="quickApplyMatchingCourses" checked> Appliquer aussi ce cours aux autres groupes (même sport et numéro de cours)</label>'+
+      '<label style="display:flex;align-items:center;gap:8px;margin:12px 0"><input type="checkbox" id="quickApplyMatchingCourses"'+(quickPrefillCourseKey?'':' checked')+'> Appliquer aussi ce cours aux autres groupes (même sport et numéro de cours)</label>'+
       (message?'<div class="quickScheduleSuccess">'+message+'</div>':'')+
       renderScheduleConflict(quickSessionData.groupId)+
     '</div>';
