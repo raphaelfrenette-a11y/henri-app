@@ -120,8 +120,41 @@ function getSequenceOccurrences(sequence){
   const offset=blocks.slice(0,index).reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
   return getGroupAnnualOccurrences(sequence.groupId).slice(offset,offset+sequence.sessions.length);
 }
+const henriUltimateOctoberFixKey='previewHenriSlate:ultimateThroughOctober28:v1';
+function henriAlignUltimateThroughOctober(){
+  if(localStorage.getItem(henriUltimateOctoberFixKey))return;
+  if(typeof annualPlans==='undefined'||typeof groupsData==='undefined'||!groupsData.length)return;
+  const changes=[];
+  for(const group of groupsData){
+    const blocks=annualPlans[group.id]||[];
+    const ultimateIndex=blocks.findIndex(b=>String(b.sport||'').trim().toLowerCase()==='ultimate');
+    if(ultimateIndex<0)continue;
+    const badmintonIndex=blocks.findIndex((b,i)=>i>ultimateIndex&&String(b.sport||'').trim().toLowerCase()==='badminton');
+    if(badmintonIndex<0)continue;
+    const slots=getGroupAnnualOccurrences(group.id);
+    if(!slots.length)continue;
+    const year=slots.find(x=>x.date>='2026-09-01'&&x.date<='2026-12-31');
+    if(!year)continue;
+    const through=slots.filter(x=>x.date<='2026-10-28').length;
+    const before=blocks.slice(0,ultimateIndex).reduce((n,b)=>n+Math.max(0,Number(b.courses)||0),0);
+    const needed=Math.max(0,through-before);
+    const current=Math.max(0,Number(blocks[ultimateIndex].courses)||0);
+    if(needed>current){changes.push({groupId:group.id,blockId:blocks[ultimateIndex].id,from:current,to:needed});}
+  }
+  if(changes.length){
+    const backup={at:new Date().toISOString(),annualPlans:JSON.parse(JSON.stringify(annualPlans)),sequenceJumps:henriReadSequenceJumps()};
+    localStorage.setItem('previewHenriSlate:backupBeforeUltimateOctoberFix:v1',JSON.stringify(backup));
+    for(const change of changes){
+      const block=(annualPlans[change.groupId]||[]).find(b=>b.id===change.blockId);
+      if(block)block.courses=change.to;
+    }
+    localStorage.setItem('previewHenriSlate:henriAnnualPlans',JSON.stringify(annualPlans));
+  }
+  localStorage.setItem(henriUltimateOctoberFixKey,JSON.stringify({date:'2026-10-28',changes}));
+}
 function rebuildCalendarPlanning(){
   if(typeof groupsData==='undefined')return;
+  henriAlignUltimateThroughOctober();
   for(const entry of Object.values(scheduleEntries).flat())Object.assign(entry,{annualPlan:null,sequence:null,session:null,annualBlockId:null,sequenceId:null,sessionIndex:null,individualId:null,planData:null,isIndividual:false});
   for(const group of groupsData){
     ensureAnnualPlan(group.id);
