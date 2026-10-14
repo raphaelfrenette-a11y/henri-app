@@ -1815,6 +1815,15 @@ function moveSequenceLesson(index,delta){
   henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});
   renderSequenceEditor();
 }
+function henriRenameCalendarIndividual(){
+  if(!calendarPlanEditing||!calendarIndividualEditing||!quickSessionData)return;
+  const title=prompt('Titre de la séance :',quickSessionData.title||'');
+  if(title===null)return;
+  if(!title.trim()){alert('Le titre ne peut pas être vide.');return;}
+  quickSessionData.title=title.trim();
+  editSessionTitle.textContent=quickSessionData.title;
+  persistCalendarIndividual();
+}
 function openSessionEditor(index,source){
   sessionEditorSource=source||'sequence';
   activeSessionIndex=index;
@@ -1822,6 +1831,8 @@ function openSessionEditor(index,source){
   if(!session)return;
   editSessionMeta.textContent=sessionEditorSource==='quick'?'Séance individuelle':'Séance '+(index+1)+' sur '+activeSequence.sessions.length;
   editSessionTitle.textContent=session.title;
+  const rename=document.getElementById('henriCalendarRenameSession');
+  if(rename)rename.hidden=!(calendarPlanEditing&&sessionEditorSource==='quick');
   renderObjectiveSelector('session',session.objective||'');
   renderSessionBlocks(session);
   go('sessionEditor');
@@ -1835,7 +1846,17 @@ function moveSessionBlock(i,delta){
   [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];renderSessionBlocks(s);henriSyncSequenceToAnnual();henriPersistSharedState();
 }
 function returnFromSessionEditor(){
-  if(calendarPlanEditing){persistCalendarIndividual();henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();calendarPlanEditing=false;calendarIndividualEditing=null;henriGoBack();return}
+  if(calendarPlanEditing){
+    const context=calendarCourseContext?{...calendarCourseContext}:null;
+    persistCalendarIndividual();
+    henriSyncSequenceToAnnual();
+    henriPersistSharedState();
+    rebuildPlanningAssignments();
+    calendarPlanEditing=false;calendarIndividualEditing=null;
+    if(context)openCourseEntry(context.date,context.index);
+    else henriGoBack();
+    return;
+  }
   if(sessionEditorSource==='quick'){henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);renderQuickResult();go('quickSession')}else{henriBankStoreSequence(activeSequence,'Séquence').catch(henriBankWarn);renderSequenceEditor();go('sequenceEditor')}
 }
 function getScheduleConflict(groupId){
