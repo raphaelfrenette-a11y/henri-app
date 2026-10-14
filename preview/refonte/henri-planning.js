@@ -138,9 +138,9 @@ function useAnnualRecommendation(){return applyAnnualStructure(true);}
 function makeSequence({comp,sport,groupId,groupName,count,duration,annualBlockId=null,useHenri=false}){
   count=Math.max(1,Math.min(500,Math.floor(Number(count)||1)));
   const level=inferGroupSchoolLevel(groupId);
-  return {id:planningId('seq'),annualBlockId,comp,sport,groupId,groupName,duration,bankCreationMode:useHenri?'Planification Henri':'Création manuelle',objective:useHenri?(getObjectiveSuggestions(sport,comp)[0]||''):'',sessions:Array.from({length:count},(_,index)=>HenriPedagogy.session({sport,comp,index,count,duration,useHenri,level}))};
+  return {id:planningId('seq'),annualBlockId,comp,sport,groupId,groupName,duration,bankCreationMode:useHenri?'Planification Henri':'Création manuelle',objective:useHenri?(getObjectiveSuggestions(sport,comp)[0]||''):'',sessions:Array.from({length:count},(_,index)=>({...HenriPedagogy.session({sport,comp,index,count,duration,useHenri,level}),id:planningId('session')}))};
 }
-function planningNewSession(sequence,index,count){return HenriPedagogy.session({sport:sequence.sport,comp:sequence.comp,index,count,duration:sequence.duration,useHenri:sequence.bankCreationMode==='Planification Henri',level:inferGroupSchoolLevel(sequence.groupId)});}
+function planningNewSession(sequence,index,count){return {...HenriPedagogy.session({sport:sequence.sport,comp:sequence.comp,index,count,duration:sequence.duration,useHenri:sequence.bankCreationMode==='Planification Henri',level:inferGroupSchoolLevel(sequence.groupId)}),id:planningId('session')};}
 function synchronizeAnnualSequences(){
   for(const [groupId,blocks] of Object.entries(annualPlans))for(const block of blocks){
     const saved=getSavedSequence(groupId,block.id);if(!saved)continue;
@@ -263,6 +263,7 @@ async function createSequenceFromMacro(useHenri){
   const sport=macroSport.value==='__other__'?macroCustomSport.value.trim():macroSport.value;
   const count=Number(macroCount.value);
   if(!sport||!Number.isInteger(count)||count<1||count>500){planningReport('Choisis un sport et un nombre entier de séances entre 1 et 500.',true);return;}
+  if(count>Number(block.courses)){planningReport('Cette séquence dépasse les '+block.courses+' périodes du bloc. Modifie explicitement le bloc annuel avant de continuer.',true);return;}
   const previous=activeSequence?.groupId===group.id&&activeSequence.annualBlockId===block.id?activeSequence:getSavedSequence(group.id,block.id);
   if(previous&&!confirm('Remplacer la séquence existante par '+(useHenri?'la proposition Henri':'un gabarit vierge')+' ? Une copie complète sera conservée dans Ma banque.'))return;
   planningActionBusy=true;
@@ -271,8 +272,7 @@ async function createSequenceFromMacro(useHenri){
     if(previous)await archivePlanningSequence(previous);
     if(activeSequence&&activeSequence!==previous)await henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode);
     const sequence=makeSequence({comp:block.comp,sport,groupId:group.id,groupName:group.name,count,duration:macroDuration.value,annualBlockId:block.id,useHenri});
-    activeSequence=sequence;block.sport=sport;block.courses=count;block.objective=sequence.objective;
-    savedSequences[sequenceStorageKey(group.id,block.id)]=JSON.parse(JSON.stringify(sequence));
+    activeSequence=sequence;
     henriPersistSharedState();rebuildPlanningAssignments();renderSequenceEditor();go('sequenceEditor');
     planningReport(useHenri?'Proposition Henri créée : activités de départ à adapter au groupe et au matériel.':'Gabarit vierge créé : complète les quatre sections de chaque séance.');
     henriBankStoreSequence(sequence,sequence.bankCreationMode).catch(planningError);
@@ -298,26 +298,31 @@ async function buildStandaloneSequence(useHenri){
 }
 function addSequenceLesson(){
   if(!activeSequence)return;
+  if(activeSequence.annualBlockId&&activeSequence.sessions.length>=Number((annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId)?.courses)){planningReport('Le bloc annuel est plein. Augmente explicitement ses périodes avant d’ajouter une séance.',true);return;}
   activeSequence.sessions.push(planningNewSession(activeSequence,activeSequence.sessions.length,activeSequence.sessions.length+1));
   henriSyncSequenceToAnnual();henriSyncSharedData({skipSequenceEditor:true});renderSequenceEditor();
 }
 function henriSyncSequenceToAnnual(){
   if(!activeSequence)return;
-  if(activeSequence.startCourseKey){savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));return;}
+  if(activeSequence.startCourseKey){if(savedSequences['dated::'+activeSequence.id])savedSequences['dated::'+activeSequence.id]=JSON.parse(JSON.stringify(activeSequence));return;}
   if(!activeSequence.annualBlockId)return;
   const block=(annualPlans[activeSequence.groupId]||[]).find(b=>b.id===activeSequence.annualBlockId);if(!block)return;
-  Object.assign(block,{comp:activeSequence.comp,sport:activeSequence.sport,objective:activeSequence.objective||'',courses:activeSequence.sessions.length});
+  if(getSavedSequence(activeSequence.groupId,block.id)?.id!==activeSequence.id)return;
+  if(activeSequence.sessions.length>Number(block.courses)){planningReport('La séquence dépasse les périodes du bloc annuel. Enregistrement refusé.',true);return;}
+  Object.assign(block,{comp:activeSequence.comp,sport:activeSequence.sport,objective:activeSequence.objective||''});
+  // Session edits never change annual capacity or ordering.
   savedSequences[sequenceStorageKey(activeSequence.groupId,block.id)]=JSON.parse(JSON.stringify(activeSequence));
 }
 function henriAutoLinkStandaloneSequence(sequence){
   if(sequence.annualBlockId||sequence.startCourseKey)return {linked:true};
   const blocks=annualPlans[sequence.groupId]||[];
-  const matching=blocks.filter(b=>String(b.sport||'').trim().toLowerCase()===String(sequence.sport||'').trim().toLowerCase()&&Number(b.courses)===sequence.sessions.length&&!getSavedSequence(sequence.groupId,b.id));
+  const matching=blocks.filter(b=>String(b.sport||'').trim().toLowerCase()===String(sequence.sport||'').trim().toLowerCase()&&Number(b.courses)>=sequence.sessions.length&&!getSavedSequence(sequence.groupId,b.id));
   if(matching.length===1){
     const block=matching[0];
     sequence.annualBlockId=block.id;
     return {linked:true,method:'annual'};
   }
+  if(matching.length>1)return {linked:false,reason:'Plusieurs blocs annuels correspondent à ce sport. Ouvre le bloc voulu depuis la planification annuelle.'};
   // Never replace an annual block or an already planned course.
   const slots=getGroupCourseOccurrences(sequence.groupId);
   const free=slots.filter(slot=>!slot.entry.annualBlockId&&!slot.entry.sequenceId&&!slot.entry.individualId&&!slot.entry.planData&&!slot.entry.isIndividual);
@@ -331,22 +336,67 @@ function henriAutoLinkStandaloneSequence(sequence){
   }
   return {linked:false,reason:matching.length>1?'Plusieurs blocs annuels correspondent à ce sport. Choisis la séquence depuis la planification annuelle pour éviter une mauvaise association.':'Aucune série de '+sequence.sessions.length+' périodes libres n’est disponible. Les cours déjà planifiés ont été protégés.'};
 }
-async function saveSequence(){
-  if(!activeSequence)return;
-  if(planningActionBusy)return;
+function saveSequence(){
+  if(!activeSequence||planningActionBusy)return;
+  document.getElementById('sequenceSaveTargets')?.remove();
+  const panel=document.createElement('div');panel.id='sequenceSaveTargets';panel.className='seqOverview';
+  const title=document.createElement('h3');title.textContent='Enregistrer pour quels groupes ?';panel.append(title);
+  for(const group of groupsData){
+    const label=document.createElement('label'),input=document.createElement('input');
+    input.type='checkbox';input.value=group.id;input.checked=group.id===activeSequence.groupId;
+    label.append(input,document.createTextNode(' '+group.name));panel.append(label,document.createElement('br'));
+  }
+  const apply=document.createElement('button');apply.className='planPrimary';apply.textContent='Confirmer l’enregistrement';
+  apply.onclick=async()=>{const ids=Array.from(panel.querySelectorAll('input:checked'),input=>input.value);if(await henriSaveSequenceForGroups(ids))panel.remove();};
+  const cancel=document.createElement('button');cancel.className='itemBtn';cancel.textContent='Annuler';cancel.onclick=()=>panel.remove();
+  panel.append(apply,cancel);document.querySelector('.seqSaveBar').append(panel);panel.scrollIntoView({block:'nearest'});
+}
+async function henriSaveSequenceForGroups(ids){
+  if(!activeSequence||planningActionBusy)return false;
+  if(!ids.length){planningReport('Sélectionne au moins un groupe.',true);return false;}
+  const before=JSON.parse(JSON.stringify({annualPlans,savedSequences,activeSequence}));
   planningActionBusy=true;
-  const original=JSON.parse(JSON.stringify(activeSequence));
+  let committed=false;
   try{
-    const result=henriAutoLinkStandaloneSequence(activeSequence);
-    if(!result.linked){activeSequence=original;planningReport('Séquence non placée : '+result.reason+' Aucun cours existant n’a été modifié.',true);return;}
-    henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();
-    await henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode||'Créée dans Henri');
-    const assigned=getSequenceDates(activeSequence).length;
-    const total=activeSequence.sessions.length;
-    planningReport('Séquence enregistrée : '+total+' séances créées, '+assigned+'/'+total+' placées dans le calendrier.'+(assigned<total?' Vérifie les dates disponibles.':''));
-    renderSequenceEditor();
-  }catch(error){activeSequence=original;planningError(error);}
-  finally{planningActionBusy=false;}
+    const candidates=[];
+    for(const id of new Set(ids)){
+      const group=groupsData.find(g=>g.id===id);if(!group)throw new Error('Groupe inconnu.');
+      const copy=JSON.parse(JSON.stringify(activeSequence));
+      if(id!==activeSequence.groupId){
+        copy.id=planningId('seq');delete copy.bankId;delete copy.startCourseKey;
+        const sourceBlocks=annualPlans[activeSequence.groupId]||[];
+        const sourceIndex=sourceBlocks.findIndex(b=>b.id===activeSequence.annualBlockId);
+        const target=(annualPlans[id]||[])[sourceIndex];
+        copy.annualBlockId=target&&target.sport===copy.sport?target.id:null;
+        for(const session of copy.sessions){session.id=planningId('session');delete session.bankId;}
+      }
+      copy.groupId=id;copy.groupName=group.name;
+      for(const session of copy.sessions)if(!session.id)session.id=planningId('session');
+      const link=henriAutoLinkStandaloneSequence(copy);if(!link.linked)throw new Error(group.name+' : '+link.reason);
+      if(copy.annualBlockId){
+        const block=(annualPlans[id]||[]).find(b=>b.id===copy.annualBlockId);
+        if(!block||copy.sessions.length>Number(block.courses))throw new Error(group.name+' : trop de séances pour ce bloc annuel.');
+      }
+      if(getSequenceOccurrences(copy).filter(Boolean).length!==copy.sessions.length)throw new Error(group.name+' : périodes disponibles insuffisantes.');
+      candidates.push(copy);
+    }
+    const replaced=candidates.map(copy=>copy.annualBlockId?getSavedSequence(copy.groupId,copy.annualBlockId):null).filter(old=>old);
+    if(replaced.length&&!confirm('Enregistrer sur '+replaced.length+' séquence(s) existante(s) ? Une copie sera conservée dans Ma banque.'))return false;
+    for(const old of replaced)await archivePlanningSequence(old);
+    for(const copy of candidates){
+      const key=copy.annualBlockId?sequenceStorageKey(copy.groupId,copy.annualBlockId):'dated::'+copy.id;
+      savedSequences[key]=copy;
+      if(copy.annualBlockId)Object.assign(annualPlans[copy.groupId].find(block=>block.id===copy.annualBlockId),{sport:copy.sport,comp:copy.comp,objective:copy.objective||''});
+    }
+    activeSequence=JSON.parse(JSON.stringify(candidates.find(copy=>copy.groupId===before.activeSequence.groupId)||candidates[0]));
+    henriPersistSharedState();committed=true;rebuildPlanningAssignments();renderSequenceEditor();
+    planningReport('Séquence enregistrée pour '+candidates.length+' groupe(s). Toutes les séances sont liées au calendrier; les périodes annuelles sont conservées.');
+    for(const copy of candidates)henriBankStoreSequence(copy,copy.bankCreationMode||'Créée dans Henri').catch(planningError);
+    return true;
+  }catch(error){
+    if(!committed){annualPlans=before.annualPlans;savedSequences=before.savedSequences;activeSequence=before.activeSequence;}
+    planningError(error);return false;
+  }finally{planningActionBusy=false;}
 }
 function editSessionBlock(i){
   const session=currentEditableSession(),block=session?.blocks[i];if(!block)return;
@@ -413,4 +463,27 @@ async function applyConflictSequenceCount(groupId,blockId){
 function returnFromSequenceChoice(){
   if(calendarPlanEditing&&calendarCourseContext){calendarPlanEditing=false;openDayPlan(calendarCourseContext.date);}
   else go('sequenceSetup');
+}
+
+// Additive migration: preserve the original JSON before assigning missing IDs.
+function henriEnsureSessionIds(){
+  const sequences=Object.values(savedSequences);
+  if(activeSequence)sequences.push(activeSequence);
+  const missing=sequences.some(sequence=>!sequence.id||sequence.sessions?.some(session=>!session.id));
+  if(!missing)return;
+  const before=JSON.parse(JSON.stringify({savedSequences,activeSequence}));
+  const key='previewHenriSlate:backupBeforeSessionIds:v1';
+  try{
+    if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({at:new Date().toISOString(),...before}));
+    for(const sequence of Object.values(savedSequences)){
+      if(!sequence.id)sequence.id=planningId('seq');
+      for(const session of sequence.sessions||[])if(!session.id)session.id=planningId('session');
+    }
+    if(activeSequence){
+      const saved=Object.values(savedSequences).find(sequence=>sequence.id===activeSequence.id);
+      if(!activeSequence.id)activeSequence.id=planningId('seq');
+      for(const [index,session] of (activeSequence.sessions||[]).entries())if(!session.id)session.id=saved?.sessions[index]?.id||planningId('session');
+    }
+    henriPersistSharedState();
+  }catch(error){savedSequences=before.savedSequences;activeSequence=before.activeSequence;planningError(error);}
 }

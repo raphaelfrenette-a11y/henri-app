@@ -167,17 +167,19 @@ async function henriBankUse(id){
   if(!groupsData.length){alert('Importe d’abord tes nouveaux groupes dans les paramètres pour rattacher cette planification à ton horaire.');return;}
   const sequence=henriBankClone(item.sequence);
   sequence.id=henriBankNewId('seq');
+  for(const session of sequence.sessions){session.id=planningId('session');delete session.bankId;}
   sequence.bankId='sequence:'+sequence.id;
   sequence.bankCreationMode='Réutilisée de la banque';
   if(henriBankUseContext==='annual'){
     const block=(annualPlans[selectedAnnualGroupId]||[]).find(x=>x.id===selectedAnnualBlockId);
     if(!block){alert('Sélectionne d’abord une séquence dans la planification annuelle.');return;}
+    if(sequence.sessions.length>Number(block.courses)){alert('Cette séquence contient plus de séances que les '+block.courses+' périodes du bloc. Aucun cours n’a été déplacé.');return;}
     const previous=activeSequence?.groupId===selectedAnnualGroupId&&activeSequence.annualBlockId===block.id?activeSequence:getSavedSequence(selectedAnnualGroupId,block.id);
     if(previous){if(!confirm('Remplacer les contenus de ce bloc par une copie de la banque ? Une copie des contenus actuels sera conservée.'))return;await archivePlanningSequence(previous);}
     if(sequence.sport&&block.sport!==sequence.sport&&!confirm('La séquence de la banque concerne '+sequence.sport+' plutôt que '+block.sport+'. Remplacer le sport dans le bloc annuel?'))return;
     if(!sequence.sport)sequence.sport=block.sport;
     if(!sequence.sessions.length)return;
-    block.sport=sequence.sport||block.sport;block.comp=sequence.comp||block.comp;block.courses=sequence.sessions.length;
+    block.sport=sequence.sport||block.sport;block.comp=sequence.comp||block.comp;
     block.objective=sequence.objective||'';
     sequence.annualBlockId=block.id;sequence.groupId=selectedAnnualGroupId;
     sequence.groupName=groupsData.find(g=>g.id===selectedAnnualGroupId)?.name||'';
@@ -186,7 +188,8 @@ async function henriBankUse(id){
     saveAnnual();
     rebuildPlanningAssignments();
   }else{
-    const groupId=document.getElementById('standaloneSeqGroup')?.value||groupsData[0]?.id;
+    const selected=document.getElementById('standaloneSeqGroup')?.value;
+    const groupId=groupsData.some(group=>group.id===selected)?selected:groupsData[0].id;
     if(!sequence.sport)sequence.sport=document.getElementById('seqSport')?.value||'Sport à préciser';
     sequence.groupId=groupId;
     sequence.groupName=groupsData.find(g=>g.id===groupId)?.name||'';

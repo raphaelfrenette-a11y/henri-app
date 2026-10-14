@@ -118,78 +118,50 @@ function getSequenceOccurrences(sequence){
   const blocks=annualPlans[sequence.groupId]||[],index=blocks.findIndex(b=>b.id===sequence.annualBlockId);
   if(index<0)return [];
   const offset=blocks.slice(0,index).reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
-  return getGroupAnnualOccurrences(sequence.groupId).slice(offset,offset+sequence.sessions.length);
-}
-const henriUltimateOctoberFixKey='previewHenriSlate:ultimateThroughOctober28:v1';
-function henriAlignUltimateThroughOctober(){
-  if(localStorage.getItem(henriUltimateOctoberFixKey))return;
-  if(typeof annualPlans==='undefined'||typeof groupsData==='undefined'||!groupsData.length)return;
-  const changes=[];
-  for(const group of groupsData){
-    const blocks=annualPlans[group.id]||[];
-    const ultimateIndex=blocks.findIndex(b=>String(b.sport||'').trim().toLowerCase()==='ultimate');
-    if(ultimateIndex<0)continue;
-    const badmintonIndex=blocks.findIndex((b,i)=>i>ultimateIndex&&String(b.sport||'').trim().toLowerCase()==='badminton');
-    if(badmintonIndex<0)continue;
-    const slots=getGroupAnnualOccurrences(group.id);
-    if(!slots.length)continue;
-    const year=slots.find(x=>x.date>='2026-09-01'&&x.date<='2026-12-31');
-    if(!year)continue;
-    const through=slots.filter(x=>x.date<='2026-10-28').length;
-    const before=blocks.slice(0,ultimateIndex).reduce((n,b)=>n+Math.max(0,Number(b.courses)||0),0);
-    const needed=Math.max(0,through-before);
-    const current=Math.max(0,Number(blocks[ultimateIndex].courses)||0);
-    if(needed>current){changes.push({groupId:group.id,blockId:blocks[ultimateIndex].id,from:current,to:needed});}
-  }
-  if(changes.length){
-    const backup={at:new Date().toISOString(),annualPlans:JSON.parse(JSON.stringify(annualPlans)),sequenceJumps:henriReadSequenceJumps()};
-    localStorage.setItem('previewHenriSlate:backupBeforeUltimateOctoberFix:v1',JSON.stringify(backup));
-    for(const change of changes){
-      const block=(annualPlans[change.groupId]||[]).find(b=>b.id===change.blockId);
-      if(block)block.courses=change.to;
-    }
-    localStorage.setItem('previewHenriSlate:henriAnnualPlans',JSON.stringify(annualPlans));
-  }
-  localStorage.setItem(henriUltimateOctoberFixKey,JSON.stringify({date:'2026-10-28',changes}));
+  const slots=getGroupAnnualOccurrences(sequence.groupId).slice(offset,offset+Math.max(0,Number(blocks[index].courses)||0));
+  const jumps=henriReadSequenceJumps();let shift=0;
+  const result=[];
+  slots.forEach((slot,period)=>{
+    const jump=jumps[henriSequenceJumpId(sequence.groupId,slot)];
+    if(jump?.blockId===sequence.annualBlockId&&Number.isInteger(jump.sessionIndex)&&jump.sessionIndex>period+shift)shift=jump.sessionIndex-period;
+    const sessionIndex=period+shift;
+    if(sessionIndex<sequence.sessions.length)result[sessionIndex]=slot;
+  });
+  return result;
 }
 function rebuildCalendarPlanning(){
   if(typeof groupsData==='undefined')return;
-  henriAlignUltimateThroughOctober();
-  for(const entry of Object.values(scheduleEntries).flat())Object.assign(entry,{annualPlan:null,sequence:null,session:null,annualBlockId:null,sequenceId:null,sessionIndex:null,individualId:null,planData:null,isIndividual:false});
+  for(const entry of Object.values(scheduleEntries).flat())Object.assign(entry,{annualPlan:null,sequence:null,session:null,annualBlockId:null,sequenceId:null,sessionIndex:null,sessionId:null,individualId:null,planData:null,isIndividual:false});
   for(const group of groupsData){
     ensureAnnualPlan(group.id);
     for(const slot of getGroupCourseOccurrences(group.id)){
       const individual=individualForOccurrence(group.id,slot);
       if(individual)Object.assign(slot.entry,{annualPlan:individual.sport,sequence:'Séance individuelle',session:individual.title,isIndividual:true,individualId:individual.id,planData:{title:individual.title,objective:individual.objective,blocks:individual.blocks}});
     }
-    for(const sequence of datedSequences(group.id))getDatedSequenceOccurrences(sequence).forEach((slot,index)=>Object.assign(slot.entry,{annualPlan:sequence.sport,sequence:sequence.sport,sequenceId:sequence.id,sessionIndex:index,session:'Séance '+(index+1)+'/'+sequence.sessions.length,planData:sequence.sessions[index]}));
+    for(const sequence of datedSequences(group.id))getDatedSequenceOccurrences(sequence).forEach((slot,index)=>Object.assign(slot.entry,{annualPlan:sequence.sport,sequence:sequence.sport,sequenceId:sequence.id,sessionIndex:index,sessionId:sequence.sessions[index]?.id||null,session:'Séance '+(index+1)+'/'+sequence.sessions.length,planData:sequence.sessions[index]}));
     const queue=[];
     for(const block of annualPlans[group.id]){
       const saved=getSavedSequence(group.id,block.id);
       for(let index=0;index<Math.max(0,Number(block.courses)||0);index++){
-        const isExtendedUltimate=String(block.sport||'').trim().toLowerCase()==='ultimate'
-          &&(annualPlans[group.id]||[]).some(b=>String(b.sport||'').trim().toLowerCase()==='badminton')
-          &&Number(block.courses)>4;
-        // The extra Ultimate periods are practice/revision at the start, not a fifth lesson.
-        // Keep the exact same number of calendar slots so badminton dates do not move.
-        const lessonIndex=isExtendedUltimate?Math.max(0,index-(Number(block.courses)-4)):index;
-        const lessonTotal=isExtendedUltimate?4:Number(block.courses);
-        queue.push({annualPlan:block.sport,annualBlockId:block.id,sequenceId:saved?.id||null,sequence:saved?'Séquence planifiée':'Séquence à planifier',sessionIndex:lessonIndex,session:'Séance '+(lessonIndex+1)+'/'+lessonTotal,planData:saved?.sessions[lessonIndex]||null});
+        const session=saved?.sessions[index];
+        queue.push({annualPlan:block.sport,annualBlockId:block.id,sequenceId:session?saved.id:null,sequence:session?'Séquence planifiée':'Séquence à planifier',sessionIndex:session?index:null,sessionId:session?.id||null,session:session?'Séance '+(index+1)+'/'+saved.sessions.length:'À planifier',planData:session||null});
       }
     }
     const jumps=henriReadSequenceJumps();
-    let queueIndex=0;
-    getGroupAnnualOccurrences(group.id).forEach(slot=>{
+    let blockId=null,lessonOffset=0;
+    getGroupAnnualOccurrences(group.id).forEach((slot,index)=>{
+      const base=queue[index];if(!base)return;
+      if(base.annualBlockId!==blockId){blockId=base.annualBlockId;lessonOffset=0;}
       const jump=jumps[henriSequenceJumpId(group.id,slot)];
-      if(jump){
-        const target=queue.findIndex((item,i)=>i>=queueIndex&&item.annualBlockId===jump.blockId&&item.sessionIndex===jump.sessionIndex);
-        if(target>=queueIndex)queueIndex=target;
-      }
-      if(queue[queueIndex])Object.assign(slot.entry,queue[queueIndex]);
-      queueIndex++;
+      const blockStart=queue.findIndex(item=>item.annualBlockId===blockId);
+      const periodIndex=index-blockStart;
+      if(jump?.blockId===blockId&&Number.isInteger(jump.sessionIndex)&&jump.sessionIndex>periodIndex+lessonOffset)lessonOffset=jump.sessionIndex-periodIndex;
+      const target=queue[index+lessonOffset];
+      if(target?.annualBlockId===blockId)Object.assign(slot.entry,target);
+      else Object.assign(slot.entry,{...base,sequenceId:null,sessionId:null,sessionIndex:null,session:'À planifier',planData:null});
     });
   }
-  localStorage.setItem('previewHenriSlate:henriScheduleEntries',JSON.stringify(scheduleEntries));
+  // Calendar content is rebuilt from canonical planning data on every load.
   rebuildCalendarEvents();renderMonth();renderWeek();
 }
 function renderSequenceDatePlacement(){
@@ -312,7 +284,9 @@ function openCalendarSession(date,index){
     calendarIndividualEditing=individual.id;quickSessionData=JSON.parse(JSON.stringify(individual));openSessionEditor(0,'quick');
   }else{
     const saved=calendarSequenceFor(entry);if(!saved)return;
-    activeSequence=JSON.parse(JSON.stringify(saved));openSessionEditor(entry.sessionIndex,'sequence');
+    const sessionIndex=entry.sessionId?saved.sessions.findIndex(session=>session.id===entry.sessionId):entry.sessionIndex;
+    if(!Number.isInteger(sessionIndex)||sessionIndex<0||!saved.sessions[sessionIndex])return;
+    activeSequence=JSON.parse(JSON.stringify(saved));openSessionEditor(sessionIndex,'sequence');
   }
 }
 function persistCalendarIndividual(){
