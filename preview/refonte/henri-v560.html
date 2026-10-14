@@ -583,6 +583,16 @@ function getWeekMonday(base=new Date()){
   return d;
 }
 function getCourseNote(date,entry){try{return JSON.parse(localStorage.getItem(coursePersonalNotesKey)||'{}')[getCoursePersonalNoteKey(date,entry)]||'';}catch(error){return '';}}
+function henriCalendarGroupLabel(entry){
+  return String(entry.groupCode||entry.group||'').trim();
+}
+function henriCalendarLessonLabel(date,entry){
+  if(!isPlanningEntry(entry))return '';
+  if(entry.isIndividual)return 'Séance spéciale';
+  if(entry.annualBlockId&&Number.isInteger(entry.sessionIndex))return 'Cours '+(entry.sessionIndex+1);
+  const position=henriCoursePosition(date,entry);
+  return position&&entry.annualPlan?'Cours '+position.number:'';
+}
 function renderWeek(){
   if(!weekGrid) return;
   document.getElementById('homeEmpty').hidden=Object.keys(scheduleEntries).length>0;
@@ -610,8 +620,9 @@ function renderWeek(){
         out+='<button class="weekEvent '+HenriVisuals.courseState(entry)+'" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
           '<span class="time">'+entry.time+'</span>'+
           '<span class="groupBar" aria-hidden="true"></span>'+
-          '<span class="course">'+planningHtml(entry.group)+'</span>'+
-          '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+
+          '<span class="course">'+planningHtml(henriCalendarGroupLabel(entry))+'</span>'+
+          '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+ 
+          (henriCalendarLessonLabel(key,entry)?'<span style="font-size:11px;opacity:.75">'+henriCalendarLessonLabel(key,entry)+'</span>':'')+
           (getCourseNote(key,entry).trim()?'<span title="Note personnelle" style="font-size:11px;color:#9b6434;font-weight:650">● Note</span>':'')+
         '</button>';
       });
@@ -642,7 +653,7 @@ function openDayPlan(date){
     const session=entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
     cards.push('<div class="dayPlanCard">'+
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
-      '<div class="dayPlanSport">'+sport+'</div>'+
+      '<div class="dayPlanSport">'+sport+(henriCalendarLessonLabel(date,entry)?' · '+henriCalendarLessonLabel(date,entry):'')+'</div>'+
       '<button class="sessionLink" onclick="openCourseEntry(\''+date+'\','+originalIndex+')">'+session+'</button>'+
       (getEntryGroupId(entry)?'<button class="itemBtn" onclick="openGroup(\''+getEntryGroupId(entry)+'\')">Voir les élèves</button>':'')+
     '</div>');
