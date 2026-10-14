@@ -185,6 +185,7 @@ function henriEditIndividualFromCourse(date,index){
   if(title===null)return;
   if(!title.trim()){alert('Le titre ne peut pas être vide.');return;}
   individual.title=title.trim();
+  individual.sport=title.trim();
   localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
   rebuildPlanningAssignments();
   openCourseEntry(date,index);
@@ -263,7 +264,9 @@ function persistCalendarIndividual(){
   if(!calendarIndividualEditing||!quickSessionData)return;
   const index=individualSessions.findIndex(x=>x.id===calendarIndividualEditing);
   if(index<0)return;
-  individualSessions[index]={...individualSessions[index],...JSON.parse(JSON.stringify(quickSessionData))};
+  const updated=JSON.parse(JSON.stringify(quickSessionData));
+  updated.sport=updated.title?.trim()||updated.sport;
+  individualSessions[index]={...individualSessions[index],...updated};
   localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
   rebuildPlanningAssignments();
 }
