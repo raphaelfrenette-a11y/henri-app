@@ -85,16 +85,39 @@ function results(id){const e=read(KEY)[id];if(!e)return;root().innerHTML='<h2>'+
 function renderStudent(){
  const e=read(KEY)[context.id],student=document.getElementById('heStudent')?.value;if(!e||student==null)return;
  const key=[context.id,context.groupId,context.date,student].join('|'),data=read(SCORES)[key]||{};
- const fields=e.criteria.map(c=>'<label style="display:block;margin:12px 0">'+esc(c.name)+' (/'+c.max+', '+c.weight+' %)<input class="planControl heScore" type="number" min="0" max="'+c.max+'" step="0.5" data-id="'+esc(c.id)+'" value="'+(data[c.id]??'')+'"></label>').join('');
- root().querySelector('#heStudentScores').innerHTML=fields+'<button class="planPrimary" onclick="henriEvalSaveScore()">Enregistrer cette évaluation</button><p id="heTotal" class="planHint"></p>';
+ const fields=e.criteria.map(c=>{
+  const selected=data[c.id],step=c.max<=20&&Number.isInteger(c.max)?1:c.max<=10?0.5:1;
+  const values=[];for(let n=0;n<=c.max+0.00001;n+=step)values.push(Number(n.toFixed(2)));
+  if(values.length>31){values.length=0;for(let n=0;n<=10;n++)values.push(Number((c.max*n/10).toFixed(2)))}
+  if(!values.some(v=>v===Number(selected))&&selected!=null)values.push(Number(selected));
+  values.sort((a,b)=>a-b);
+  return '<div class="placeholder" style="margin:12px 0;padding:14px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><strong>'+esc(c.name)+'</strong><strong id="heValue_'+esc(c.id)+'">'+(selected==null?'—':selected)+' / '+c.max+'</strong></div><div class="studentMeta" style="margin:5px 0 12px">Pondération : '+c.weight+' %</div><div style="display:flex;flex-wrap:wrap;gap:7px">'+values.map(n=>'<button type="button" class="itemBtn hePick" data-id="'+esc(c.id)+'" data-value="'+n+'" style="min-width:48px;min-height:46px;touch-action:manipulation;'+(Number(selected)===n&&selected!=null?'background:#254d70;color:white;border-color:#254d70;':'')+'">'+n+'</button>').join('')+'</div><input type="hidden" class="heScore" data-id="'+esc(c.id)+'" value="'+(selected??'')+'"></div>';
+ }).join('');
+ root().querySelector('#heStudentScores').innerHTML=fields+'<div class="placeholder" style="margin:14px 0"><strong id="heTotal"></strong><div class="studentMeta" id="heProgress"></div></div><button class="planPrimary" onclick="henriEvalSaveScore()">Enregistrer cette évaluation</button>';
+ root().querySelectorAll('.hePick').forEach(btn=>btn.addEventListener('click',()=>{
+  const id=btn.dataset.id,field=[...root().querySelectorAll('.heScore')].find(x=>x.dataset.id===id);
+  if(!field)return;field.value=btn.dataset.value;
+  root().querySelectorAll('.hePick').forEach(x=>{if(x.dataset.id!==id)return;const active=x===btn;x.style.background=active?'#254d70':'';x.style.color=active?'white':'';x.style.borderColor=active?'#254d70':'';x.setAttribute('aria-pressed',String(active))});
+  const criterion=e.criteria.find(c=>c.id===id);document.getElementById('heValue_'+id).textContent=btn.dataset.value+' / '+criterion.max;
+  updateScorePreview();
+ }));
+ updateScorePreview();
+}
+function updateScorePreview(){
+ const e=read(KEY)[context.id];if(!e)return;
+ const fields=[...root().querySelectorAll('.heScore')],values=Object.fromEntries(fields.filter(x=>x.value!=='').map(x=>[x.dataset.id,Number(x.value)]));
+ const done=e.criteria.filter(c=>values[c.id]!=null).length;
+ const total=e.criteria.reduce((a,c)=>a+(values[c.id]??0)/c.max*c.weight,0);
+ const label=document.getElementById('heTotal'),progress=document.getElementById('heProgress');
+ if(label)label.textContent=(done===e.criteria.length?'Note finale : ':'Note provisoire : ')+total.toFixed(1)+' %';
+ if(progress)progress.textContent=done+' critère'+(done>1?'s':'')+' sur '+e.criteria.length+' rempli'+(done>1?'s':'');
 }
 function saveScore(){
  const e=read(KEY)[context.id],student=document.getElementById('heStudent').value,key=[context.id,context.groupId,context.date,student].join('|'),values={};
- for(const field of document.querySelectorAll('.heScore')){if(field.value==='')continue;const c=e.criteria.find(x=>x.id===field.dataset.id),n=Number(field.value);if(!c||n<0||n>c.max){alert('Note invalide.');return}values[c.id]=n}
+ for(const field of root().querySelectorAll('.heScore')){if(field.value==='')continue;const c=e.criteria.find(x=>x.id===field.dataset.id),n=Number(field.value);if(!c||n<0||n>c.max){alert('Note invalide.');return}values[c.id]=n}
  const all=read(SCORES);all[key]=values;save(SCORES,all);
- const complete=e.criteria.every(c=>values[c.id]!=null);
- const total=e.criteria.reduce((a,c)=>a+(values[c.id]??0)/c.max*c.weight,0);
- document.getElementById('heTotal').textContent=(complete?'Note finale : ':'Note provisoire : ')+total.toFixed(1)+' % — Enregistré';
+ updateScorePreview();
+ const progress=document.getElementById('heProgress');if(progress)progress.textContent+=' · Enregistré';
  if(typeof renderStudents==='function'&&document.getElementById('groupProfile')?.classList.contains('active'))renderStudents();
 }
 function studentResults(groupId,studentId){
