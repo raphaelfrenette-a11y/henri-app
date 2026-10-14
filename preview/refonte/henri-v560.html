@@ -36,9 +36,13 @@
     </div>
 
     <div id="weekView" class="calendarView on">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px">
-        <span id="weekRangeLabel" class="muted" aria-live="polite"></span>
-        <div class="monthNav" style="display:flex;align-items:center;gap:6px"><button type="button" aria-label="Semaine précédente" onclick="changeWeek(-1)">‹</button><button type="button" aria-label="Revenir à cette semaine" onclick="resetWeek()" title="Cette semaine">Aujourd’hui</button><button type="button" aria-label="Semaine suivante" onclick="changeWeek(1)">›</button></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:0 0 14px;min-width:0">
+        <span id="weekRangeLabel" class="muted" aria-live="polite" style="min-width:0"></span>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button type="button" aria-label="Semaine précédente" onclick="changeWeek(-1)" style="display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font-size:22px;line-height:1">‹</button>
+          <button type="button" aria-label="Revenir à cette semaine" onclick="resetWeek()" title="Cette semaine" style="height:36px;padding:0 12px;white-space:nowrap;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:12px">Cette semaine</button>
+          <button type="button" aria-label="Semaine suivante" onclick="changeWeek(1)" style="display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font-size:22px;line-height:1">›</button>
+        </div>
       </div>
       <div id="weekGrid" class="week"></div>
     </div>
