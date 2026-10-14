@@ -21,6 +21,56 @@
     const matches=groups.filter(g=>!(codes.length&&g.sourceCodes?.length)&&[g.name,...(g.aliases||[]),...(g.sourceCodes||[])].flatMap(aliases).some(a=>wanted.has(a)));
     return matches.length===1?matches[0]:null;
   }
+  function isTeacherRosterName(value){
+    const name=clean(value);
+    return name==='RAPHAELFRENETTE'||name==='FRENETTERAPHAEL';
+  }
+  function cleanTeacherRosters(input){
+    const removed={};let count=0;
+    const groups=(input||[]).map(group=>{
+      const students=group.students||[];
+      const teacher=students.filter(student=>isTeacherRosterName(typeof student==='string'?student:student.name||[student.firstName,student.lastName].filter(Boolean).join(' ')));
+      if(!teacher.length)return group;
+      const ids=new Set(teacher.filter(student=>student.id!=null).map(student=>String(student.id)));
+      removed[String(group.id)]=[...ids];count+=teacher.length;
+      return {...group,students:students.filter(student=>!teacher.includes(student)).map(student=>typeof student==='string'?student:{...student,compatible:(student.compatible||[]).filter(id=>!ids.has(String(id))),incompatible:(student.incompatible||[]).filter(id=>!ids.has(String(id)))})};
+    });
+    return {groups,removed,count};
+  }
+  function removeTeacherFromStoredRosters(storage){
+    const keys=['previewHenriSlate:henriGroupsData','previewHenriSlate:henriImportedGroups'];
+    const previous={},updates={},removed={};let count=0;
+    for(const key of keys){
+      const raw=storage.getItem(key);if(!raw)continue;
+      const groups=JSON.parse(raw);if(!Array.isArray(groups))continue;
+      const cleaned=cleanTeacherRosters(groups);if(!cleaned.count)continue;
+      previous[key]=raw;updates[key]=JSON.stringify(cleaned.groups);count+=cleaned.count;
+      for(const [group,ids] of Object.entries(cleaned.removed))removed[group]=new Set([...(removed[group]||[]),...ids]);
+    }
+    if(!count)return 0;
+    const teamsKey='previewHenriSlate:courseTeams:v1',teamsRaw=storage.getItem(teamsKey);
+    if(teamsRaw){
+      const teams=JSON.parse(teamsRaw);
+      for(const [key,record] of Object.entries(teams)){
+        const ids=removed[key.split('|')[0]];if(!ids)continue;
+        record.teams=(record.teams||[]).map(team=>team.filter(id=>!ids.has(String(id))));
+        record.absent=(record.absent||[]).filter(id=>!ids.has(String(id)));
+      }
+      previous[teamsKey]=teamsRaw;updates[teamsKey]=JSON.stringify(teams);
+    }
+    const historyKey='previewHenriSlate:henriTeamHistory',historyRaw=storage.getItem(historyKey);
+    if(historyRaw){
+      const history=JSON.parse(historyRaw).map(record=>{
+        const ids=removed[String(record.groupId)];return ids?{...record,teams:(record.teams||[]).map(team=>team.filter(id=>!ids.has(String(id))))}:record;
+      });
+      previous[historyKey]=historyRaw;updates[historyKey]=JSON.stringify(history);
+    }
+    const backupKey='previewHenriSlate:backupBeforeTeacherRosterRemoval:v1';
+    if(!storage.getItem(backupKey))storage.setItem(backupKey,JSON.stringify({at:new Date().toISOString(),values:previous}));
+    try{for(const [key,value] of Object.entries(updates))storage.setItem(key,value);}
+    catch(error){for(const [key,value] of Object.entries(previous))try{storage.setItem(key,value)}catch(_){}throw error;}
+    return count;
+  }
   function rosterLines(text){
     const lines=String(text||'').split('\n').map(line=>line.trim()).filter(Boolean);
     // Mozaïk attendance sheets have a separate teacher header, then Surname, Given name rows.
@@ -28,7 +78,7 @@
     const commaName=/^[\d .#-]*[A-Za-zÀ-ÖØ-öø-ÿ'’ .-]+\s*,\s*[A-Za-zÀ-ÖØ-öø-ÿ'’ .-]+(?:\s*[|;].*)?$/;
     const nameRows=lines.map((line,index)=>commaName.test(line)?index:-1).filter(index=>index>=0);
     const body=nameRows.length>=2?lines.slice(nameRows[0]):lines;
-    return body.filter(line=>!/^(?:[eé]ducation\s+physique|page\s+\d+\s+(?:de|sur|of)\s+\d+|moza[iï]k|https?:|www\.)/i.test(line));
+    return body.filter(line=>!isTeacherRosterName(line.replace(/^[\d .#-]+/,'').split(/[|;]/)[0])&&!/^(?:enseignant(?:e)?|professeur(?:e)?|teacher)\b/i.test(line)&&!/^(?:[eé]ducation\s+physique|page\s+\d+\s+(?:de|sur|of)\s+\d+|moza[iï]k|https?:|www\.)/i.test(line));
   }
   function validDate(year,month,day){
     const d=new Date(Number(year),Number(month)-1,Number(day),12);
@@ -276,6 +326,6 @@
     if(dates.some(d=>validDate(...d.split('-'))!==d||!label(calendar[d])))errors.push('Des dates ou jours scolaires sont invalides.');
     return {errors,warnings,pendingDates,dates,cycleDates,lessons,unlinked,missing,ready:!errors.length};
   }
-  const api={aliases,matchGroup,rosterLines,validDate,label,calendarText,calendarNumberGrid,decouvreursReference,scheduleText,scheduleGrid,wordsWithLabels,relink,review,isCognitive};
+  const api={isTeacherRosterName,cleanTeacherRosters,removeTeacherFromStoredRosters,aliases,matchGroup,rosterLines,validDate,label,calendarText,calendarNumberGrid,decouvreursReference,scheduleText,scheduleGrid,wordsWithLabels,relink,review,isCognitive};
   if(typeof module!=='undefined')module.exports=api;else root.HenriImport=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
