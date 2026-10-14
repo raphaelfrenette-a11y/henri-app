@@ -2589,7 +2589,7 @@ function parseTeacherScheduleText(text){return HenriImport.scheduleText(text);}
 const teacherReviewState={draft:null,days:9,periods:4,selected:null,previous:null};
 function teacherReviewPeriod(entry){
   const value=String(entry?.time||'');
-  const m=value.match(/(\\d{1,2})\\s*[:hH]\\s*(\\d{2})/);
+  const m=value.match(/(\d{1,2})\s*[:hH]\s*(\d{2})/);
   if(!m)return -1;
   const minutes=Number(m[1])*60+Number(m[2]);
   if(minutes>=655&&minutes<=675)return -2; // intégration cognitive 10 h 55 à 11 h 15
@@ -2598,13 +2598,13 @@ function teacherReviewPeriod(entry){
   return best;
 }
 function teacherReviewIsStudy(entry){
-  return /int[eé]gration\\s*cognitive|\\b[eé]tude\\b/i.test([entry?.group,entry?.groupCode,entry?.activity,entry?.kind].join(' '))||teacherReviewPeriod(entry)===-2;
+  return /int[eé]gration\s*cognitive|\b[eé]tude\b/i.test([entry?.group,entry?.groupCode,entry?.activity,entry?.kind].join(' '))||teacherReviewPeriod(entry)===-2;
 }
 function teacherReviewStart(parsed){
   teacherReviewState.previous=importedSetupData.teacherSchedule;
   teacherReviewState.draft={};
-  const keys=Object.keys(parsed).filter(k=>/^Jour\\s*\\d+$/i.test(k));
-  teacherReviewState.days=Math.max(9,...keys.map(k=>Number(k.match(/\\d+/)?.[0]||0)));
+  const keys=Object.keys(parsed).filter(k=>/^Jour\s*\d+$/i.test(k));
+  teacherReviewState.days=Math.max(9,...keys.map(k=>Number(k.match(/\d+/)?.[0]||0)));
   teacherReviewState.periods=4;
   for(let d=1;d<=teacherReviewState.days;d++){
     const key='Jour '+d,entries=parsed[key]||[],slots=Array.from({length:4},()=>null);
@@ -2838,10 +2838,10 @@ async function handleSetupFile(type,input){
     }else if(type==='teacherSchedule'){
       const parsed=parseTeacherScheduleDocs(docs);
       const lessons=Object.values(parsed).reduce((n,a)=>n+a.length,0);
-      if(!lessons)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
+      // Même si l'OCR n'a reconnu aucun cours, permettre une correction manuelle dans la grille.
       const linked=Object.values(parsed).flat().filter(x=>x.matchedGroupId).length;
       teacherReviewStart(parsed);
-      state.textContent='Analyse terminée · vérifier la grille';
+      state.textContent='Analyse à vérifier · '+lessons+' créneaux reconnus';
       updateGenerateState();
       return;
     }else{
