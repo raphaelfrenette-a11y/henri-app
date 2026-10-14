@@ -74,7 +74,7 @@ try:
         page.evaluate("scheduleEntries['2026-08-31'].push({...scheduleEntries['2026-08-31'][0],time:'10 h 55',endTime:'11 h 15',durationMinutes:20,period:null,kind:'cognitive',activity:'Intervention cognitive'});rebuildPlanningAssignments()")
         check(page, "getGroupCourseOccurrences(groupsData[0].id).length===Object.values(scheduleEntries).flat().length-1")
         page.evaluate("openCourseEntry('2026-08-31',2)")
-        assert 'Intervention cognitive' in page.locator('#courseSessionTitle').inner_text()
+        assert 'Intégration cognitive' in page.locator('#courseSessionTitle').inner_text()
         assert 'ne compte pas' in page.locator('#coursePlanContent').inner_text()
         assert page.get_by_role('button', name='Préparer cette séance', exact=True).count()==0
         check(page, "scheduleEntries['2026-08-31'][2].annualPlan===null")

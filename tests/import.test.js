@@ -43,6 +43,13 @@ test('relinking works after importing the timetable before the groups',()=>{
   assert.equal(linked['Jour 1'][1].matchedGroupId,'g2');
   assert.equal(linked['Jour 2'][0].time,'9 h 35');
 });
+test('text imports preserve cognitive supervision without assigning a PE period',()=>{
+  const entries=H.scheduleText('Jour 1\nPériode 2 9 h 35 EDU4G2-01\nIntégration cognitive 10 h 55 EDU4G2-01\nPériode 3 12 h 35 EDU3G2-02')['Jour 1'];
+  assert.equal(entries.length,3);
+  assert.equal(entries[1].kind,'cognitive');assert.equal(entries[1].period,null);assert.equal(entries[1].durationMinutes,20);
+  assert.equal(H.isCognitive({activity:'Intervention cognitive'}),true);
+  assert.equal(H.isCognitive(entries[0]),false);
+});
 test('explicit calendar labels stay with their date; invalid dates and conflicting photos are rejected',()=>{
   assert.deepEqual(H.calendarText('2026-11-23 Jour 1 2026-11-24 Jour 2\n25 décembre 2026 Congé'),{'2026-11-23':'Jour 1','2026-11-24':'Jour 2','2026-12-25':'Congé'});
   assert.deepEqual(H.calendarText('2026-02-30 Jour 1\n2026-11-23\nJour 2'),{});
@@ -100,6 +107,8 @@ test('nine-day schedule reads four teaching periods, cognitive blocks and lunch 
   assert.equal(schedule['Jour 5'][3].time,'12 h 35');
   assert.equal(schedule['Jour 5'][4].period,4);
   assert.equal(schedule['Jour 5'][4].time,'14 h 00');
+  const damaged=H.scheduleGrid(words.filter(w=>w.text!=='Int. cognitive'));
+  assert.equal(Object.values(damaged).flat().filter(H.isCognitive).length,5,'time headers recover the separate 20-minute column when its title is unreadable');
 });
 const referenceText='Centre de services scolaire des Découvreurs Secondaire Calendrier scolaire 2026-2027\n180 journées d’enseignement\nDébut des cours pour les élèves : 31 août 2026\nFin des cours pour les élèves : 23 juin 2027\n3 journées pédagogiques flottantes';
 test('CSS reference preserves printed cycles, holidays and unknown x/y/z days',()=>{

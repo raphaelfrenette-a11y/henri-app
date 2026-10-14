@@ -45,6 +45,12 @@ try:
         page.on('dialog', lambda d: d.accept())
         page.route('https://**/*', lambda r: r.abort())
         page.goto(f'http://127.0.0.1:{server.server_port}/', wait_until='networkidle')
+        assert page.evaluate("""()=>{
+          const a={id:'a',name:'Secondaire 4 · Groupe 02',sourceCodes:['EDU4G1-02'],students:[]};
+          const b={id:'b',name:a.name,sourceCodes:['EDU4G2-02'],students:[]};
+          const merged=mergeImportedGroups([b],[a]);
+          return merged.length===2&&merged[0].id==='b'&&mergeImportedGroups([{...b,id:'new'}],merged)[0].id==='b';
+        }""")
         page.get_by_role('button', name='Paramètres', exact=True).click()
         page.evaluate("""rows=>{
           const times=['8 h 10','9 h 35','10 h 55','11 h 15','12 h 35','14 h 00'];
@@ -68,6 +74,13 @@ try:
         page.wait_for_function("document.getElementById('home').classList.contains('active')")
         assert page.evaluate("Object.values(scheduleEntries).flat().filter(isPlanningEntry).length") == 440
         assert page.evaluate("Object.values(scheduleEntries).flat().filter(e=>e.kind==='cognitive').length") == 100
+        assert page.evaluate("Object.values(scheduleEntries).flat().filter(HenriImport.isCognitive).every(e=>!e.planData&&!e.annualBlockId&&!e.sequenceId)")
+        assert page.evaluate("""()=>{
+          const date='2026-11-23',index=scheduleEntries[date].findIndex(HenriImport.isCognitive);
+          const before=document.querySelector('.screen.active')?.id;
+          openQuickSessionForCourse(date,index);openCalendarSession(date,index);openCalendarSequence(date,index);
+          return document.querySelector('.screen.active')?.id===before;
+        }""")
         assert page.evaluate("getGroupCourseOccurrences(groupsData.find(g=>g.sourceCodes.includes('EDU4G2-02')).id).length") == 40
         assert page.evaluate("scheduleEntries['2026-11-23'][0].groupCode==='EDU4G2-02' && scheduleEntries['2026-11-23'][0].time==='8 h 10'")
         assert page.evaluate("!scheduleEntries['2027-06-21'] && schoolDays['2027-06-21']==='Jour x'")

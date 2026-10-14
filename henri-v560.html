@@ -562,7 +562,7 @@ function renderWeek(){
     if(entries.length){
       entries.forEach((entry)=>{
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
-        let sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'À planifier');
+        let sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'À planifier');
         if(sport==='À choisir') sport='À planifier';
         const groupColors=['#425d73','#647d8c','#697b73','#7b7488'];
         const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
@@ -598,8 +598,8 @@ function openDayPlan(date){
   const cards=[];
   entries.forEach(entry=>{
     const originalIndex=(scheduleEntries[date]||[]).indexOf(entry);
-    const sport=entry.annualPlan||(entry.kind==='cognitive'?'Intervention cognitive':'Sport à planifier');
-    const session=entry.session||(entry.kind==='cognitive'?'Intervention cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
+    const sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Sport à planifier');
+    const session=entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
     cards.push('<div class="dayPlanCard">'+
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+sport+'</div>'+
@@ -629,7 +629,7 @@ function openCourseEntry(date,index){
   if(!entry) return;
   calendarCourseContext={date,index};
   renderCoursePlanningActions(entry,date,index);
-  if(!entry.annualPlan&&!entry.isIndividual&&entry.kind!=='cognitive'){
+  if(!entry.annualPlan&&!entry.isIndividual&&isPlanningEntry(entry)){
     openQuickSessionForCourse(date,index);
     return;
   }
@@ -639,9 +639,9 @@ function openCourseEntry(date,index){
   courseDetailMeta.textContent=date+' · '+entry.time;
   courseDetailGroup.textContent=entry.group;
   courseDetailCycle.textContent=schoolDays[date]||'';
-  courseSessionTitle.textContent=entry.planData?.title||entry.session||(entry.kind==='cognitive'?'Intervention cognitive':'Séance à planifier');
-  if(entry.kind==='cognitive'){
-    coursePlanContent.textContent='Intervention cognitive · '+entry.time+(entry.endTime?' à '+entry.endTime:'')+(entry.durationMinutes?' · '+entry.durationMinutes+' min':'')+'. Ce bloc est affiché dans ton horaire et ne compte pas comme une séance d’éducation physique.';
+  courseSessionTitle.textContent=entry.planData?.title||entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Séance à planifier');
+  if(HenriImport.isCognitive(entry)){
+    coursePlanContent.textContent='Intégration cognitive · '+entry.time+(entry.endTime?' à '+entry.endTime:'')+(entry.durationMinutes?' · '+entry.durationMinutes+' min':'')+'. Ce bloc est affiché dans ton horaire et ne compte pas comme une séance d’éducation physique.';
     go('courseDetail');return;
   }
 
@@ -1648,7 +1648,7 @@ function openQuickSession(){
 }
 function openQuickSessionForCourse(date,index){
   const entry=(scheduleEntries[date]||[])[index];
-  if(!entry)return;
+  if(!entry||!isPlanningEntry(entry))return;
   const group=groupsData.find(g=>g.id===getEntryGroupId(entry));
   if(!group)return;
   calendarPlanEditing=false;calendarIndividualEditing=null;
@@ -2795,9 +2795,9 @@ function generateMySchedule(){
   henriSyncSharedData({skipSequenceEditor:true});
   const entries=Object.values(scheduleEntries).flat();
   const total=entries.filter(isPlanningEntry).length;
-  const cognitive=entries.filter(entry=>entry.kind==='cognitive').length;
+  const cognitive=entries.filter(entry=>HenriImport.isCognitive(entry)).length;
   const dates=Object.keys(schoolDays).sort();
-  setupSuccess.textContent='Année générée du '+formatPlanDate(dates[0])+' au '+formatPlanDate(dates.at(-1))+' · '+groupsData.length+' groupes · '+total+' cours placés'+(cognitive?' · '+cognitive+' interventions cognitives':'')+'.';
+  setupSuccess.textContent='Année générée du '+formatPlanDate(dates[0])+' au '+formatPlanDate(dates.at(-1))+' · '+groupsData.length+' groupes · '+total+' cours placés'+(cognitive?' · '+cognitive+' blocs d’intégration cognitive':'')+'.';
   setupSuccess.classList.add('show');
   const pending=Object.values(schoolDays).filter(type=>/^Jour [xyz]$/.test(type)).length;
   if(pending)setupSuccess.textContent+=' '+pending+' jours-cycle restent à préciser, sans cours attribué.';
