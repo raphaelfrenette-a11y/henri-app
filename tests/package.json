@@ -1,0 +1,9 @@
+{
+  "name": "henri-refonte-tests",
+  "private": true,
+  "scripts": {
+    "unit": "cd .. && node tests/sequence-keep.test.cjs",
+    "browser": "cd .. && node tests/browser-sequence-keep.cjs"
+  },
+  "devDependencies": { "playwright": "1.62.1" }
+}
