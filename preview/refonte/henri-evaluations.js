@@ -71,6 +71,21 @@ function saveScore(){
  const complete=e.criteria.every(c=>values[c.id]!=null);
  const total=e.criteria.reduce((a,c)=>a+(values[c.id]??0)/c.max*c.weight,0);
  document.getElementById('heTotal').textContent=(complete?'Note finale : ':'Note provisoire : ')+total.toFixed(1)+' % — Enregistré';
+ if(typeof renderStudents==='function'&&document.getElementById('groupProfile')?.classList.contains('active'))renderStudents();
+}
+function studentResults(groupId,studentId){
+ const scores=read(SCORES),grids=read(KEY),prefixes=[String(groupId),String(studentId)];
+ const rows=[];
+ for(const [key,values] of Object.entries(scores)){
+  const parts=key.split('|');if(parts.length<4||parts[1]!==prefixes[0]||parts.slice(3).join('|')!==prefixes[1])continue;
+  const grid=grids[parts[0]];if(!grid||!grid.criteria?.length)continue;
+  const complete=grid.criteria.every(c=>values[c.id]!=null&&Number.isFinite(Number(values[c.id]))&&Number(values[c.id])>=0&&Number(values[c.id])<=c.max);
+  const total=grid.criteria.reduce((sum,c)=>sum+(Number(values[c.id])||0)/c.max*c.weight,0);
+  rows.push({grid,date:parts[2],values,complete,total});
+ }
+ rows.sort((a,b)=>b.date.localeCompare(a.date));
+ if(!rows.length)return '<div class="detailRow"><div class="detailLabel">Évaluations</div><p class="studentMeta">Aucune évaluation enregistrée.</p></div>';
+ return '<div class="detailRow"><div class="detailLabel">Évaluations</div>'+rows.map(r=>'<div style="padding:9px 0;border-bottom:1px solid var(--line)"><strong>'+esc(r.grid.title)+'</strong><div class="studentMeta">'+esc(r.date||'Sans date')+' · '+esc(r.grid.sport)+' · '+(r.complete?'Note finale : '+r.total.toFixed(1)+' %':'En cours · '+r.total.toFixed(1)+' % provisoire')+'</div><div class="itemActions"><button type="button" class="itemBtn" onclick="henriEvalScore('+JSON.stringify(r.grid.id)+','+JSON.stringify(String(groupId))+','+JSON.stringify(r.date)+')">Consulter la grille</button></div></div>').join('')+'</div>';
 }
 function course(entry,date,index){
  const target=document.getElementById('henriCourseEvaluations');if(!target)return;target.replaceChildren();
@@ -79,5 +94,5 @@ function course(entry,date,index){
  const matches=Object.values(read(KEY)).filter(e=>e.groupIds.includes(String(gid))&&e.sport.trim().toLowerCase()===sport);
  for(const e of matches){const b=document.createElement('button');b.className='itemBtn';b.textContent='Évaluer · '+e.title;b.onclick=()=>score(e.id,gid,date);target.append(b)}
 }
-Object.assign(window,{henriEvalOpenBank:open,henriEvalList:list,henriEvalNew:create,henriEvalEdit:edit,henriEvalSave:saveGrid,henriEvalAddCriterion:add,henriEvalRemoveCriterion:remove,henriEvalChangeComp:changeComp,henriEvalDelete:del,henriEvalOpenResults:results,henriEvalScore:score,henriEvalRenderStudent:renderStudent,henriEvalSaveScore:saveScore,henriEvalCourseActions:course});
+Object.assign(window,{henriEvalOpenBank:open,henriEvalList:list,henriEvalNew:create,henriEvalEdit:edit,henriEvalSave:saveGrid,henriEvalAddCriterion:add,henriEvalRemoveCriterion:remove,henriEvalChangeComp:changeComp,henriEvalDelete:del,henriEvalOpenResults:results,henriEvalScore:score,henriEvalRenderStudent:renderStudent,henriEvalSaveScore:saveScore,henriEvalCourseActions:course,henriEvalStudentResults:studentResults});
 })();
