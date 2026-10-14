@@ -93,7 +93,7 @@ function renderStudent(){
   values.sort((a,b)=>a-b);
   return '<div class="placeholder" style="margin:12px 0;padding:14px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><strong>'+esc(c.name)+'</strong><strong id="heValue_'+esc(c.id)+'">'+(selected==null?'—':selected)+' / '+c.max+'</strong></div><div class="studentMeta" style="margin:5px 0 12px">Pondération : '+c.weight+' %</div><div style="display:flex;flex-wrap:wrap;gap:7px">'+values.map(n=>'<button type="button" class="itemBtn hePick" data-id="'+esc(c.id)+'" data-value="'+n+'" style="min-width:48px;min-height:46px;touch-action:manipulation;'+(Number(selected)===n&&selected!=null?'background:#254d70;color:white;border-color:#254d70;':'')+'">'+n+'</button>').join('')+'</div><input type="hidden" class="heScore" data-id="'+esc(c.id)+'" value="'+(selected??'')+'"></div>';
  }).join('');
- root().querySelector('#heStudentScores').innerHTML=fields+'<div class="placeholder" style="margin:14px 0"><strong id="heTotal"></strong><div class="studentMeta" id="heProgress"></div></div><button class="planPrimary" onclick="henriEvalSaveScore()">Enregistrer cette évaluation</button>';
+ root().querySelector('#heStudentScores').innerHTML=fields+'<div class="placeholder" style="margin:14px 0;padding:14px"><label for="heRemark"><strong>Remarque pour cet élève</strong></label><textarea id="heRemark" class="planControl" rows="3" style="width:100%;box-sizing:border-box;margin-top:9px" placeholder="Ex. Bonne prise de décision, mais doit améliorer ses déplacements.">'+esc(data.__remark||'')+'</textarea></div><div class="placeholder" style="margin:14px 0"><strong id="heTotal"></strong><div class="studentMeta" id="heProgress"></div></div><button class="planPrimary" onclick="henriEvalSaveScore()">Enregistrer cette évaluation</button>';
  root().querySelectorAll('.hePick').forEach(btn=>btn.addEventListener('click',()=>{
   const id=btn.dataset.id,field=[...root().querySelectorAll('.heScore')].find(x=>x.dataset.id===id);
   if(!field)return;field.value=btn.dataset.value;
@@ -115,6 +115,7 @@ function updateScorePreview(){
 function saveScore(){
  const e=read(KEY)[context.id],student=document.getElementById('heStudent').value,key=[context.id,context.groupId,context.date,student].join('|'),values={};
  for(const field of root().querySelectorAll('.heScore')){if(field.value==='')continue;const c=e.criteria.find(x=>x.id===field.dataset.id),n=Number(field.value);if(!c||n<0||n>c.max){alert('Note invalide.');return}values[c.id]=n}
+ const remark=root().querySelector('#heRemark')?.value.trim()||'';if(remark)values.__remark=remark;
  const all=read(SCORES);all[key]=values;save(SCORES,all);
  updateScorePreview();
  const progress=document.getElementById('heProgress');if(progress)progress.textContent+=' · Enregistré';
@@ -132,7 +133,7 @@ function studentResults(groupId,studentId){
  }
  rows.sort((a,b)=>b.date.localeCompare(a.date));
  if(!rows.length)return '<div class="detailRow"><div class="detailLabel">Évaluations</div><p class="studentMeta">Aucune évaluation enregistrée.</p></div>';
- return '<div class="detailRow"><div class="detailLabel">Évaluations</div>'+rows.map(r=>'<div style="padding:9px 0;border-bottom:1px solid var(--line)"><strong>'+esc(r.grid.title)+'</strong><div class="studentMeta">'+esc(r.date||'Sans date')+' · '+esc(r.grid.sport)+' · '+(r.complete?'Note finale : '+r.total.toFixed(1)+' %':'En cours · '+r.total.toFixed(1)+' % provisoire')+'</div><div class="itemActions"><button type="button" class="itemBtn" onclick="henriEvalScore('+JSON.stringify(r.grid.id)+','+JSON.stringify(String(groupId))+','+JSON.stringify(r.date)+')">Consulter la grille</button></div></div>').join('')+'</div>';
+ return '<div class="detailRow"><div class="detailLabel">Évaluations</div>'+rows.map(r=>'<div style="padding:9px 0;border-bottom:1px solid var(--line)"><strong>'+esc(r.grid.title)+'</strong><div class="studentMeta">'+esc(r.date||'Sans date')+' · '+esc(r.grid.sport)+' · '+(r.complete?'Note finale : '+r.total.toFixed(1)+' %':'En cours · '+r.total.toFixed(1)+' % provisoire')+'</div>'+(r.values.__remark?'<p class="studentMeta" style="margin:7px 0;white-space:pre-wrap">'+esc(r.values.__remark)+'</p>':'')+'<div class="itemActions"><button type="button" class="itemBtn" onclick="henriEvalScore('+JSON.stringify(r.grid.id)+','+JSON.stringify(String(groupId))+','+JSON.stringify(r.date)+')">Consulter la grille</button></div></div>').join('')+'</div>';
 }
 function course(entry,date,index){
  const target=document.getElementById('henriCourseEvaluations');if(!target)return;target.replaceChildren();
