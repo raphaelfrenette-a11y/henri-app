@@ -327,7 +327,7 @@ function openCalendarCourse(date,index){
 }
 
 function henriCourseIsEvaluation(entry){
-  if(!isPlanningEntry(entry))return false;
+  if(!isPlanningEntry(entry)||entry.isIndividual||henriIsPoolball(entry.annualPlan))return false;
   const groupId=getEntryGroupId(entry);
   const sequence=calendarSequenceFor(entry);
   const block=(annualPlans[groupId]||[]).find(block=>block.id===entry.annualBlockId);
@@ -340,4 +340,13 @@ function henriCalendarEvaluationButton(date,entry,index){
   const planned=typeof henriEvalForCourse==='function'?henriEvalForCourse(entry):[];
   const label=planned.length?'Ouvrir l’évaluation planifiée':'Évaluation non planifiée';
   return '<button type="button" class="calendarEvaluationButton" data-date="'+date+'" aria-label="'+planningHtml(label)+'" '+(planned.length?'onclick="henriEvalOpenCalendar(&quot;'+date+'&quot;,'+index+')"':'disabled title="Planifie d’abord une évaluation dans Planifier."')+'>Évaluation'+(planned.length?' ›':'')+'</button>';
+}
+
+function henriIsPoolball(value){
+  const name=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  return /^(?:poolball|poull?ball)(?:1|seanceindividuelle|seance1)?$/.test(name);
+}
+function henriCalendarSportLabel(entry){
+  const sport=entry.annualPlan||(henriIsPoolball(entry.activity)?entry.activity:'');
+  return henriIsPoolball(sport)?'Poolball 1':sport;
 }

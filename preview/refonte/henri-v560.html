@@ -575,7 +575,7 @@
 <script src="henri-planning.js?v=annual-exact-counts-1"></script>
 <script src="henri-import.js?v=teacher-roster-removal-1"></script>
 <script src="henri-ultimate-migration.js?v=ultimate-four-1"></script>
-<script src="henri-calendar-links.js?v=eval-button-centered-1"></script>
+<script src="henri-calendar-links.js?v=poolball-one-1"></script>
 <script src="henri-cancellations.js?v=outing-oct16-1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
@@ -695,7 +695,7 @@ function henriCalendarGroupLabel(entry){
   return String(entry.groupCode||entry.group||'').trim();
 }
 function henriCalendarLessonLabel(date,entry){
-  if(!isPlanningEntry(entry))return '';
+  if(!isPlanningEntry(entry)||henriIsPoolball(entry.annualPlan))return '';
   const position=henriCoursePosition(date,entry);
   if(position)return 'Cours '+position.number+(position.total?'/'+position.total:'');
   return entry.isIndividual?'Séance individuelle':'';
@@ -733,7 +733,7 @@ function renderWeek(){
     if(entries.length){
       entries.forEach((entry)=>{
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
-        let sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'À planifier');
+        let sport=henriCalendarSportLabel(entry)||(HenriImport.isCognitive(entry)?'Intégration cognitive':'À planifier');
         if(sport==='À choisir') sport='À planifier';
         const groupColors=['#345a77','#d17743','#47866d','#8962a0','#bc566a','#508caa','#9a7838','#6376b8','#b16e99','#657e43','#ab6451','#437e87','#806cb0','#b28744','#50755d','#9d6578'];
         const groupName=String(entry.group||'').trim();
@@ -776,8 +776,8 @@ function openDayPlan(date){
   if(entries.some(isPlanningEntry))cards.push('<button class="itemBtn calendarCancelAction" onclick="henriOpenCancellationForm(&quot;'+date+'&quot;)">Annuler des cours</button>');
   entries.forEach(entry=>{
     const originalIndex=(scheduleEntries[date]||[]).indexOf(entry);
-    const sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Sport à planifier');
-    const session=entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
+    const sport=henriCalendarSportLabel(entry)||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Sport à planifier');
+    const session=henriIsPoolball(entry.annualPlan)?'Poolball 1':entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive'+(entry.durationMinutes?' · '+entry.durationMinutes+' min':''):'Séance à planifier');
     cards.push('<div class="dayPlanCard">'+
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+sport+(henriCalendarLessonLabel(date,entry)?' · '+henriCalendarLessonLabel(date,entry):'')+'</div>'+
@@ -913,6 +913,7 @@ function saveCoursePersonalNote(value){
   }catch(error){if(status)status.textContent='Impossible d’enregistrer la note';console.error(error);}
 }
 function henriCoursePosition(date,entry){
+  if(entry.isIndividual||henriIsPoolball(entry.annualPlan))return null;
   const groupId=getEntryGroupId(entry);
   if(!groupId)return null;
   const blocks=annualPlans[groupId]||[];
@@ -934,13 +935,13 @@ function openCourseEntry(date,index){
   showCoursePersonalNote(date,entry);
   // Keep the course detail accessible even before a lesson has been planned.
   previousScreen=document.querySelector('.screen.active')?.id||'home';
-  const sport=entry.annualPlan||entry.activity||'Cours';
+  const sport=henriCalendarSportLabel(entry)||entry.activity||'Cours';
   courseDetailTitle.textContent=sport;
   const coursePosition=henriCoursePosition(date,entry);
   courseDetailMeta.textContent=date+' · '+entry.time+(coursePosition?' · Cours '+coursePosition.number+(coursePosition.total?'/'+coursePosition.total:''):'');
   courseDetailGroup.textContent=entry.group;
   courseDetailCycle.textContent=schoolDays[date]||'';
-  courseSessionTitle.textContent=entry.planData?.title||entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Séance à planifier');
+  courseSessionTitle.textContent=henriIsPoolball(entry.annualPlan)?'Poolball 1':entry.planData?.title||entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Séance à planifier');
   if(HenriImport.isCognitive(entry)){
     coursePlanContent.textContent='Intégration cognitive · '+entry.time+(entry.endTime?' à '+entry.endTime:'')+(entry.durationMinutes?' · '+entry.durationMinutes+' min':'')+'. Ce bloc est affiché dans ton horaire et ne compte pas comme une séance d’éducation physique.';
     go('courseDetail');return;
@@ -995,7 +996,7 @@ function renderMonth(){
       '</button>'+
       entries.map(entry=>{
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
-        const sport=entry.annualPlan||(isPlanningEntry(entry)?'À planifier':'Intégration cognitive');
+        const sport=henriCalendarSportLabel(entry)||(isPlanningEntry(entry)?'À planifier':'Intégration cognitive');
         const label=henriCalendarLessonLabel(key,entry);
         return '<button class="monthCourseButton" data-date="'+key+'" data-course-index="'+originalIndex+'" aria-label="'+escape(sport+' · '+label+' · '+henriCalendarGroupLabel(entry)+' · '+entry.time)+'" onclick="openCalendarCourse(&quot;'+key+'&quot;,'+originalIndex+')"><strong>'+escape(sport)+'</strong>'+(label?'<span>'+escape(label)+'</span>':'')+'<small>'+escape(henriCalendarGroupLabel(entry)+' · '+entry.time)+'</small></button>'+henriCalendarEvaluationButton(key,entry,originalIndex);
       }).join('')+
@@ -1932,8 +1933,9 @@ function openSessionEditor(index,source){
   activeSessionIndex=index;
   const session=sessionEditorSource==='quick'?quickSessionData:activeSequence?.sessions[index];
   if(!session)return;
-  editSessionMeta.textContent=sessionEditorSource==='quick'?'Séance individuelle':'Séance '+(index+1)+' sur '+activeSequence.sessions.length;
-  editSessionTitle.textContent=session.title;
+  const poolball=henriIsPoolball(sessionEditorSource==='quick'?quickSessionData?.sport:activeSequence?.sport);
+  editSessionMeta.textContent=poolball?'Cours unique':sessionEditorSource==='quick'?'Séance individuelle':'Séance '+(index+1)+' sur '+activeSequence.sessions.length;
+  editSessionTitle.textContent=poolball?'Poolball 1':session.title;
   const rename=document.getElementById('henriCalendarRenameSession');
   if(rename)rename.hidden=!(calendarPlanEditing&&sessionEditorSource==='quick');
   renderObjectiveSelector('session',session.objective||'');
@@ -3448,9 +3450,10 @@ setTimeout(()=>{
   updateGenerateState();
 },0);
 </script>
-<script src="henri-bank-v1.js?v=issue4-keep-1"></script>
+<script src="henri-bank-content.js?v=content-unique-1"></script>
+<script src="henri-bank-v1.js?v=content-unique-1"></script>
 <script src="henri-calendar-pdf.js?v=5efa0d3"></script>
-<script src="henri-ux.js?v=issue4-course-numbers-1"></script>
+<script src="henri-ux.js?v=poolball-one-1"></script>
 <script src="henri-evaluations.js?v=ultimate-four-repair-1"></script>
 </body>
 </html>

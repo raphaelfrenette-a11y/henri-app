@@ -33,7 +33,7 @@
       const symbol = 'henri-illustrations.svg?v=d3c3f1cf#' + HenriVisuals.sportSymbol(entry.annualPlan, entry.kind);
       const artwork = document.getElementById('nextCourseSymbol');
       if (artwork.getAttribute('href') !== symbol) artwork.setAttribute('href', symbol);
-      setText('nextCoursePlan', entry.annualPlan && entry.annualPlan !== 'À choisir' ? entry.annualPlan + (henriCalendarLessonLabel(date,entry) ? ' · ' + henriCalendarLessonLabel(date,entry) : '') : 'Séance à préparer');
+      setText('nextCoursePlan', entry.annualPlan && entry.annualPlan !== 'À choisir' ? henriCalendarSportLabel(entry) + (henriCalendarLessonLabel(date,entry) ? ' · ' + henriCalendarLessonLabel(date,entry) : '') : 'Séance à préparer');
     }
     document.querySelector('.homeActions').hidden = !groupsData.length;
     document.querySelectorAll('.planField label').forEach(label => {

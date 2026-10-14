@@ -19,8 +19,8 @@ function henriBankYear(){
 function henriBankOpenDb(){
   return new Promise((resolve,reject)=>{
     if(!window.indexedDB){reject(new Error('Ce navigateur ne permet pas le stockage local durable.'));return;}
-    const req=indexedDB.open(HENRI_BANK_DB,1);
-    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('items'))db.createObjectStore('items',{keyPath:'id'});};
+    const req=indexedDB.open(HENRI_BANK_DB,2);
+    req.onupgradeneeded=()=>{const db=req.result;for(const name of ['items','aliases','dedupArchives'])if(!db.objectStoreNames.contains(name))db.createObjectStore(name,{keyPath:'id'});};
     req.onsuccess=()=>resolve(req.result);
     req.onerror=()=>reject(req.error||new Error('Impossible d’ouvrir la banque.'));
     req.onblocked=()=>reject(new Error('Banque verrouillée dans un autre onglet.'));
@@ -41,9 +41,58 @@ async function henriBankTransaction(mode,handler){
     tx.onabort=()=>{db.close();reject(tx.error||new Error('Enregistrement annulé.'));};
   });
 }
-function henriBankGet(id){return henriBankTransaction('readonly',s=>s.get(id));}
-function henriBankAll(){return henriBankTransaction('readonly',s=>s.getAll());}
-function henriBankPut(item){return henriBankTransaction('readwrite',s=>s.put(item));}
+let henriBankDedupPromise=null;
+function henriBankRawAll(){return henriBankTransaction('readonly',store=>store.getAll());}
+function henriBankEnsureDedup(){
+ if(!henriBankDedupPromise)henriBankDedupPromise=henriBankDeduplicateExisting().catch(error=>{henriBankDedupPromise=null;throw error});
+ return henriBankDedupPromise;
+}
+async function henriBankDeduplicateExisting(){
+ const items=await henriBankRawAll(),canonical=new Map(),originals=[];
+ for(const item of items.sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))||a.id.localeCompare(b.id))){
+  const id=await HenriBankContent.identity(item);if(!id)continue;
+  if(!canonical.has(id))canonical.set(id,{...item,id,contentKey:id,...(item.type==='annual'?{title:'Planification annuelle · '+item.annual.length+' blocs'}:{})});
+  if(item.id!==id)originals.push({item,id});
+ }
+ if(!originals.length)return;
+ const db=await henriBankOpenDb();
+ await new Promise((resolve,reject)=>{
+  const tx=db.transaction(['items','aliases','dedupArchives'],'readwrite'),store=tx.objectStore('items'),aliases=tx.objectStore('aliases'),archives=tx.objectStore('dedupArchives');
+  for(const {item,id} of originals){
+   // Archive the exact original in the same transaction before removing a duplicate.
+   archives.put({...item,id:item.id+'@'+id,originalId:item.id,canonicalId:id});
+   if(!item.id.startsWith('content:'))aliases.put({id:item.id,target:id});
+   store.delete(item.id);
+  }
+  for(const item of canonical.values())store.put(item);
+  tx.oncomplete=()=>{db.close();resolve()};tx.onerror=tx.onabort=()=>{db.close();reject(tx.error||new Error('Regroupement de la banque impossible.'))};
+ });
+}
+async function henriBankGet(id){
+ await henriBankEnsureDedup();
+ const item=await henriBankTransaction('readonly',store=>store.get(id));if(item)return item;
+ const db=await henriBankOpenDb();
+ const alias=await new Promise((resolve,reject)=>{const tx=db.transaction('aliases','readonly'),req=tx.objectStore('aliases').get(id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);tx.oncomplete=()=>db.close();});
+ return alias?henriBankTransaction('readonly',store=>store.get(alias.target)):undefined;
+}
+async function henriBankAll(){await henriBankEnsureDedup();return henriBankRawAll();}
+async function henriBankPut(item){
+ await henriBankEnsureDedup();const id=await HenriBankContent.identity(item);
+ if(!id){await henriBankTransaction('readwrite',store=>store.put(item));return item.id;}
+ const db=await henriBankOpenDb();
+ await new Promise((resolve,reject)=>{
+  const tx=db.transaction(['items','aliases'],'readwrite'),store=tx.objectStore('items'),req=store.get(id);
+  req.onsuccess=()=>{
+   // Reuse existing immutable content. Editing a group creates another content ID.
+   if(!req.result)store.put({...item,id,contentKey:id,...(item.type==='annual'?{title:'Planification annuelle · '+item.annual.length+' blocs'}:{})});
+   if(item.id!==id&&!item.id.startsWith('content:')){
+    const aliases=tx.objectStore('aliases'),old=aliases.get(item.id);old.onsuccess=()=>{if(!old.result)aliases.put({id:item.id,target:id});};
+   }
+  };
+  tx.oncomplete=()=>{db.close();resolve()};tx.onerror=tx.onabort=()=>{db.close();reject(tx.error||new Error('Enregistrement de la banque impossible.'))};
+ });
+ return id;
+}
 function henriBankClone(sequence){
   const copy=JSON.parse(JSON.stringify(sequence||{}));
   delete copy.groupId;delete copy.groupName;delete copy.annualBlockId;delete copy.bankId;
@@ -54,7 +103,7 @@ async function henriBankStoreSequence(sequence,mode){
   if(!sequence||!Array.isArray(sequence.sessions)||!sequence.sessions.length)return;
   if(!sequence.bankId)sequence.bankId='sequence:'+String(sequence.id||henriBankNewId('seq'));
   const id=sequence.bankId,old=await henriBankGet(id);
-  await henriBankPut({
+  sequence.bankId=await henriBankPut({
     id,type:'sequence',title:(sequence.sport||'Séquence')+' · '+(sequence.sessions.length)+' cours',
     sport:sequence.sport||'',comp:sequence.comp||'C2',
     count:sequence.sessions.length,year:old?.year||henriBankYear(),
@@ -67,7 +116,7 @@ async function henriBankStoreSession(session,mode){
   if(!session||!Array.isArray(session.blocks)||!session.blocks.length)return;
   if(!session.bankId)session.bankId='session:'+String(session.id||henriBankNewId('cours'));
   const old=await henriBankGet(session.bankId);
-  await henriBankPut({
+  session.bankId=await henriBankPut({
     id:session.bankId,type:'session',title:session.title||((session.sport||'Séance')+' · séance'),
     sport:session.sport||'',comp:session.comp||'C2',count:1,
     year:old?.year||henriBankYear(),mode:old?.mode||mode||'Manuelle',
@@ -88,13 +137,14 @@ async function henriBankStoreAnnual(groupId,plans){
     return {block:JSON.parse(JSON.stringify(b)),sequence:seq?henriBankClone(seq):null};
   });
   const g=groupsData.find(g=>g.id===groupId);
-  await henriBankPut({id,type:'annual',title:'Planification annuelle · '+(g?.name||'Groupe'),
+  const canonicalId=await henriBankPut({id,type:'annual',title:'Planification annuelle · '+(g?.name||'Groupe'),
     sport:'',comp:'',count:plans.length,year:old?.year||henriBankYear(),
     createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),
     mode:'Annuelle',annual:rows});
+  localStorage.setItem(key,canonicalId);
 }
 async function henriBankCaptureExisting(){
-  // Déduplication par identifiants stables. Aucune liste nominative d'élèves n'est archivée.
+  // Regroupement par contenu pédagogique. Aucune liste nominative d'élèves n'est archivée.
   for(const seq of Object.values(savedSequences||{}))await henriBankStoreSequence(seq,'Créée dans Henri');
   if(activeSequence?.sessions?.length)await henriBankStoreSequence(activeSequence,'Créée dans Henri');
   if(quickSessionData?.blocks?.length)await henriBankStoreSession(quickSessionData,'Manuelle');
@@ -385,9 +435,8 @@ async function henriResetSchoolYear(){
   try{
     await henriBankCaptureExisting();
     const items=await henriBankAll();
-    const expected=Object.values(savedSequences).filter(s=>s?.sessions?.length).length+
-      Object.values(annualPlans).filter(x=>x?.length).length;
-    if(items.length<expected)throw new Error('Archivage incomplet : réinitialisation annulée.');
+    for(const sequence of Object.values(savedSequences).filter(sequence=>sequence?.sessions?.length))if(!await henriBankGet(sequence.bankId))throw new Error('Archivage incomplet : réinitialisation annulée.');
+    for(const [groupId,plans] of Object.entries(annualPlans))if(plans.length&&!await henriBankGet(localStorage.getItem('previewHenriSlate:henriAnnualBankId:'+groupId)))throw new Error('Archivage annuel incomplet : réinitialisation annulée.');
     await henriBankExport(true);
     if(!confirm('Une sauvegarde JSON a été préparée pour téléchargement. Vérifie qu’elle est enregistrée, puis confirme la réinitialisation. La banque reste accessible dans ce navigateur.'))return;
     const keys=['previewHenriSlate:henriImportedTeacherSchedule','previewHenriSlate:henriImportedSchoolCalendar','previewHenriSlate:henriImportedGroups',
