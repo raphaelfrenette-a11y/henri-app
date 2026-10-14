@@ -214,8 +214,6 @@ function renderCoursePlanningActions(entry,date,index){
     if(isPlanningEntry(entry)&&entry.annualBlockId)add('Changer de cours dans la séquence',()=>henriChooseSequenceCourse(date,index));
     if(isPlanningEntry(entry)&&(entry.annualBlockId||entry.sequenceId))add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
   }
-  const groupId=getEntryGroupId(entry),group=groupsData.find(g=>String(g.id)===String(groupId));
-  if(group)add('Voir les '+group.students.length+' élèves',()=>openGroup(groupId));
 }
 function henriChooseSequenceCourse(date,index){
   const entry=scheduleEntries[date]?.[index];
