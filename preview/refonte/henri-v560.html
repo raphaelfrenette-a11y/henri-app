@@ -470,7 +470,7 @@
     <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
     <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div>
     <div id="courseStudentActions" class="itemActions" style="margin-top:12px"></div>
-    <div id="coursePersonalNotes" style="margin-top:16px"><label for="coursePersonalNote" class="detailLabel">Note personnelle pour cette période</label><textarea id="coursePersonalNote" rows="3" style="width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="Ex. Rappeler une consigne aux élèves" oninput="saveCoursePersonalNote(this.value)"></textarea><small id="coursePersonalNoteStatus" class="muted">Enregistrement automatique</small></div>
+    <div id="coursePersonalNotes" style="margin-top:16px"><label for="coursePersonalNote" class="detailLabel">Note personnelle pour cette période</label><textarea id="coursePersonalNote" rows="3" style="width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="Ex. Rappeler une consigne aux élèves"></textarea><button class="itemBtn" type="button" onclick="saveCoursePersonalNote(document.getElementById(&quot;coursePersonalNote&quot;).value)">Enregistrer la note</button> <small id="coursePersonalNoteStatus" class="muted">À enregistrer</small></div>
   </div>
 </section>
 
@@ -582,6 +582,7 @@ function getWeekMonday(base=new Date()){
   d.setDate(d.getDate()-day);
   return d;
 }
+function getCourseNote(date,entry){try{return JSON.parse(localStorage.getItem(coursePersonalNotesKey)||'{}')[getCoursePersonalNoteKey(date,entry)]||'';}catch(error){return '';}}
 function renderWeek(){
   if(!weekGrid) return;
   document.getElementById('homeEmpty').hidden=Object.keys(scheduleEntries).length>0;
@@ -611,6 +612,7 @@ function renderWeek(){
           '<span class="groupBar" aria-hidden="true"></span>'+
           '<span class="course">'+planningHtml(entry.group)+'</span>'+
           '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+
+          (getCourseNote(key,entry).trim()?'<span title="Note personnelle" style="font-size:11px;color:#9b6434;font-weight:650">● Note</span>':'')+
         '</button>';
       });
     }
@@ -694,7 +696,7 @@ function showCoursePersonalNote(date,entry){
   try{
     const notes=JSON.parse(localStorage.getItem(coursePersonalNotesKey)||'{}');
     input.value=notes[getCoursePersonalNoteKey(date,entry)]||'';
-    document.getElementById('coursePersonalNoteStatus').textContent='Enregistrement automatique';
+    document.getElementById('coursePersonalNoteStatus').textContent=input.value?'Note enregistrée':'À enregistrer';
   }catch(error){console.error('Lecture des notes',error);}
 }
 function saveCoursePersonalNote(value){
@@ -707,7 +709,8 @@ function saveCoursePersonalNote(value){
     const key=getCoursePersonalNoteKey(context.date,entry);
     if(value)notes[key]=value;else delete notes[key];
     localStorage.setItem(coursePersonalNotesKey,JSON.stringify(notes));
-    if(status)status.textContent='Note enregistrée';
+    if(status)status.textContent=value.trim()?'Note enregistrée ✓':'Note supprimée';
+    renderWeek();renderMonth();
   }catch(error){if(status)status.textContent='Impossible d’enregistrer la note';console.error(error);}
 }
 function openCourseEntry(date,index){
@@ -768,10 +771,12 @@ function renderMonth(){
     const hasException=calendarExceptions.some(ex=>exceptionCoversDate(ex,key));
     const today=key===getLocalTodayKey();
     const hasSomething=entries.length||blocked.length||pedago||hasException||/^Jour [xyz]$/.test(schoolDay||'');
+    const hasNote=entries.some(entry=>getCourseNote(key,entry).trim());
     out+='<div class="dayCell'+(muted?' mutedDay':'')+(today?' today':'')+(schoolDay==='Congé'?' holiday':schoolDay==='Pédagogique'?' pedago':'')+(hasException?' exceptionDay':'')+'">'+
       '<button class="monthDayButton" aria-label="'+escape(d+' '+monthNames[m]+' '+y+(schoolDay?' · '+schoolDay:'')+(entries.length?' · '+entries.length+' périodes':'')+(hasException?' · Horaire modifié':''))+'" onclick="openDayPlan(\''+key+'\')">'+
         '<span class="dayNum">'+d+'</span>'+
         (hasSomething?'<span class="eventDot"></span>':'')+
+        (hasNote?'<span title="Note personnelle" style="font-size:10px;color:#9b6434;font-weight:700">●</span>':'')+
         (pedago?'<span class="dayKind">'+HenriVisuals.icon(schoolDay==='Congé'?'sun':'lesson')+'</span>':hasException?'<span class="dayKind">'+HenriVisuals.icon('pause')+'</span>':'')+
         (entries.length?'<span class="monthDayMeta"><strong>'+escape(entries[0].groupCode||entries[0].group)+'</strong>'+escape(entries[0].time)+(entries.length>1?' · +'+(entries.length-1):'')+'</span>':schoolDay?'<span class="monthDayMeta">'+escape(schoolDay)+'</span>':'')+
       '</button>'+
