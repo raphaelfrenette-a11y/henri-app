@@ -1184,8 +1184,8 @@ function fillPlanGroupSelects(){
   [annualGroup,seqGroup,standaloneSeqGroup,quickGroup].forEach(select=>{
     if(!select)return;
     const previous=select.value;
-    select.replaceChildren(...groupsData.map(group=>new Option(group.name,group.id)));
-    if(groupsData.some(group=>group.id===previous))select.value=previous;
+    select.replaceChildren(...(select===standaloneSeqGroup?[new Option('Tous les groupes','__all__')]:[]),...groupsData.map(group=>new Option(group.name,group.id)));
+    if(groupsData.some(group=>group.id===previous)||(select===standaloneSeqGroup&&previous==='__all__'))select.value=previous;
   });
 }
 function setAnnualWorkspaceVisible(show){
