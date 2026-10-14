@@ -36,6 +36,10 @@
     </div>
 
     <div id="weekView" class="calendarView on">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px">
+        <span id="weekRangeLabel" class="muted" aria-live="polite"></span>
+        <div class="monthNav" style="display:flex;align-items:center;gap:6px"><button type="button" aria-label="Semaine précédente" onclick="changeWeek(-1)">‹</button><button type="button" aria-label="Revenir à cette semaine" onclick="resetWeek()" title="Cette semaine">Aujourd’hui</button><button type="button" aria-label="Semaine suivante" onclick="changeWeek(1)">›</button></div>
+      </div>
       <div id="weekGrid" class="week"></div>
     </div>
 
@@ -595,11 +599,24 @@ function henriCalendarLessonLabel(date,entry){
   if(number&&sport)return 'Cours '+number;
   return entry.isIndividual?'Séance individuelle':'';
 }
+let henriWeekOffset=0;
+function changeWeek(direction){
+  henriWeekOffset+=direction;
+  renderWeek();
+}
+function resetWeek(){
+  henriWeekOffset=0;
+  renderWeek();
+}
 function renderWeek(){
   if(!weekGrid) return;
   document.getElementById('homeEmpty').hidden=Object.keys(scheduleEntries).length>0;
   document.getElementById('todayStamp').textContent=new Intl.DateTimeFormat('fr-CA',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
   const start=getWeekMonday();
+  start.setDate(start.getDate()+henriWeekOffset*7);
+  const end=new Date(start);end.setDate(start.getDate()+4);
+  const range=document.getElementById('weekRangeLabel');
+  if(range)range.textContent=new Intl.DateTimeFormat('fr-CA',{day:'numeric',month:'short'}).format(start)+' – '+new Intl.DateTimeFormat('fr-CA',{day:'numeric',month:'short',year:'numeric'}).format(end);
   let out='';
   for(let i=0;i<5;i++){
     const d=new Date(start); d.setDate(start.getDate()+i);
