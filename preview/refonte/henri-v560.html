@@ -510,6 +510,20 @@ function go(id){
   document.querySelectorAll('.nav').forEach(x=>{const active=x.dataset.screen===section;x.classList.toggle('on',active);if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');});
   const settings=document.getElementById('settingsButton');settings.classList.toggle('isCurrent',id==='settings');
   if(id==='settings')settings.setAttribute('aria-current','page');else settings.removeAttribute('aria-current');
+  if(id==='groups'){
+    const imported=localStorage.getItem('previewHenriSlate:henriImportedGroups');
+    if(!groupsData.length&&imported){
+      try{
+        const restored=JSON.parse(imported);
+        if(Array.isArray(restored)&&restored.length){
+          groupsData=restored;
+          groupsData.forEach(g=>(g.students||[]).forEach(st=>{st.gender??='U';st.compatible??=[];st.incompatible??=[];}));
+          saveGroups();
+        }
+      }catch(error){console.warn('Restauration des groupes impossible',error);}
+    }
+    renderGroups();
+  }
   if(id==='settings'){fillExceptionGroupOptions();renderCalendarExceptions();refreshImportedLinks();renderImportLinksReview()}
   if(id==='henriBank'&&typeof henriBankRefresh==='function')henriBankRefresh();
   scrollTo(0,0);
@@ -1882,7 +1896,11 @@ function makeDefaultGroups(){
 }
 
 let storedGroups=JSON.parse(localStorage.getItem('previewHenriSlate:henriGroupsData')||'null');
-let groupsData=Array.isArray(storedGroups)?storedGroups:[];
+let importedGroupsAtStart=JSON.parse(localStorage.getItem('previewHenriSlate:henriImportedGroups')||'null');
+let groupsData=Array.isArray(storedGroups)&&storedGroups.length?storedGroups:Array.isArray(importedGroupsAtStart)?importedGroupsAtStart:[];
+if(groupsData.length&&(!Array.isArray(storedGroups)||!storedGroups.length)){
+  localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
+}
 groupsData.forEach(g=>g.students?.forEach(s=>{
   if(!s.gender)s.gender='U';
   if(!Array.isArray(s.compatible))s.compatible=[];
@@ -2905,6 +2923,8 @@ async function handleSetupFile(type,input){
       saveGroups();
       state.textContent=groups.length+' groupe'+(groups.length>1?'s':'')+' importé'+(groups.length>1?'s':'')+' · '+groups.reduce((n,g)=>n+g.students.length,0)+' élèves'+(weak.length?' · '+weak.length+' à vérifier':'');
       localStorage.setItem('previewHenriSlate:henriImportedGroups',JSON.stringify(groupsData));
+      renderGroups();
+      fillTeamBuilderGroups();
       if(groupAIReview&&groupAIReviewList){
         groupAIReview.style.display='block';
         groupAIReviewList.innerHTML=groups.map(g=>'<div style="display:flex;justify-content:space-between;gap:12px"><span><b>'+g.name+'</b> · '+g.students.length+' élèves</span><span>'+(g.importConfidence<70||g.students.length<8?'À vérifier':'Importé')+'</span></div>').join('');
@@ -2966,6 +2986,9 @@ function generateMySchedule(){
   const groups=importedSetupData.groupSheets;
   if(!teacher||!calendar||!groups)return;
   groupsData=groups;
+  saveGroups();
+  renderGroups();
+  fillTeamBuilderGroups();
   schoolDays={...calendar};
   scheduleEntries={};
   Object.entries(schoolDays).forEach(([date,cycle])=>{
