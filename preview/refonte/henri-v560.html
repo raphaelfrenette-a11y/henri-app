@@ -509,7 +509,7 @@
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
 <script src="henri-planning.js?v=31ba4ab4"></script>
 <script src="henri-import.js?v=d3c3f1cf"></script>
-<script src="henri-calendar-links.js?v=c553c02e"></script>
+<script src="henri-calendar-links.js?v=fc7e4cf0"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -1822,6 +1822,7 @@ function henriRenameCalendarIndividual(){
   if(title===null)return;
   if(!title.trim()){alert('Le titre ne peut pas être vide.');return;}
   quickSessionData.title=title.trim();
+  quickSessionData.sport=title.trim();
   editSessionTitle.textContent=quickSessionData.title;
   persistCalendarIndividual();
 }
@@ -1854,8 +1855,7 @@ function returnFromSessionEditor(){
     henriPersistSharedState();
     rebuildPlanningAssignments();
     calendarPlanEditing=false;calendarIndividualEditing=null;
-    if(context)openCourseEntry(context.date,context.index);
-    else henriGoBack();
+    henriGoBack();
     return;
   }
   if(sessionEditorSource==='quick'){henriBankStoreSession(quickSessionData,'Séance individuelle').catch(henriBankWarn);renderQuickResult();go('quickSession')}else{henriBankStoreSequence(activeSequence,'Séquence').catch(henriBankWarn);renderSequenceEditor();go('sequenceEditor')}
