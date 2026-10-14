@@ -632,7 +632,7 @@ function setCalendarView(view){
   weekBtn.classList.toggle('on',isWeek);
   monthBtn.classList.toggle('on',!isWeek);
   weekBtn.setAttribute('aria-pressed',String(isWeek));monthBtn.setAttribute('aria-pressed',String(!isWeek));
-  document.getElementById('calendarSectionTitle').textContent=isWeek?'Cette semaine':'Vue du mois';
+  document.getElementById('calendarSectionTitle').textContent=isWeek?(henriWeekOffset===0?'Cette semaine':henriWeekOffset<0?'Semaines précédentes':'Semaines suivantes'):'Vue du mois';
 }
 let scheduleEntries={};
 let calendarEvents={};
@@ -692,6 +692,8 @@ function renderWeek(){
   if(!weekGrid) return;
   document.getElementById('homeEmpty').hidden=Object.keys(scheduleEntries).length>0;
   document.getElementById('todayStamp').textContent=new Intl.DateTimeFormat('fr-CA',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
+  const title=document.getElementById('calendarSectionTitle');
+  if(title&&weekView.classList.contains('on'))title.textContent=henriWeekOffset===0?'Cette semaine':henriWeekOffset<0?'Semaine précédente':'Semaine suivante';
   const start=getWeekMonday();
   start.setDate(start.getDate()+henriWeekOffset*7);
   const end=new Date(start);end.setDate(start.getDate()+4);
@@ -712,9 +714,12 @@ function renderWeek(){
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
         let sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'À planifier');
         if(sport==='À choisir') sport='À planifier';
-        const groupColors=['#425d73','#647d8c','#697b73','#7b7488'];
-        const groupIndex=Math.max(0,groupsData.findIndex(g=>g.name===entry.group));
-        const groupColor=groupColors[groupIndex%groupColors.length];
+        const groupColors=['#345a77','#d17743','#47866d','#8962a0','#bc566a','#508caa','#9a7838','#6376b8','#b16e99','#657e43','#ab6451','#437e87','#806cb0','#b28744','#50755d','#9d6578'];
+        const groupName=String(entry.group||'').trim();
+        const groupIndex=groupsData.findIndex(g=>String(g.name||'').trim()===groupName||String(g.id||'')===groupName);
+        let groupColor;
+        if(groupIndex>=0)groupColor=groupColors[groupIndex%groupColors.length];
+        else {let hash=0;for(let c=0;c<groupName.length;c++)hash=((hash*31)+groupName.charCodeAt(c))>>>0;groupColor=groupColors[hash%groupColors.length];}
         const sportLower=sport.toLowerCase();
         out+='<button class="weekEvent '+HenriVisuals.courseState(entry)+'" style="--groupColor:'+groupColor+'" onclick="openCourseEntry(\''+key+'\','+originalIndex+')">'+
           '<span class="groupBar" aria-hidden="true"></span>'+
