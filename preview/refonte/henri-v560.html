@@ -552,7 +552,7 @@
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
 <script src="henri-planning.js?v=31ba4ab4"></script>
 <script src="henri-import.js?v=d3c3f1cf"></script>
-<script src="henri-calendar-links.js?v=d4ec5bea"></script>
+<script src="henri-calendar-links.js?v=862fb2c1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -893,7 +893,7 @@ function henriCoursePosition(date,entry){
   if(!groupId)return null;
   const blocks=annualPlans[groupId]||[];
   const block=blocks.find(b=>String(b.id)===String(entry.annualBlockId));
-  if(block&&entry.sessionIndex!=null)return {number:Number(entry.sessionIndex)+1,total:Math.max(0,Number(block.courses)||0),sport:block.sport,blockId:block.id,groupId};
+  if(block&&entry.sessionIndex!=null)return {number:Number(entry.sessionIndex)+1,total:String(block.sport||'').trim().toLowerCase()==='ultimate'&&Number(block.courses)>4?4:Math.max(0,Number(block.courses)||0),sport:block.sport,blockId:block.id,groupId};
   if(entry.sequenceId&&entry.sessionIndex!=null)return {number:Number(entry.sessionIndex)+1,total:null,sport:entry.annualPlan||'',groupId};
   return null;
 }
