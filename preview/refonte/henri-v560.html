@@ -625,7 +625,7 @@ function renderWeek(){
           '<span class="course">'+planningHtml(henriCalendarGroupLabel(entry))+'</span>'+
           '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+ 
           (henriCalendarLessonLabel(key,entry)?'<span style="font-size:11px;opacity:.75">'+henriCalendarLessonLabel(key,entry)+'</span>':'')+
-          (getCourseNote(key,entry).trim()?'<span title="Note personnelle" style="font-size:11px;color:#9b6434;font-weight:650">● Note</span>':'')+
+          (getCourseNote(key,entry).trim()?'<span title="Note personnelle" style="display:block;clear:both;width:100%;margin-top:12px;padding-top:6px;font-size:11px;line-height:1.4;color:#9b6434;font-weight:650;white-space:nowrap">● Note</span>':'')+
         '</button>';
       });
     }
