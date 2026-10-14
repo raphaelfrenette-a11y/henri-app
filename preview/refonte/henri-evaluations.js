@@ -21,7 +21,7 @@ function list(){
  (items.length?items.map(x=>'<div class="placeholder" style="margin-top:12px"><strong>'+esc(x.title)+'</strong><p class="muted">'+esc(x.sport)+' · '+esc(x.comp)+' · '+x.criteria.length+' critères</p><div class="itemActions"><button class="itemBtn" onclick="henriEvalEdit('+JSON.stringify(x.id)+')">Modifier / attribuer</button><button class="itemBtn" onclick="henriEvalOpenResults('+JSON.stringify(x.id)+')">Évaluer</button><button class="itemBtn danger" onclick="henriEvalDelete('+JSON.stringify(x.id)+')">Supprimer</button></div></div>').join(''):'<p class="planHint">Aucune grille créée pour le moment.</p>');
 }
 function fresh(auto){
- return {id:'eval-'+Date.now(),title:'',sport:'Handball',comp:'C2',auto,groupIds:[],criteria:(auto?defaults.C2:['Critère 1']).map((name,i,a)=>({id:'c'+i,name,max:10,weight:Math.round(100/a.length)}))};
+ return {id:'eval-'+Date.now(),title:'',sport:'Handball',comp:'C2',auto,groupIds:[],criteria:(auto?defaults.C2:['Critère 1']).map((name,i,a)=>({id:'c'+i,name,max:10,weight:i===a.length-1?100-Math.floor(100/a.length)*(a.length-1):Math.floor(100/a.length)}))};
 }
 function create(auto){current=fresh(auto);editor()}
 function edit(id){current=read(KEY)[id];if(current)editor()}
