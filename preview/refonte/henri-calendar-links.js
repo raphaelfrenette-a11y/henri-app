@@ -226,18 +226,33 @@ function henriChooseSequenceCourse(date,index){
   if(!block)return;
   const current=Number(entry.sessionIndex)||0;
   const count=Math.max(0,Number(block.courses)||0);
-  const options=Array.from({length:Math.max(0,count-current)},(_,i)=>{
-    const n=current+i+1;
-    return n+' — '+(block.sport==='Ultimate'&&n===4?'Évaluation':'Cours '+n);
-  });
-  if(options.length<2){alert('Il n’y a pas de cours suivant dans cette séquence.');return;}
-  const answer=prompt('Choisir le numéro du cours à faire maintenant pour ce groupe :\n'+options.join('\n')+'\n\nLes cours intermédiaires seront sautés, mais resteront dans la banque.',String(current+1));
-  if(answer===null)return;
-  const number=Number(answer);
-  if(!Number.isInteger(number)||number<=current+1||number>count){alert('Choisis un numéro de cours suivant valide.');return;}
-  if(!confirm('Passer directement au cours '+number+' ? Les cours intermédiaires seront sautés pour ce groupe seulement.'))return;
-  henriSaveSequenceJump(groupId,slot,{blockId:block.id,sessionIndex:number-1});
-  openCourseEntry(date,index);
+  if(count<=current+1){alert('Aucun cours suivant dans cette séquence.');return;}
+  const container=document.getElementById('coursePlanningActions');
+  container.querySelector('#henriCourseJumpPicker')?.remove();
+  const wrapper=document.createElement('div');
+  wrapper.id='henriCourseJumpPicker';
+  wrapper.className='placeholder';
+  wrapper.style.cssText='width:100%;box-sizing:border-box;margin-top:12px;padding:14px';
+  const title=document.createElement('strong');title.textContent='Quel cours faire à cette période ?';
+  const info=document.createElement('p');info.className='studentMeta';info.textContent='Cours actuel : '+(current+1)+' · '+block.sport+'. Les cours intermédiaires seront sautés dans le calendrier de ce groupe, mais conservés dans ta banque.';
+  const select=document.createElement('select');select.className='planControl';select.style.cssText='width:100%;margin:10px 0';
+  for(let n=current+2;n<=count;n++){
+    const option=document.createElement('option');option.value=String(n);
+    const grid=typeof henriEvalCourseLabel==='function'?henriEvalCourseLabel(groupId,block.sport,n):'';
+    option.textContent='Cours '+n+(grid?' — Évaluation : '+grid:'');
+    select.append(option);
+  }
+  const actions=document.createElement('div');actions.className='itemActions';
+  const apply=document.createElement('button');apply.className='planPrimary';apply.type='button';apply.textContent='Appliquer ce changement';
+  apply.onclick=()=>{
+    const number=Number(select.value);
+    if(!Number.isInteger(number)||number<=current+1||number>count)return;
+    if(!confirm('Faire le cours '+number+' à cette période pour ce groupe ? Les cours intermédiaires seront sautés, mais conservés dans la banque.'))return;
+    henriSaveSequenceJump(groupId,slot,{blockId:block.id,sessionIndex:number-1});
+    openCourseEntry(date,index);
+  };
+  const cancel=document.createElement('button');cancel.className='itemBtn';cancel.type='button';cancel.textContent='Annuler';cancel.onclick=()=>wrapper.remove();
+  actions.append(apply,cancel);wrapper.append(title,info,select,actions);container.append(wrapper);
 }
 function calendarSequenceFor(entry){
   return entry.annualBlockId?getSavedSequence(getEntryGroupId(entry),entry.annualBlockId):Object.values(savedSequences).find(s=>s.id===entry.sequenceId);
