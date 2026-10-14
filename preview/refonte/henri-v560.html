@@ -1141,6 +1141,7 @@ let quickSessionData=null;
 let quickPrefillDate=null;
 
 function fillPlanGroupSelects(){
+  if(typeof henriRefreshSportMenus==='function')henriRefreshSportMenus();
   [annualGroup,seqGroup,standaloneSeqGroup,quickGroup].forEach(select=>{
     if(!select)return;
     const previous=select.value;
@@ -1242,14 +1243,30 @@ function buildCompetenceOrder(counts){
     ...Array(counts.C3).fill('C3')
   ];
 }
+const HENRI_SPORTS_BY_COMP={
+ C1:['Acrosport','Athlétisme','Badminton','Course','Course à relais','Danse','Escalade','Escrime','Gymnastique','Judo','Lancer du disque','Lancer du poids','Lutte','Natation','Patinage','Saut en hauteur','Saut en longueur','Ski de fond','Tennis','Tennis de table'],
+ C2:['Badminton','Ballon chasseur','Basketball','Dodgeball','Flag football','Floorball','Football','Futsal','Handball','Hockey','Hockey cosom','Jeux de coopération','Kin-Ball','Pickleball','Poull Ball','Rugby','Soccer','Tchoukball','Tennis','Tennis de table','Ultimate','Volleyball','Volleyball de plage'],
+ C3:['Cardio','Conditionnement physique','Course','Course / endurance','Course à pied','Entraînement en circuit','Entraînement fonctionnel','Marche rapide','Musculation','Plein air','Randonnée','Ski de fond','Yoga']
+};
+function henriAllSportNames(){
+ const names=new Set(Object.values(HENRI_SPORTS_BY_COMP).flat());
+ if(typeof annualPlans!=='undefined')for(const blocks of Object.values(annualPlans))for(const block of blocks||[])if(block.sport&&block.sport!=='À choisir')names.add(block.sport);
+ if(typeof savedSequences!=='undefined')for(const sequence of Object.values(savedSequences))if(sequence.sport)names.add(sequence.sport);
+ return [...names].sort((a,b)=>a.localeCompare(b,'fr'));
+}
 function getAnnualSportOptions(comp){
-  const suggestions={
-    C1:['Athlétisme','Badminton','Course','Gymnastique','Natation','Patinage'],
-    C2:['Badminton','Basketball','Dodgeball','Flag football','Futsal','Handball','Jeux de coopération','Judo','Kin-Ball','Lutte','Pickleball','Soccer','Tennis','Tennis de table','Ultimate','Volleyball'],
-    C3:['Conditionnement physique','Course / endurance','Musculation','Plein air']
-  };
-  const values=suggestions[comp]||[];
-  return '<option value="">Choisir un moyen d’action…</option>'+values.map(v=>'<option value="'+v+'">'+v+'</option>').join('')+'<option value="__other__">Autre…</option>';
+ const values=[...new Set([...(HENRI_SPORTS_BY_COMP[comp]||[]),...henriAllSportNames()])].sort((a,b)=>a.localeCompare(b,'fr'));
+ return '<option value="">Choisir un moyen d’action…</option>'+values.map(v=>'<option value="'+henriEscapeAttribute(v)+'">'+planningHtml(v)+'</option>').join('')+'<option value="__other__">Autre…</option>';
+}
+function henriRefreshSportMenus(){
+ for(const id of ['annualSport','quickSport']){
+  const select=document.getElementById(id);if(!select)return;
+  const previous=select.value;
+  const names=henriAllSportNames();
+  select.innerHTML=names.map(v=>'<option value="'+henriEscapeAttribute(v)+'">'+planningHtml(v)+'</option>').join('');
+  if(names.includes(previous))select.value=previous;
+  else if(names.includes('Ultimate'))select.value='Ultimate';
+ }
 }
 function getAnnualObjectiveMarkup(block,saved){
   if(!block.sport||block.sport==='À choisir')return '';
