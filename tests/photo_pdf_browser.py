@@ -48,6 +48,19 @@ try{const result=await worker.recognize(process.argv[4]);process.stdout.write(JS
             draw.text((40, 30+65*i), text, font=font, fill='black')
         image.save(tmp / 'groupe.png')
         image.save(tmp / 'groupe-scan.pdf', 'PDF')
+        timetable=Image.new('RGB',(1800,1400),'white')
+        table=ImageDraw.Draw(timetable)
+        headings=['Période 1','Période 2','Int. cognitive','Période 3','Période 4']
+        times=['8h10 à 9h20','9h35 à 10h45','10h55 à 11h15','12h35 à 13h45','14h00 à 15h10']
+        tablefont=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',30)
+        for column,(heading,time) in enumerate(zip(headings,times)):
+            table.text((270+column*300,40),heading,font=tablefont,fill='black')
+            table.text((270+column*300,90),time,font=tablefont,fill='black')
+        for day in range(1,10):
+            table.text((40,190+(day-1)*120),f'Jour {day}',font=tablefont,fill='black')
+            table.text((270,190+(day-1)*120),'EDU2G1-02',font=tablefont,fill='black')
+        table.text((870,190),'EDU2G1-02',font=tablefont,fill='black')
+        timetable.save(tmp/'horaire-neuf-jours.png')
         pdf = Canvas(str(tmp / 'horaire.pdf'))
         for day in [1, 2]:
             for i, text in enumerate([f'Jour {day}', 'Periode 1 EDU2G1-02', 'Periode 3 EDU2G1-02']):
@@ -85,6 +98,12 @@ try{const result=await worker.recognize(process.argv[4]);process.stdout.write(JS
         assert page.evaluate('groupsData.length===1 && groupsData[0].students.length===8')
         assert page.evaluate('ocrPassCount===3')
         original_id = page.evaluate('groupsData[0].id')
+        page.locator('#teacherScheduleFile').set_input_files(str(tmp/'horaire-neuf-jours.png'))
+        page.wait_for_function('setupFiles.teacherSchedule',timeout=180000)
+        assert page.evaluate("Object.keys(importedSetupData.teacherSchedule).length===9")
+        assert page.evaluate("Object.values(importedSetupData.teacherSchedule).flat().filter(isPlanningEntry).length===9")
+        assert page.evaluate("Object.values(importedSetupData.teacherSchedule).flat().filter(HenriImport.isCognitive).length===1")
+        page.evaluate('setupFiles.teacherSchedule=false')
         page.locator('#teacherScheduleFile').set_input_files(str(tmp / 'horaire.pdf'))
         page.wait_for_function('setupFiles.teacherSchedule', timeout=60000)
         assert page.evaluate("Object.keys(importedSetupData.teacherSchedule).length===2 && Object.values(importedSetupData.teacherSchedule).flat().every(x=>x.matchedGroupId===groupsData[0].id)")
@@ -98,7 +117,7 @@ try{const result=await worker.recognize(process.argv[4]);process.stdout.write(JS
         assert page.evaluate("!henriBankClone({startCourseKey:'2026-11-23|P1',courseKey:'2026-11-23|P1'}).startCourseKey")
         assert not errors, errors
         assert not dialogs, dialogs
-        print('PASS real photo preprocessing/OCR, multi-page text PDF, scanned PDF OCR, stable group identity, timetable associations, PDF bank text and detached reuse.')
+        print('PASS real photo OCR, nine-day timetable with cognitive supervision excluded from PE, text/scanned PDF imports, stable group identity, timetable associations and PDF bank reuse.')
         browser.close()
 finally:
     server.shutdown()

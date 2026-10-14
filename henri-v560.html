@@ -2338,6 +2338,7 @@ async function runAIPhotoOCR(file,onProgress,type=''){
   if(!window.Tesseract)throw new Error('Le lecteur de photos ne s’est pas chargé.');
   const passes=['enhanced','original','threshold'];
   let best=null;
+  const candidates=[];
   for(let p=0;p<passes.length;p++){
     const mode=passes[p];
     const source=await prepareImageForAI(file,mode);
@@ -2359,8 +2360,54 @@ async function runAIPhotoOCR(file,onProgress,type=''){
       imageHeight:source.height
     };
     if(!best||candidate.score>best.score)best=candidate;
+    candidates.push(candidate);
     source.width=0;source.height=0;
     // Month titles or a handful of course codes do not prove a complete document.
+  }
+  if(type==='teacherSchedule'&&best){
+    const labels=HenriImport.scheduleDayLabels(best.words);
+    const known=new Set(labels.map(w=>w.day));
+    const accept=label=>{
+      if(known.has(label.day))return;
+      if(labels.length>=2){
+        const spread=axis=>Math.max(...labels.map(w=>w[axis]))-Math.min(...labels.map(w=>w[axis]));
+        const axis=spread('x')>spread('y')?'x':'y',other=axis==='x'?'y':'x';
+        const ordered=[...labels].sort((a,b)=>a.day-b.day);
+        const steps=ordered.slice(1).map((w,i)=>(w[axis]-ordered[i][axis])/(w.day-ordered[i].day)).sort((a,b)=>a-b);
+        const step=steps[Math.floor(steps.length/2)];
+        const nearest=labels.reduce((a,b)=>Math.abs(a.day-label.day)<Math.abs(b.day-label.day)?a:b);
+        if(!step||Math.abs(label[axis]-(nearest[axis]+step*(label.day-nearest.day)))>Math.abs(step)*.6||Math.abs(label[other]-nearest[other])>Math.max(label.bbox.y1-label.bbox.y0,nearest.bbox.y1-nearest.bbox.y0)*4)return;
+      }
+      labels.push(label);known.add(label.day);
+    };
+    // Preserve day labels read by another pass rather than discarding that pass.
+    for(const candidate of candidates){
+      for(const label of HenriImport.scheduleDayLabels(candidate.words)){
+        accept(label);
+      }
+    }
+    if(labels.length>=2){
+      const spread=axis=>Math.max(...labels.map(w=>w[axis]))-Math.min(...labels.map(w=>w[axis]));
+      const axis=spread('x')>spread('y')?'x':'y';
+      const page=await prepareImageForAI(file,'original');
+      const pad=Math.max(...labels.map(w=>w.bbox.y1-w.bbox.y0))*3;
+      const x=axis==='y'?Math.max(0,Math.floor(Math.min(...labels.map(w=>w.bbox.x0))-pad)):0;
+      const y=axis==='x'?Math.max(0,Math.floor(Math.min(...labels.map(w=>w.bbox.y0))-pad)):0;
+      const width=axis==='y'?Math.min(page.width-x,Math.ceil(Math.max(...labels.map(w=>w.bbox.x1))+pad-x)):page.width;
+      const height=axis==='x'?Math.min(page.height-y,Math.ceil(Math.max(...labels.map(w=>w.bbox.y1))+pad-y)):page.height;
+      const crop=document.createElement('canvas'),scale=1.5;
+      crop.width=Math.round(width*scale);crop.height=Math.round(height*scale);
+      crop.getContext('2d').drawImage(page,x,y,width,height,0,0,crop.width,crop.height);
+      try{
+        const read=await Tesseract.recognize(crop,'fra+eng');
+        const words=(read?.data?.words||[]).filter(w=>w.bbox).map(w=>({...w,bbox:{x0:w.bbox.x0/scale+x,x1:w.bbox.x1/scale+x,y0:w.bbox.y0/scale+y,y1:w.bbox.y1/scale+y}}));
+        for(const label of HenriImport.scheduleDayLabels(words)){
+          accept(label);
+        }
+      }finally{page.width=0;page.height=0;crop.width=0;crop.height=0;}
+      // Only day labels are merged; course codes keep full-table coordinates.
+      best.words=[...best.words.filter(w=>!/^jour\s*\d{1,2}[.:]?$/i.test(w.text)),...labels];
+    }
   }
   if(type==='schoolCalendar'&&best&&!HenriImport.decouvreursReference(best.text)){
     // Read the small-print legend separately. Its text identifies the reference;

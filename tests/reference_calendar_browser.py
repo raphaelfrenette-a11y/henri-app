@@ -45,6 +45,27 @@ try:
         page.on('dialog', lambda d: d.accept())
         page.route('https://**/*', lambda r: r.abort())
         page.goto(f'http://127.0.0.1:{server.server_port}/', wait_until='networkidle')
+        # Simulate the reported OCR failure: every full-page pass misses day 9,
+        # while the dedicated label-column read sees it. This checks recovery,
+        # coordinate mapping and the course association, not real photo accuracy.
+        assert page.evaluate("""async()=>{
+          const canvas=document.createElement('canvas');canvas.width=400;canvas.height=1200;
+          const file=new File([await new Promise(r=>canvas.toBlob(r))],'nine-days.png',{type:'image/png'});
+          const word=(text,x,y)=>({text,confidence:95,bbox:{x0:x,y0:y,x1:x+50,y1:y+20}});
+          const full=Array.from({length:8},(_,i)=>word('Jour '+(i+1),40,350+i*180));
+          full.push(word('P1',300,100),word('EDU4G2-02',300,1790));
+          const previous=window.Tesseract;let calls=0;
+          window.Tesseract={recognize:async()=>({data:{confidence:95,text:'Horaire',words:++calls<=3?full:[word('Jour 9',60,2685)]}})};
+          try{
+            const read=await runAIPhotoOCR(file,undefined,'teacherSchedule');
+            const parsed=HenriImport.scheduleGrid(read.words);
+            if(calls!==4||Object.keys(parsed).length!==9||parsed['Jour 9'][0]?.groupCode!=='EDU4G2-02')return false;
+            calls=0;
+            window.Tesseract.recognize=async()=>({data:{confidence:95,text:'Horaire',words:++calls<=3?full:[]}});
+            const unresolved=await runAIPhotoOCR(file,undefined,'teacherSchedule');
+            return Object.keys(HenriImport.scheduleGrid(unresolved.words)).length===8;
+          }finally{window.Tesseract=previous;}
+        }""")
         assert page.evaluate("""()=>{
           const a={id:'a',name:'Secondaire 4 · Groupe 02',sourceCodes:['EDU4G1-02'],students:[]};
           const b={id:'b',name:a.name,sourceCodes:['EDU4G2-02'],students:[]};

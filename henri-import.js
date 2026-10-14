@@ -166,7 +166,7 @@
       const neighbours=items.filter(n=>n!==w&&n.bbox.x0>=w.bbox.x1-3&&n.bbox.x0-w.bbox.x1<height*3&&Math.abs((n.bbox.y0+n.bbox.y1)/2-(w.bbox.y0+w.bbox.y1)/2)<height*.6).sort((a,b)=>a.bbox.x0-b.bbox.x0);
       const next=neighbours[0];
       let text=w.text,bbox=w.bbox;
-      if(/^(jour|p[eé]riode|p|groupe|gr\.?)$/i.test(text)&&next&&/^\d{1,3}$/.test(next.text)){
+      if(/^(jour|p[eé]riode|p|groupe|gr\.?)$/i.test(text)&&next&&/^\d{1,3}[.:]?$/.test(next.text)){
         text+=' '+next.text;bbox={...bbox,x1:next.bbox.x1};
       }else if(/^EDU/i.test(text)){
         // Join only adjacent fragments of a valid course code, never student names.
@@ -181,9 +181,12 @@
       return {...w,text,bbox,x:(bbox.x0+bbox.x1)/2,y:(bbox.y0+bbox.y1)/2};
     });
   }
+  function scheduleDayLabels(words){
+    return wordsWithLabels(words).filter(w=>/^jour\s*\d{1,2}[.:]?$/i.test(w.text)).map(w=>({...w,day:Number(w.text.match(/\d+/)[0])})).filter(w=>w.day>=1&&w.day<=20);
+  }
   function scheduleGrid(words){
     const items=wordsWithLabels(words);
-    const days=items.filter(w=>/^jour\s*\d{1,2}$/i.test(w.text)).map(w=>({...w,day:Number(w.text.match(/\d+/)[0])}));
+    const days=scheduleDayLabels(words);
     if(days.length<2)return {};
     const spread=axis=>Math.max(...days.map(w=>w[axis]))-Math.min(...days.map(w=>w[axis]));
     const dayAxis=spread('x')>spread('y')?'x':'y',columnAxis=dayAxis==='x'?'y':'x';
@@ -276,6 +279,6 @@
     if(dates.some(d=>validDate(...d.split('-'))!==d||!label(calendar[d])))errors.push('Des dates ou jours scolaires sont invalides.');
     return {errors,warnings,pendingDates,dates,cycleDates,lessons,unlinked,missing,ready:!errors.length};
   }
-  const api={aliases,matchGroup,rosterLines,validDate,label,calendarText,calendarNumberGrid,decouvreursReference,scheduleText,scheduleGrid,wordsWithLabels,relink,review,isCognitive};
+  const api={aliases,matchGroup,rosterLines,validDate,label,calendarText,calendarNumberGrid,decouvreursReference,scheduleText,scheduleGrid,wordsWithLabels,scheduleDayLabels,relink,review,isCognitive};
   if(typeof module!=='undefined')module.exports=api;else root.HenriImport=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
