@@ -279,16 +279,22 @@ async function createSequenceFromMacro(useHenri){
   }catch(error){const snapshot=JSON.parse(before);annualPlans=snapshot.annualPlans;savedSequences=snapshot.savedSequences;activeSequence=snapshot.activeSequence;planningError(error);}finally{planningActionBusy=false;}
 }
 async function buildStandaloneSequence(useHenri){
-  const group=requirePlanningGroup(standaloneSeqGroup.value);if(!group)return;
+  const all=standaloneSeqGroup.value==='__all__';
+  const targets=all?[...groupsData]:[requirePlanningGroup(standaloneSeqGroup.value)].filter(Boolean);
+  if(!targets.length){planningReport('Importe tes groupes dans Paramètres avant de planifier.',true);return;}
   const count=Number(seqCount.value);if(!Number.isInteger(count)||count<1||count>500){planningReport('Indique un nombre de séances entre 1 et 500.',true);return;}
+  if(planningActionBusy)return;
+  planningActionBusy=true;
   const previous=activeSequence;
   try{
     if(previous)await henriBankStoreSequence(previous,previous.bankCreationMode);
-    activeSequence=makeSequence({comp:seqComp.value,sport:seqSport.value,groupId:group.id,groupName:group.name,count,duration:seqDuration.value,useHenri});
+    const created=targets.map(group=>makeSequence({comp:seqComp.value,sport:seqSport.value,groupId:group.id,groupName:group.name,count,duration:seqDuration.value,useHenri}));
+    // Separate per-group copies protect subsequent group-specific edits.
+    for(const sequence of created)await henriBankStoreSequence(sequence,sequence.bankCreationMode);
+    activeSequence=created[0];
     henriPersistSharedState();renderSequenceEditor();go('sequenceEditor');
-    henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode).catch(planningError);
-    planningReport(useHenri?'Proposition Henri créée, entièrement modifiable.':'Gabarit structuré et vierge créé.');
-  }catch(error){activeSequence=previous;planningError(error);}
+    planningReport(all?'Séquence créée pour '+created.length+' groupes. Chaque copie est accessible dans Ma banque et modifiable indépendamment.':'Séquence créée pour '+targets[0].name+'.');
+  }catch(error){activeSequence=previous;planningError(error);}finally{planningActionBusy=false;}
 }
 function addSequenceLesson(){
   if(!activeSequence)return;
