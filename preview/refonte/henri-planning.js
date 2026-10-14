@@ -206,7 +206,13 @@ async function deleteAnnualBlock(id){
 function saveAnnualAndPlanSequences(){
   if(!requirePlanningGroup(annualGroup.value))return;
   if(!annualPlans[annualGroup.value]?.length){planningReport('Crée ta répartition avant de l’enregistrer.',true);return;}
-  try{saveAnnual();seqGroup.value=annualGroup.value;renderMacroSequences();go('sequenceSetup');planningReport('Répartition enregistrée. Choisis le sport et la méthode de préparation pour chaque séquence.');}catch(error){planningError(error);}
+  try{
+    saveAnnual();
+    rebuildPlanningAssignments();
+    renderMonth();renderWeek();
+    go('home');setCalendarView('month');
+    planningReport('Planification annuelle appliquée immédiatement au calendrier. Les périodes et dates propres à chaque groupe sont conservées.');
+  }catch(error){planningError(error);}
 }
 function openMacroSequence(groupId,blockId,fromCalendar=false){
   calendarPlanEditing=fromCalendar;calendarIndividualEditing=null;
