@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#f7f8fa">
 <link rel="icon" href="henri-icon.svg?v=d3c3f1cf" type="image/svg+xml">
 <link rel="stylesheet" href="henri-layout.css?v=d3c3f1cf">
-<link rel="stylesheet" href="henri-design.css?v=evaluation-links-1">
+<link rel="stylesheet" href="henri-design.css?v=discreet-eval-cancel-1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
@@ -575,7 +575,8 @@
 <script src="henri-planning.js?v=annual-exact-counts-1"></script>
 <script src="henri-import.js?v=teacher-roster-removal-1"></script>
 <script src="henri-ultimate-migration.js?v=ultimate-four-1"></script>
-<script src="henri-calendar-links.js?v=ultimate-four-repair-1"></script>
+<script src="henri-calendar-links.js?v=course-cancel-1"></script>
+<script src="henri-cancellations.js?v=course-cancel-1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -772,6 +773,7 @@ function openDayPlan(date){
   dayPlanTitle.textContent=dayNames[d.getDay()]+' '+d.getDate()+' '+shortMonths[d.getMonth()];
   dayPlanMeta.textContent=cycle;
   const cards=[];
+  if(entries.some(isPlanningEntry))cards.push('<button class="itemBtn calendarCancelAction" onclick="henriOpenCancellationForm(&quot;'+date+'&quot;)">Annuler des cours</button>');
   entries.forEach(entry=>{
     const originalIndex=(scheduleEntries[date]||[]).indexOf(entry);
     const sport=entry.annualPlan||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Sport à planifier');
@@ -788,8 +790,9 @@ function openDayPlan(date){
     cards.push('<div class="dayPlanCard blockedCourse">'+
       '<div class="dayPlanTop"><div><div class="dayPlanTime">'+entry.time+'</div><div class="dayPlanGroup">'+entry.group+'</div></div></div>'+
       '<div class="dayPlanSport">'+exception.type+'</div>'+
-      '<div class="dayPlanPath">'+(exception.reason||'Cours bloqué dans les paramètres.')+'</div>'+
-      '<span class="exceptionBadge">Séance redistribuée automatiquement</span>'+
+      '<div class="dayPlanPath">'+planningHtml(exception.reason||'Cours bloqué dans les paramètres.')+'</div>'+
+      '<span class="exceptionBadge">Cours annulé · Séance reportée</span>'+
+      (exception.courseKey?'<button class="itemBtn" onclick="henriRestoreCancelledCourse(&quot;'+exception.id+'&quot;,&quot;'+date+'&quot;)">Rétablir ce cours</button>':'')+
     '</div>');
   });
   if(cards.length) dayPlanCourses.innerHTML=cards.join('');
@@ -996,6 +999,7 @@ function renderMonth(){
         const label=henriCalendarLessonLabel(key,entry);
         return '<button class="monthCourseButton" data-date="'+key+'" data-course-index="'+originalIndex+'" aria-label="'+escape(sport+' · '+label+' · '+henriCalendarGroupLabel(entry)+' · '+entry.time)+'" onclick="openCalendarCourse(&quot;'+key+'&quot;,'+originalIndex+')"><strong>'+escape(sport)+'</strong>'+(label?'<span>'+escape(label)+'</span>':'')+'<small>'+escape(henriCalendarGroupLabel(entry)+' · '+entry.time)+'</small></button>'+henriCalendarEvaluationButton(key,entry,originalIndex);
       }).join('')+
+      blocked.map(({entry,exception})=>'<button class="monthCancelledCourse" onclick="openDayPlan(&quot;'+key+'&quot;)">'+escape(henriCalendarGroupLabel(entry))+' · Annulé<br>'+escape(exception.type)+'</button>').join('')+
     '</div>';
   }
   monthGrid.innerHTML=out;
@@ -1036,8 +1040,8 @@ function exceptionCoversDate(ex,date){
   const end=ex.endDate||start;
   return !!start&&date>=start&&date<=end;
 }
-function getCalendarException(date,groupId){
-  return calendarExceptions.find(ex=>exceptionCoversDate(ex,date)&&(ex.groupId==='all'||ex.groupId===groupId))||null;
+function getCalendarException(date,groupId,entry=null){
+  return calendarExceptions.find(ex=>exceptionCoversDate(ex,date)&&(ex.groupId==='all'||ex.groupId===groupId)&&(!ex.courseKey||entry&&ex.courseKey===courseOccurrenceKey(date,entry)))||null;
 }
 function getEntryGroupId(entry){return groupsData.find(g=>g.id===entry.matchedGroupId)?.id||matchImportedGroup(entry.groupCode||entry.group)?.id||null;}
 
@@ -1061,14 +1065,14 @@ function sortScheduleEntries(entries){
 function getVisibleScheduleEntries(date){
   const visible=(scheduleEntries[date]||[]).filter(entry=>{
     const groupId=getEntryGroupId(entry);
-    return !groupId||!getCalendarException(date,groupId);
+    return !groupId||!getCalendarException(date,groupId,entry);
   });
   return sortScheduleEntries(visible);
 }
 function getBlockedScheduleEntries(date){
   return (scheduleEntries[date]||[]).map(entry=>{
     const groupId=getEntryGroupId(entry);
-    const exception=groupId?getCalendarException(date,groupId):null;
+    const exception=groupId?getCalendarException(date,groupId,entry):null;
     return exception?{entry,exception,groupId}:null;
   }).filter(Boolean).sort((a,b)=>scheduleTimeMinutes(a.entry.time)-scheduleTimeMinutes(b.entry.time));
 }
@@ -1103,7 +1107,7 @@ function getExceptionAffectedGroupIds(ex){
     if(!exceptionCoversDate(ex,date))return;
     entries.forEach(entry=>{
       const id=getEntryGroupId(entry);
-      if(id&&(ex.groupId==='all'||ex.groupId===id))ids.add(id);
+      if(id&&(ex.groupId==='all'||ex.groupId===id)&&(!ex.courseKey||ex.courseKey===courseOccurrenceKey(date,entry)))ids.add(id);
     });
   });
   return [...ids];
@@ -1161,6 +1165,7 @@ function deleteCalendarException(id){
   const ex=calendarExceptions.find(x=>x.id===id);
   if(!ex)return;
   const affected=getExceptionAffectedGroupIds(ex);
+  if(ex.relocatedIndividual){const move=ex.relocatedIndividual,session=individualSessions.find(session=>session.id===move.id);if(session?.courseKey===move.destinationCourseKey)Object.assign(session,move.previous);}
   calendarExceptions=calendarExceptions.filter(x=>x.id!==id);
   affected.forEach(id=>delete scheduleConflictIgnores[id]);
   saveConflictIgnores();

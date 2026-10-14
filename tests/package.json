@@ -10,7 +10,8 @@
     "unit:roster": "cd .. && node tests/teacher-roster.test.cjs",
     "browser:roster": "cd .. && node tests/browser-teacher-roster.cjs",
     "unit:ultimate-repair": "cd .. && node tests/ultimate-migration.test.cjs",
-    "browser:ultimate-repair": "cd .. && node tests/browser-ultimate-migration.cjs"
+    "browser:ultimate-repair": "cd .. && node tests/browser-ultimate-migration.cjs",
+    "browser:cancellations": "cd .. && node tests/browser-cancellations.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

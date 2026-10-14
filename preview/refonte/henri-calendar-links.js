@@ -221,6 +221,9 @@ function henriDeleteIndividualFromCourse(date,index){
 function renderCoursePlanningActions(entry,date,index){
   const container=document.getElementById('coursePlanningActions');container.replaceChildren();
   const add=(text,fn)=>{const button=document.createElement('button');button.className='itemBtn';button.textContent=text;button.onclick=fn;container.append(button);};
+  const cancelled=getCalendarException(date,getEntryGroupId(entry),entry);
+  if(cancelled){if(cancelled.courseKey)add('Rétablir ce cours',()=>henriRestoreCancelledCourse(cancelled.id,date));return;}
+  if(isPlanningEntry(entry))add('Annuler ce cours',()=>henriOpenCancellationForm(date,index));
   const individual=isPlanningEntry(entry)?henriIndividualAtCourse(date,entry):null;
   if(individual){
     add('Modifier le titre',()=>henriEditIndividualFromCourse(date,index));
@@ -311,6 +314,7 @@ function persistCalendarIndividual(){
 // Calendar cards open the exact session; unplanned cards show both creation paths.
 function openCalendarCourse(date,index){
   const entry=scheduleEntries[date]?.[index];if(!entry)return;
+  if(getCalendarException(date,getEntryGroupId(entry),entry)){openDayPlan(date);return;}
   if(isPlanningEntry(entry)){
     const individual=henriIndividualAtCourse(date,entry);
     const saved=calendarSequenceFor(entry);
