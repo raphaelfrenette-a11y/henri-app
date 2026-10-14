@@ -2,6 +2,16 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const H=require('../henri-import');
 const groups=[{id:'g2',name:'Secondaire 2 · Groupe 02',students:[]},{id:'g3',name:'Groupe 3',students:[]}];
+test('large photo labels and split EDU tokens keep their full geometry',()=>{
+  const word=(text,x,y,width=70)=>({text,confidence:95,bbox:{x0:x,y0:y,x1:x+width,y1:y+40}});
+  const words=[word('Jour',0,200),word('1',140,205,20),word('Jour',0,400),word('2',140,405,20),word('Période',300,0,150),word('1',470,0,20),word('EDU',300,200),word('4G2',380,200),word('-02',460,200)];
+  const labels=H.wordsWithLabels(words);
+  assert.equal(labels[0].text,'Jour 1');assert.equal(labels[0].bbox.x1,160);
+  const grid=H.scheduleGrid(words);
+  assert.equal(grid['Jour 1'][0].groupCode,'EDU4G2-02');
+  assert.equal(grid['Jour 1'][0].period,1);
+  assert.equal(grid['Jour 2'].length,0);
+});
 function schoolYear(){
   const calendar={};let cycle=1;
   for(let d=new Date(2026,7,31,12);d<=new Date(2027,5,23,12);d.setDate(d.getDate()+1)){
@@ -55,6 +65,8 @@ test('photo grid supports days in rows and columns without inventing periods',()
   const columns=rows.map(word=>({...word,bbox:{x0:word.bbox.y0,y0:word.bbox.x0,x1:word.bbox.y1,y1:word.bbox.x1}}));
   assert.equal(H.scheduleGrid(columns)['Jour 1'][0].time,'Période 1');
   assert.deepEqual(H.scheduleGrid(rows.filter(w=>!/^P/.test(w.text))),{});
+  const partial=[...rows,w('Jour 4',10,400),w('EDU2G1-02',100,300)];
+  assert.equal(Object.values(H.scheduleGrid(partial)).flat().length,2,'a missing day label must not reassign its course');
 });
 test('nine-day schedule reads four teaching periods, cognitive blocks and lunch independently',()=>{
   const word=(text,x,y)=>({text,confidence:95,bbox:{x0:x-30,y0:y-10,x1:x+30,y1:y+10}});

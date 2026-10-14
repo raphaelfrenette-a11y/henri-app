@@ -63,6 +63,12 @@ try{const result=await worker.recognize(process.argv[4]);process.stdout.write(JS
         page.route('**/pdf.worker.min.js', lambda r: r.fulfill(path=str(dependencies / 'node_modules/pdfjs-dist/build/pdf.worker.min.js'), content_type='application/javascript'))
         page.goto(f'http://127.0.0.1:{server.server_port}/', wait_until='networkidle')
         page.add_script_tag(path=str(dependencies / 'node_modules/pdfjs-dist/build/pdf.min.js'))
+        assert page.evaluate("""()=>{
+          const word=(text,x,y)=>({text,confidence:90,bbox:{x0:x,y0:y,x1:x+35,y1:y+15}});
+          const complete={data:{text:'Jour 1 Jour 2 EDU4G2-02',confidence:65,words:[word('Jour 1',0,100),word('Jour 2',0,200),word('P1',200,0),word('EDU4G2-02',200,100)]}};
+          const incomplete={data:{text:'Enseignant Education physique',confidence:99,words:[]}};
+          return aiOCRScore(complete,'teacherSchedule')>aiOCRScore(incomplete,'teacherSchedule');
+        }""")
 
         def recognize(data_url):
             (tmp / 'prepared.png').write_bytes(base64.b64decode(data_url.split(',', 1)[1]))
@@ -72,11 +78,12 @@ try{const result=await worker.recognize(process.argv[4]);process.stdout.write(JS
         # Browser canvas preprocessing and imports use real OCR in a local Node worker.
         # Only worker transport differs; no mock recognition text or TLS bypass is used.
         page.expose_function('recognizeLocally', recognize)
-        page.evaluate("window.Tesseract={recognize:(source)=>window.recognizeLocally(source.toDataURL('image/png'))}")
+        page.evaluate("window.ocrPassCount=0;window.Tesseract={recognize:(source)=>{ocrPassCount++;return window.recognizeLocally(source.toDataURL('image/png'))}}")
         page.get_by_role('button', name='Paramètres', exact=True).click()
         page.locator('#groupSheetsFile').set_input_files(str(tmp / 'groupe.png'))
         page.wait_for_function('setupFiles.groupSheets', timeout=120000)
         assert page.evaluate('groupsData.length===1 && groupsData[0].students.length===8')
+        assert page.evaluate('ocrPassCount===3')
         original_id = page.evaluate('groupsData[0].id')
         page.locator('#teacherScheduleFile').set_input_files(str(tmp / 'horaire.pdf'))
         page.wait_for_function('setupFiles.teacherSchedule', timeout=60000)

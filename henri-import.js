@@ -158,9 +158,23 @@
   function wordsWithLabels(words){
     const items=(words||[]).filter(w=>w.bbox&&Number(w.confidence??100)>=20);
     return items.map(w=>{
-      const next=items.filter(n=>n!==w&&n.bbox.x0>=w.bbox.x1-3&&n.bbox.x0-w.bbox.x1<60&&Math.abs(n.bbox.y0-w.bbox.y0)<12).sort((a,b)=>a.bbox.x0-b.bbox.x0)[0];
-      const text=/^(jour|p[eé]riode|p|groupe|gr\.?)$/i.test(w.text)&&next&&/^\d{1,3}$/.test(next.text)?w.text+' '+next.text:w.text;
-      return {...w,text,x:(w.bbox.x0+w.bbox.x1)/2,y:(w.bbox.y0+w.bbox.y1)/2};
+      const height=Math.max(1,w.bbox.y1-w.bbox.y0);
+      const neighbours=items.filter(n=>n!==w&&n.bbox.x0>=w.bbox.x1-3&&n.bbox.x0-w.bbox.x1<height*3&&Math.abs((n.bbox.y0+n.bbox.y1)/2-(w.bbox.y0+w.bbox.y1)/2)<height*.6).sort((a,b)=>a.bbox.x0-b.bbox.x0);
+      const next=neighbours[0];
+      let text=w.text,bbox=w.bbox;
+      if(/^(jour|p[eé]riode|p|groupe|gr\.?)$/i.test(text)&&next&&/^\d{1,3}$/.test(next.text)){
+        text+=' '+next.text;bbox={...bbox,x1:next.bbox.x1};
+      }else if(/^EDU/i.test(text)){
+        // Join only adjacent fragments of a valid course code, never student names.
+        let right=bbox.x1;
+        for(const n of neighbours.slice(0,4)){
+          if(n.bbox.x0-right>height*1.5||!/^[-–0-9G]+$/i.test(n.text))break;
+          text+=n.text;right=n.bbox.x1;
+          if(/^EDU[1-5]G\d[-–]\d{2}$/i.test(text)){bbox={...bbox,x1:right};break;}
+        }
+        if(!/^EDU\s*[1-5]\s*G\s*\d\s*[-–]?\s*\d{1,2}$/i.test(text)){text=w.text;bbox=w.bbox;}
+      }
+      return {...w,text,bbox,x:(bbox.x0+bbox.x1)/2,y:(bbox.y0+bbox.y1)/2};
     });
   }
   function scheduleGrid(words){
@@ -171,6 +185,8 @@
     const dayAxis=spread('x')>spread('y')?'x':'y',columnAxis=dayAxis==='x'?'y':'x';
     const nearest=(anchors,value,axis)=>anchors.reduce((best,a)=>Math.abs(a[axis]-value)<Math.abs(best[axis]-value)?a:best);
     const firstDay=Math.min(...days.map(w=>w[dayAxis]));
+    const positions=[...new Set(days.map(w=>w[dayAxis]))].sort((a,b)=>a-b);
+    const rowSpacing=Math.min(...positions.slice(1).map((p,i)=>p-positions[i]));
     const clockValues=text=>[...String(text).matchAll(/\b(\d{1,2})\s*[h:]\s*(\d{2})\b/gi)].filter(m=>Number(m[1])<24&&Number(m[2])<60).map(m=>({text:Number(m[1])+' h '+m[2],minutes:Number(m[1])*60+Number(m[2])}));
     const header=items.filter(w=>w[dayAxis]<firstDay);
     const columns=header.filter(w=>/^(?:p[eé]riode|p)\s*\d{1,2}$/i.test(w.text)).map(w=>({...w,period:Number(w.text.match(/\d+/)[0]),kind:'course'}));
@@ -203,6 +219,8 @@
     for(const word of items.filter(w=>/^EDU\s*[1-5]\s*G\s*\d\s*[-–]?\s*\d{1,2}$/i.test(w.text)||/^(?:groupe|gr\.?)\s*\d{1,3}$/i.test(w.text))){
       if(word[dayAxis]<firstDay-(word.bbox.y1-word.bbox.y0)*3)continue;
       const day=nearest(days,word[dayAxis],dayAxis),column=nearest(columns,word[columnAxis],columnAxis);
+      // An unreadable day label must not move its courses to an adjacent day.
+      if(Math.abs(day[dayAxis]-word[dayAxis])>rowSpacing*.65)continue;
       if(day.day<1||day.day>20||column.kind==='lunch')continue;
       (out['Jour '+day.day]??=[]).push({time:column.time,endTime:column.endTime,durationMinutes:column.durationMinutes,period:column.period,kind:column.kind,group:word.text,groupCode:word.text,activity:column.kind==='cognitive'?'Intervention cognitive':'Éducation physique'});
     }
