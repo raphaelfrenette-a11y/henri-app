@@ -1947,14 +1947,32 @@ function renderStudents(){
     return '<div class="studentCard'+(expanded.has('student-'+idx)?' open':'')+'" data-student-id="'+s.id+'" id="student-'+idx+'">'+
       '<button class="studentHead" onclick="toggleStudent('+idx+')"><span><span class="studentName">'+s.name+'</span><span class="studentMeta">Habileté '+s.skill+'/5'+(s.leader?' · Leader':'')+'</span></span><span class="groupArrow">›</span></button>'+
       '<div class="studentDetails">'+
-        '<div class="detailRow"><div class="detailLabel"><span>Habiletés sportives</span><span>'+s.skill+'/5</span></div><div class="rating">'+[1,2,3,4,5].map(n=>'<button class="'+(s.skill===n?'on':'')+'" onclick="setSkill(\''+s.id+'\','+n+')">'+n+'</button>').join('')+'</div></div>'+
-        '<div class="detailRow toggleRow"><div><div class="detailLabel" style="margin:0">Leader</div><div class="studentMeta">Peut guider et équilibrer une équipe</div></div><button class="switch '+(s.leader?'on':'')+'" onclick="toggleLeader(\''+s.id+'\')"></button></div>'+
+        '<div class="detailRow"><div class="detailLabel"><span>Habiletés sportives</span><span>'+s.skill+'/5</span></div><div class="rating">'+[1,2,3,4,5].map(n=>'<button class="'+(s.skill===n?'on':'')+'" data-student-action="skill" data-skill="'+n+'" type="button">'+n+'</button>').join('')+'</div></div>'+
+        '<div class="detailRow toggleRow"><div><div class="detailLabel" style="margin:0">Leader</div><div class="studentMeta">Peut guider et équilibrer une équipe</div></div><button class="switch '+(s.leader?'on':'')+'" data-student-action="leader" type="button"></button></div>'+
         '<div class="detailRow"><div class="detailLabel">Compatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'compatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+comp+'</div></div>'+
         '<div class="detailRow"><div class="detailLabel">Incompatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'incompatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+incomp+'</div></div>'+
       '</div></div>';
   }).join('');
 }
-function toggleStudent(i){document.getElementById('student-'+i)?.classList.toggle('open')}
+function toggleStudent(i){
+  const card=document.getElementById('student-'+i);
+  if(!card)return;
+  card.classList.toggle('open');
+  card.querySelector('.studentHead')?.setAttribute('aria-expanded',String(card.classList.contains('open')));
+}
+// Event delegation ensures controls remain editable after any roster rerender on iPad Safari.
+document.getElementById('studentList')?.addEventListener('click',function(event){
+  const control=event.target.closest('[data-student-action]');
+  if(!control)return;
+  event.preventDefault();
+  event.stopPropagation();
+  const card=control.closest('.studentCard');
+  const id=card?.dataset.studentId;
+  if(!id)return;
+  const action=control.dataset.studentAction;
+  if(action==='skill')setSkill(id,Number(control.dataset.skill));
+  else if(action==='leader')toggleLeader(id);
+});
 function getActiveStudent(id){return groupsData.find(x=>x.id===activeGroupId)?.students.find(x=>x.id===id)}
 function setSkill(id,skill){
   const student=getActiveStudent(id);if(!student)return;
