@@ -1941,7 +1941,7 @@ function renderStudents(){
     const options='<option value="">Ajouter…</option>'+others.map(o=>'<option value="'+o.id+'">'+o.name+'</option>').join('');
     const comp=s.compatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag" onclick="removeRelation(\''+s.id+'\',\'compatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
     const incomp=s.incompatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag bad" onclick="removeRelation(\''+s.id+'\',\'incompatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
-    return '<div class="studentCard'+(expanded.has('student-'+idx)?' open':'')+'" id="student-'+idx+'">'+
+    return '<div class="studentCard'+(expanded.has('student-'+idx)?' open':'')+'" data-student-id="'+s.id+'" id="student-'+idx+'">'+
       '<button class="studentHead" onclick="toggleStudent('+idx+')"><span><span class="studentName">'+s.name+'</span><span class="studentMeta">Habileté '+s.skill+'/5'+(s.leader?' · Leader':'')+'</span></span><span class="groupArrow">›</span></button>'+
       '<div class="studentDetails">'+
         '<div class="detailRow"><div class="detailLabel"><span>Habiletés sportives</span><span>'+s.skill+'/5</span></div><div class="rating">'+[1,2,3,4,5].map(n=>'<button class="'+(s.skill===n?'on':'')+'" onclick="setSkill(\''+s.id+'\','+n+')">'+n+'</button>').join('')+'</div></div>'+
@@ -1953,8 +1953,29 @@ function renderStudents(){
 }
 function toggleStudent(i){document.getElementById('student-'+i)?.classList.toggle('open')}
 function getActiveStudent(id){return groupsData.find(x=>x.id===activeGroupId)?.students.find(x=>x.id===id)}
-function setSkill(id,skill){const s=getActiveStudent(id);if(!s)return;s.skill=skill;saveGroups();renderStudents()}
-function toggleLeader(id){const s=getActiveStudent(id);if(!s)return;s.leader=!s.leader;saveGroups();renderStudents()}
+function setSkill(id,skill){
+  const student=getActiveStudent(id);if(!student)return;
+  student.skill=Number(skill);
+  saveGroups();
+  const card=[...studentList.querySelectorAll('.studentCard')].find(el=>el.dataset.studentId===String(id));
+  if(card){
+    card.querySelectorAll('.rating button').forEach(btn=>btn.classList.toggle('on',Number(btn.textContent)===student.skill));
+    const labels=card.querySelectorAll('.studentMeta');
+    if(labels[0])labels[0].textContent='Habileté '+student.skill+'/5'+(student.leader?' · Leader':'');
+    const value=card.querySelector('.detailLabel span:last-child');if(value)value.textContent=student.skill+'/5';
+  }else renderStudents();
+}
+function toggleLeader(id){
+  const student=getActiveStudent(id);if(!student)return;
+  student.leader=!student.leader;
+  saveGroups();
+  const card=[...studentList.querySelectorAll('.studentCard')].find(el=>el.dataset.studentId===String(id));
+  if(card){
+    card.querySelector('.switch')?.classList.toggle('on',student.leader);
+    const meta=card.querySelector('.studentMeta');
+    if(meta)meta.textContent='Habileté '+student.skill+'/5'+(student.leader?' · Leader':'');
+  }else renderStudents();
+}
 function addRelation(id,type,targetId){
   if(!targetId||id===targetId) return;
   const g=groupsData.find(x=>x.id===activeGroupId);if(!g)return;
