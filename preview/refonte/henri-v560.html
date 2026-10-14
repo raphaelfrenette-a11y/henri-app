@@ -710,8 +710,8 @@ function renderWeek(){
           '<span class="groupBar" aria-hidden="true"></span>'+
           '<span class="course">'+planningHtml(henriCalendarGroupLabel(entry))+'</span>'+
           '<span class="quickSport'+(sportLower.includes('planifier')?' planningSport':'')+'">'+HenriVisuals.icon(HenriVisuals.sportSymbol(sport,entry.kind))+sport+'</span>'+ 
-          (henriCalendarLessonLabel(key,entry)?'<span style="display:block;clear:both;position:static;width:100%;margin-top:6px;font-size:11px;line-height:1.45;opacity:.75;white-space:normal;overflow-wrap:anywhere">'+henriCalendarLessonLabel(key,entry)+'</span>':'')+
-          (getCourseNote(key,entry).trim()?'<span title="Note personnelle" style="display:block;clear:both;position:static;width:100%;margin-top:8px;padding-top:6px;font-size:11px;line-height:1.4;color:#9b6434;font-weight:650;white-space:normal">● Note</span>':'')+
+          (henriCalendarLessonLabel(key,entry)?'<span style="grid-column:3 / -1;grid-row:auto;display:block;min-width:0;font-size:11px;line-height:1.45;opacity:.75;white-space:normal;overflow-wrap:anywhere">'+henriCalendarLessonLabel(key,entry)+'</span>':'')+
+          (getCourseNote(key,entry).trim()?'<span title="Note personnelle" style="grid-column:3 / -1;grid-row:auto;display:block;min-width:0;font-size:11px;line-height:1.45;color:#9b6434;font-weight:650;white-space:normal">● Note</span>':'')+
         '</button>';
       });
     }
