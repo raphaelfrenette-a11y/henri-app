@@ -866,17 +866,11 @@ function saveCoursePersonalNote(value){
 function henriCoursePosition(date,entry){
   const groupId=getEntryGroupId(entry);
   if(!groupId)return null;
-  const slots=getGroupCourseOccurrences(groupId);
-  const position=slots.findIndex(slot=>slot.key===courseOccurrenceKey(date,entry));
-  if(position<0)return null;
   const blocks=annualPlans[groupId]||[];
-  let offset=0;
-  for(const block of blocks){
-    const count=Math.max(0,Number(block.courses)||0);
-    if(position<offset+count)return {number:position-offset+1,total:count,sport:block.sport,blockId:block.id,groupId};
-    offset+=count;
-  }
-  return {number:position+1,total:slots.length,sport:entry.annualPlan||'',groupId};
+  const block=blocks.find(b=>String(b.id)===String(entry.annualBlockId));
+  if(block&&entry.sessionIndex!=null)return {number:Number(entry.sessionIndex)+1,total:Math.max(0,Number(block.courses)||0),sport:block.sport,blockId:block.id,groupId};
+  if(entry.sequenceId&&entry.sessionIndex!=null)return {number:Number(entry.sessionIndex)+1,total:null,sport:entry.annualPlan||'',groupId};
+  return null;
 }
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
@@ -1162,16 +1156,19 @@ function formatPlanDate(date){
   return d.getDate()+' '+shortMonths[d.getMonth()];
 }
 function getAnnualRanges(groupId,blocks){
+  // Display the dates actually assigned in the calendar, including manual sequence jumps.
+  const slots=getGroupCourseOccurrences(groupId);
   const dates=getGroupSequenceDates(groupId);
   let cursor=0;
   return blocks.map(block=>{
     const need=Math.max(0,Number(block.courses)||0);
-    const slice=dates.slice(cursor,cursor+need);
+    const assigned=slots.filter(slot=>String(slot.entry.annualBlockId||'')===String(block.id));
+    const fallback=dates.slice(cursor,cursor+need);
     cursor+=need;
     return {
-      start:slice[0]||null,
-      end:slice[slice.length-1]||null,
-      allocated:slice.length,
+      start:assigned[0]?.date||fallback[0]||null,
+      end:assigned[assigned.length-1]?.date||fallback[fallback.length-1]||null,
+      allocated:assigned.length,
       needed:need
     };
   });
