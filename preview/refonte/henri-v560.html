@@ -444,7 +444,7 @@
   <p class="dataNote">Les profils et les compatibilités sont utilisés pour former les équipes.</p>
 </section>
 <section id="groupProfile" class="screen">
-  <button class="back" onclick="go('groups')">‹ Retour aux groupes</button>
+  <button class="back" onclick="returnFromGroupProfile()">‹ Retour</button>
   <div class="muted" id="groupProfileMeta"></div>
   <h1 id="groupProfileTitle">Groupe</h1>
   <div id="studentList" class="studentList"></div>
@@ -1977,9 +1977,16 @@ function renderGroups(){
   }
   groupList.innerHTML=groupsData.map(g=>'<button class="groupCard" onclick="openGroup(\''+g.id+'\')"><span><strong>'+g.name+'</strong><span>'+g.students.length+' élèves · profils modifiables</span></span><span class="groupArrow">›</span></button>').join('');
 }
+let groupProfileReturnScreen='groups';
+function returnFromGroupProfile(){
+  const destination=groupProfileReturnScreen;
+  groupProfileReturnScreen='groups';
+  go(destination);
+}
 function openGroup(id){
+  groupProfileReturnScreen=document.querySelector('.screen.active')?.id||'groups';
   activeGroupId=id;
-  const g=groupsData.find(x=>x.id===id);
+  const g=groupsData.find(x=>String(x.id)===String(id));
   if(!g) return;
   groupProfileTitle.textContent=g.name;
   groupProfileMeta.textContent=g.students.length+' élèves';
