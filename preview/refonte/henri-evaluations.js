@@ -21,18 +21,37 @@ function list(){
  (items.length?items.map(x=>'<div class="placeholder" style="margin-top:12px"><strong>'+esc(x.title)+'</strong><p class="muted">'+esc(x.sport)+' · '+esc(x.comp)+' · '+x.criteria.length+' critères</p><div class="itemActions"><button class="itemBtn" onclick="henriEvalEdit('+JSON.stringify(x.id)+')">Modifier / attribuer</button><button class="itemBtn" onclick="henriEvalOpenResults('+JSON.stringify(x.id)+')">Évaluer</button><button class="itemBtn danger" onclick="henriEvalDelete('+JSON.stringify(x.id)+')">Supprimer</button></div></div>').join(''):'<p class="planHint">Aucune grille créée pour le moment.</p>');
 }
 function fresh(auto){
- return {id:'eval-'+Date.now(),title:'',sport:'Handball',comp:'C2',auto,groupIds:[],criteria:(auto?defaults.C2:['Critère 1']).map((name,i,a)=>({id:'c'+i,name,max:10,weight:i===a.length-1?100-Math.floor(100/a.length)*(a.length-1):Math.floor(100/a.length)}))};
+ return {id:'eval-'+Date.now(),title:'',sport:'Handball',comp:'C2',auto,groupIds:[],courseNumber:1,criteria:(auto?defaults.C2:['Critère 1']).map((name,i,a)=>({id:'c'+i,name,max:10,weight:i===a.length-1?100-Math.floor(100/a.length)*(a.length-1):Math.floor(100/a.length)}))};
 }
 function create(auto){current=fresh(auto);editor()}
 function edit(id){current=read(KEY)[id];if(current)editor()}
+function sportsForSelectedGroups(){
+ const selected=current?.groupIds?.length?current.groupIds:groups().map(g=>String(g.id));
+ const sports=new Set();
+ if(typeof annualPlans!=='undefined')for(const gid of selected)for(const block of (annualPlans[gid]||[]))if(block.sport)sports.add(String(block.sport).trim());
+ return [...sports].filter(Boolean).sort((a,b)=>a.localeCompare(b,'fr'));
+}
+function sportChoices(e){
+ const sports=sportsForSelectedGroups();
+ if(e.sport&&!sports.some(x=>x.toLowerCase()===e.sport.toLowerCase()))sports.unshift(e.sport);
+ return '<select id="heSport" class="planControl" onchange="henriEvalSportChanged()"><option value="">Choisir un sport</option>'+sports.map(x=>'<option value="'+esc(x)+'"'+(x===e.sport?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';
+}
+function courseChoices(e){
+ let max=0;
+ if(typeof annualPlans!=='undefined')for(const gid of e.groupIds)for(const b of (annualPlans[gid]||[]))if(String(b.sport).toLowerCase()===String(e.sport).toLowerCase())max=Math.max(max,Number(b.courses)||0);
+ return '<select id="heCourse" class="planControl">'+(max?Array.from({length:max},(_,i)=>'<option value="'+(i+1)+'"'+(Number(e.courseNumber)===i+1?' selected':'')+'>Cours '+(i+1)+'</option>').join(''):'<option value="">Sélectionne un sport et ses groupes</option>')+'</select>';
+}
+function sportChanged(){collect();current.courseNumber=1;editor()}
+function groupChanged(){collect();editor()}
 function editor(){
  const e=current;if(!e)return;
- root().innerHTML='<div class="planForm"><label>Titre de la grille<input id="heTitle" class="planControl" value="'+esc(e.title)+'" placeholder="Ex. Évaluation handball"></label><label>Sport<input id="heSport" class="planControl" value="'+esc(e.sport)+'"></label><label>Compétence<select id="heComp" class="planControl" onchange="henriEvalChangeComp(this.value)">'+Object.entries(competences).map(([k,v])=>'<option value="'+k+'"'+(e.comp===k?' selected':'')+'>'+k+' — '+esc(v)+'</option>').join('')+'</select></label><p class="planHint">Les propositions Henri sont des exemples alignés sur les grandes dimensions du cadre ministériel. Vérifie leur adaptation à la tâche et aux normes de ton école.</p><strong>Groupes concernés</strong><div>'+groups().map(g=>'<label style="display:block;margin:8px 0"><input type="checkbox" class="heGroup" value="'+esc(g.id)+'"'+(e.groupIds.includes(String(g.id))?' checked':'')+'> '+esc(g.name)+'</label>').join('')+'</div><strong>Critères · points et pondération</strong><div id="heCriteria">'+e.criteria.map((c,i)=>'<div class="placeholder" style="margin-top:8px"><label>Critère '+(i+1)+'<input class="planControl heName" value="'+esc(c.name)+'"></label><label>Note maximale<input class="planControl heMax" type="number" min="1" value="'+c.max+'"></label><label>Pondération (%)<input class="planControl heWeight" type="number" min="0" value="'+c.weight+'"></label><button class="itemBtn danger" onclick="henriEvalRemoveCriterion('+i+')">Retirer</button></div>').join('')+'</div><div class="itemActions"><button class="itemBtn" onclick="henriEvalAddCriterion()">+ Critère</button><button class="planPrimary" onclick="henriEvalSave()">Enregistrer la grille</button><button class="itemBtn" onclick="henriEvalList()">Annuler</button></div></div>';
+ root().innerHTML='<div class="planForm"><label>Titre de la grille<input id="heTitle" class="planControl" value="'+esc(e.title)+'" placeholder="Ex. Évaluation handball"></label><label>Sport<input id="heSport" class="planControl" value="'+esc(e.sport)+'"></label><label>Compétence<select id="heComp" class="planControl" onchange="henriEvalChangeComp(this.value)">'+Object.entries(competences).map(([k,v])=>'<option value="'+k+'"'+(e.comp===k?' selected':'')+'>'+k+' — '+esc(v)+'</option>').join('')+'</select></label><p class="planHint">Les propositions Henri sont des exemples alignés sur les grandes dimensions du cadre ministériel. Vérifie leur adaptation à la tâche et aux normes de ton école.</p><strong>Groupes concernés</strong><div>'+groups().map(g=>'<label style="display:block;margin:8px 0"><input type="checkbox" class="heGroup" onchange="henriEvalGroupChanged()" value="'+esc(g.id)+'"'+(e.groupIds.includes(String(g.id))?' checked':'')+'> '+esc(g.name)+'</label>').join('')+'</div><strong>Critères · points et pondération</strong><div id="heCriteria">'+e.criteria.map((c,i)=>'<div class="placeholder" style="margin-top:8px"><label>Critère '+(i+1)+'<input class="planControl heName" value="'+esc(c.name)+'"></label><label>Note maximale<input class="planControl heMax" type="number" min="1" value="'+c.max+'"></label><label>Pondération (%)<input class="planControl heWeight" type="number" min="0" value="'+c.weight+'"></label><button class="itemBtn danger" onclick="henriEvalRemoveCriterion('+i+')">Retirer</button></div>').join('')+'</div><div class="itemActions"><button class="itemBtn" onclick="henriEvalAddCriterion()">+ Critère</button><button class="planPrimary" onclick="henriEvalSave()">Enregistrer la grille</button><button class="itemBtn" onclick="henriEvalList()">Annuler</button></div></div>';
 }
 function collect(){
  if(!current)return;
  current.title=document.getElementById('heTitle').value.trim();
  current.sport=document.getElementById('heSport').value.trim();
+ current.courseNumber=Number(document.getElementById('heCourse').value)||1;
  current.comp=document.getElementById('heComp').value;
  current.groupIds=[...document.querySelectorAll('.heGroup:checked')].map(x=>x.value);
  const names=[...document.querySelectorAll('.heName')],maxes=[...document.querySelectorAll('.heMax')],weights=[...document.querySelectorAll('.heWeight')];
@@ -91,8 +110,8 @@ function course(entry,date,index){
  const target=document.getElementById('henriCourseEvaluations');if(!target)return;target.replaceChildren();
  const gid=typeof getEntryGroupId==='function'?getEntryGroupId(entry):null;
  const sport=String(entry.annualPlan||'').trim().toLowerCase();
- const matches=Object.values(read(KEY)).filter(e=>e.groupIds.includes(String(gid))&&e.sport.trim().toLowerCase()===sport);
+ const matches=Object.values(read(KEY)).filter(e=>e.groupIds.includes(String(gid))&&e.sport.trim().toLowerCase()===sport&&(!e.courseNumber||Number(e.courseNumber)===Number(entry.sessionIndex)+1));
  for(const e of matches){const b=document.createElement('button');b.className='itemBtn';b.textContent='Évaluer · '+e.title;b.onclick=()=>score(e.id,gid,date);target.append(b)}
 }
-Object.assign(window,{henriEvalOpenBank:open,henriEvalList:list,henriEvalNew:create,henriEvalEdit:edit,henriEvalSave:saveGrid,henriEvalAddCriterion:add,henriEvalRemoveCriterion:remove,henriEvalChangeComp:changeComp,henriEvalDelete:del,henriEvalOpenResults:results,henriEvalScore:score,henriEvalRenderStudent:renderStudent,henriEvalSaveScore:saveScore,henriEvalCourseActions:course,henriEvalStudentResults:studentResults});
+Object.assign(window,{henriEvalOpenBank:open,henriEvalList:list,henriEvalNew:create,henriEvalEdit:edit,henriEvalSave:saveGrid,henriEvalAddCriterion:add,henriEvalRemoveCriterion:remove,henriEvalChangeComp:changeComp,henriEvalDelete:del,henriEvalOpenResults:results,henriEvalScore:score,henriEvalRenderStudent:renderStudent,henriEvalSaveScore:saveScore,henriEvalCourseActions:course,henriEvalStudentResults:studentResults,henriEvalSportChanged:sportChanged,henriEvalGroupChanged:groupChanged});
 })();
