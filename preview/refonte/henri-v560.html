@@ -1912,8 +1912,8 @@ setTimeout(fillPlanGroupSelects,0);
 function saveGroups(){
   localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
   localStorage.setItem('previewHenriSlate:henriImportedGroups',JSON.stringify(groupsData));
-  importedSetupData.groupSheets=groupsData;
-  if(!henriSyncBusy)henriSyncSharedData({skipSequenceEditor:true});
+  if(typeof importedSetupData!=='undefined')importedSetupData.groupSheets=groupsData;
+  if(!henriSyncBusy){try{henriSyncSharedData({skipSequenceEditor:true});}catch(error){console.error('Synchronisation des groupes',error);}}
 }
 function renderGroups(){
   if(!groupList)return;
@@ -1973,7 +1973,7 @@ document.getElementById('studentList')?.addEventListener('click',function(event)
   if(action==='skill')setSkill(id,Number(control.dataset.skill));
   else if(action==='leader')toggleLeader(id);
 });
-function getActiveStudent(id){return groupsData.find(x=>x.id===activeGroupId)?.students.find(x=>x.id===id)}
+function getActiveStudent(id){return groupsData.find(x=>String(x.id)===String(activeGroupId))?.students.find(x=>String(x.id)===String(id))}
 function setSkill(id,skill){
   const student=getActiveStudent(id);if(!student)return;
   student.skill=Number(skill);
