@@ -2871,7 +2871,17 @@ async function handleSetupFile(type,input){
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
       const days=Object.keys(parsed).length;
-      if(days<5)throw new Error('La lecture automatique de cette image n’a pas trouvé assez de dates. Pour le calendrier des Découvreurs 2026–2027, utilise le bouton « Utiliser ce calendrier 2026–2027 » sous la zone d’importation.');
+      if(days<5){
+        const isLikelyReference=docs.some(doc=>{
+          const raw=String(doc.text||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+          return /decouvreurs/.test(raw)||(/secondaire/.test(raw)&&/2026/.test(raw)&&/2027/.test(raw));
+        });
+        const question=isLikelyReference
+          ?'La lecture des petits chiffres a échoué. Ce document est-il bien le calendrier SECONDAIRE 2026–2027 du CSS des Découvreurs ?\\n\\nOK : utiliser la référence officielle intégrée.\\nAnnuler : conserver ton calendrier précédent.'
+          :'La lecture automatique n’a pas réussi à reconstruire les dates. Si ta photo est bien celle du calendrier SECONDAIRE 2026–2027 du CSS des Découvreurs, clique sur OK pour charger sa référence intégrée. Sinon, clique sur Annuler.';
+        if(confirm(question)){useDecouvreursCalendar2026();return;}
+        throw new Error('Calendrier non importé. Aucun jour-cycle n’a été inventé. Essaie un PDF original ou une image plus nette.');
+      }
       const cycles=Object.values(parsed).filter(v=>/^Jour /.test(v)).length;
       const specials=Object.values(parsed).filter(v=>v==='Pédagogique'||v==='Congé').length;
       importedSetupData.schoolCalendar=parsed;
