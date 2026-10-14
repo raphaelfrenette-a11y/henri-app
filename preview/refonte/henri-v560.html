@@ -10,6 +10,27 @@
 <link rel="stylesheet" href="henri-design.css?v=d3c3f1cf">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+/* Course detail only — airy, touch-friendly hierarchy. */
+#courseDetail .placeholder{border-radius:18px;padding:26px 30px;margin-bottom:16px}
+#courseDetail #courseDetailGroup{font-size:17px;line-height:1.5}
+#courseDetail #courseDetailCycle{margin:10px 0 0}
+#courseDetail #courseSessionTitle{font-size:19px;line-height:1.4}
+#courseDetail #coursePlanContent{line-height:1.65;max-width:780px}
+#courseDetail .henriCourseEvalActions{margin-top:24px;display:flex;gap:12px}
+#courseDetail .henriCourseEvalActions:empty{display:none}
+#courseDetail .henriCourseEvalActions .itemBtn{background:#294b66;color:#fff;border-color:#294b66;font-weight:650;padding:16px 24px;min-height:54px;border-radius:12px}
+#courseDetail .henriCoursePlanActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+#courseDetail .henriCoursePlanActions .itemBtn{min-height:46px;padding:11px 17px;border-radius:11px}
+#courseDetail .henriCoursePlanActions .itemBtn:first-child{font-weight:650}
+#courseDetail .henriCourseStudentActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+#courseDetail .henriCourseStudentActions .itemBtn{min-height:46px;padding:11px 17px;border-radius:11px}
+#courseDetail #coursePersonalNotes{border-top:1px solid var(--line);padding-top:24px;margin-top:28px!important}
+#courseDetail #coursePersonalNote{min-height:96px;line-height:1.55;margin-top:12px!important}
+#courseDetail #coursePersonalNotes .itemBtn{margin-top:12px;min-height:44px}
+#courseDetail #henriCourseJumpPicker{flex-basis:100%;margin-top:12px!important;background:var(--surface,#fff)}
+@media(max-width:640px){#courseDetail .placeholder{padding:19px 17px}#courseDetail .henriCourseEvalActions .itemBtn{width:100%}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -478,8 +499,10 @@
   <div class="placeholder" style="margin-top:10px">
     <strong id="courseSessionTitle">Séance</strong>
     <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
-    <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div><div id="henriCourseEvaluations" class="itemActions" style="margin-top:12px"></div>
-    <div id="courseStudentActions" class="itemActions" style="margin-top:12px"></div><div id="courseSavedTeams" style="margin-top:12px"></div>
+    <div id="henriCourseEvaluations" class="itemActions henriCourseEvalActions"></div>
+    <div id="coursePlanningActions" class="itemActions henriCoursePlanActions"></div>
+    <div id="courseStudentActions" class="itemActions henriCourseStudentActions"></div>
+    <div id="courseSavedTeams" style="margin-top:12px"></div>
     <div id="coursePersonalNotes" style="margin-top:16px"><label for="coursePersonalNote" class="detailLabel">Note personnelle pour cette période</label><textarea id="coursePersonalNote" rows="3" style="width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="Ex. Rappeler une consigne aux élèves"></textarea><button class="itemBtn" type="button" onclick="saveCoursePersonalNote(document.getElementById(&quot;coursePersonalNote&quot;).value)">Enregistrer la note</button> <small id="coursePersonalNoteStatus" class="muted">À enregistrer</small></div>
   </div>
 </section>
@@ -510,7 +533,7 @@
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
 <script src="henri-planning.js?v=31ba4ab4"></script>
 <script src="henri-import.js?v=d3c3f1cf"></script>
-<script src="henri-calendar-links.js?v=35cd76f4"></script>
+<script src="henri-calendar-links.js?v=274214c0"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
