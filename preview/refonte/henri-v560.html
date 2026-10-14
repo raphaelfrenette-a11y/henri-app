@@ -1937,6 +1937,9 @@ function renderStudents(){
   if(!g||!studentList) return;
   const expanded=new Set([...studentList.querySelectorAll('.studentCard.open')].map(el=>el.id));
   studentList.innerHTML=g.students.map((s,idx)=>{
+    s.compatible=Array.isArray(s.compatible)?s.compatible:[];
+    s.incompatible=Array.isArray(s.incompatible)?s.incompatible:[];
+    s.skill=Number(s.skill)||3;
     const others=g.students.filter(x=>x.id!==s.id);
     const options='<option value="">Ajouter…</option>'+others.map(o=>'<option value="'+o.id+'">'+o.name+'</option>').join('');
     const comp=s.compatible.map(id=>g.students.find(x=>x.id===id)).filter(Boolean).map(o=>'<button class="tag" onclick="removeRelation(\''+s.id+'\',\'compatible\',\''+o.id+'\')">'+o.name+' ×</button>').join('');
@@ -1977,7 +1980,7 @@ function toggleLeader(id){
   }else renderStudents();
 }
 function addRelation(id,type,targetId){
-  if(!targetId||id===targetId) return;
+  if(!targetId||String(id)===String(targetId)) return;
   const g=groupsData.find(x=>x.id===activeGroupId);if(!g)return;
   const s=g.students.find(x=>x.id===id),t=g.students.find(x=>x.id===targetId);if(!s||!t)return;
   const opposite=type==='compatible'?'incompatible':'compatible';
