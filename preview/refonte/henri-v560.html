@@ -2197,6 +2197,7 @@ function renderStudents(){
         '<div class="detailRow toggleRow"><div><div class="detailLabel" style="margin:0">Leader</div><div class="studentMeta">Peut guider et équilibrer une équipe</div></div><button class="switch '+(s.leader?'on':'')+'" data-student-action="leader" type="button"></button></div>'+
         '<div class="detailRow"><div class="detailLabel">Compatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'compatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+comp+'</div></div>'+
         '<div class="detailRow"><div class="detailLabel">Incompatibilités</div><select class="relationSelect" onchange="addRelation(\''+s.id+'\',\'incompatible\',this.value);this.value=\'\'">'+options+'</select><div class="relationTags">'+incomp+'</div></div>'+
+        (typeof henriEvalStudentResults==='function'?henriEvalStudentResults(g.id,s.id):'')+
       '</div></div>';
   }).join('');
 }
@@ -3336,6 +3337,6 @@ setTimeout(()=>{
 </script>
 <script src="henri-bank-v1.js?v=d3c3f1cf"></script>
 <script src="henri-ux.js?v=d3c3f1cf"></script>
-<script src="henri-evaluations.js?v=1"></script>
+<script src="henri-evaluations.js?v=289585bb"></script>
 </body>
 </html>
