@@ -1320,11 +1320,21 @@ function renderMacroSequences(){
     const r=ranges[i];
     const range=r.start&&r.end?(r.start===r.end?formatPlanDate(r.start):formatPlanDate(r.start)+' au '+formatPlanDate(r.end)):'Dates à venir';
     const saved=getSavedSequence(groupId,b.id);
-    return '<button class="macroSeqCard" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+
+    return '<div style="display:flex;align-items:center;gap:8px"><button class="macroSeqCard" style="flex:1;min-width:0" onclick="openMacroSequence(\''+groupId+'\',\''+b.id+'\')">'+
       '<span><span class="compBadge">'+b.comp+'</span><span class="macroSeqSport">'+planningHtml(b.sport)+'</span><span class="macroSeqMeta">'+b.courses+' séances · '+range+'</span><span class="seqStatus'+(saved?' ready':'')+'">'+(saved?'Séquence enregistrée':'À planifier')+'</span></span>'+
       '<span class="groupArrow">›</span>'+
-    '</button>';
+    '</button><button type="button" class="itemBtn" style="color:#b42318;flex-shrink:0" onclick="deleteMacroSequenceFromList(\''+groupId+'\',\''+b.id+'\')">Supprimer</button></div>';
   }).join('');
+}
+function deleteMacroSequenceFromList(groupId,blockId){
+  const block=(annualPlans[groupId]||[]).find(b=>b.id===blockId);
+  if(!block)return;
+  const current=annualGroup.value;
+  annualGroup.value=groupId;
+  Promise.resolve(deleteAnnualBlock(blockId)).finally(()=>{
+    annualGroup.value=current;
+    renderMacroSequences();
+  });
 }
 function continueSavedSequence(){
   const saved=getSavedSequence(selectedAnnualGroupId,selectedAnnualBlockId);
@@ -1719,12 +1729,21 @@ function renderQuickResult(message=''){
   const options=getQuickDateOptions();
   quickResult.innerHTML=
     '<button class="planMenuCard" onclick="openSessionEditor(0,\'quick\')"><span class="planMenuIcon">1</span><span><strong>'+quickSessionData.title+'</strong><small>'+quickSessionData.blocks.length+' sections · modifiable immédiatement</small></span><span class="groupArrow">›</span></button>'+
+    '<button type="button" class="itemBtn" style="color:#b42318;margin:10px 0" onclick="discardQuickSession()">Supprimer cette séance</button>'+
     '<div class="quickScheduleBox"><strong>Ajouter à l’horaire</strong><p>Choisis un cours de '+quickSessionData.groupName+'. Henri insère cette séance et décale automatiquement les séquences déjà prévues.</p>'+
       '<select id="quickScheduleDate" class="planControl">'+options+'</select>'+
       '<button class="planPrimary" onclick="scheduleQuickSession()">Insérer dans l’horaire</button>'+
       (message?'<div class="quickScheduleSuccess">'+message+'</div>':'')+
       renderScheduleConflict(quickSessionData.groupId)+
     '</div>';
+}
+function discardQuickSession(){
+  if(!quickSessionData||!confirm('Supprimer cette séance en préparation ? Les cours déjà placés dans le calendrier ne seront pas touchés.'))return;
+  quickSessionData=null;
+  renderQuickResult();
+  const status=document.getElementById('quickContext');
+  if(status)status.textContent='Séance supprimée. Tu peux en préparer une autre.';
+  if(typeof planningReport==='function')planningReport('Séance en préparation supprimée.');
 }
 function scheduleQuickSession(){
   if(!quickSessionData||!quickScheduleDate?.value) return;
