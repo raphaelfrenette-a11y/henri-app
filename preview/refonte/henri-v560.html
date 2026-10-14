@@ -380,6 +380,18 @@
     </div>
   </div>
 
+  <section id="teacherScheduleReview" style="display:none;margin:20px 0;padding:20px;border:1px solid #d9e1e8;border-radius:18px;background:#fff">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0 0 6px">Vérifier mon horaire</h3><p style="margin:0;color:#64748b">Clique sur une case pour corriger le groupe, une période libre ou une étude. Les modifications sont enregistrées seulement après confirmation.</p></div><span id="teacherReviewCount" style="color:#64748b"></span></div>
+    <div id="teacherReviewGrid" style="overflow-x:auto;margin:18px 0"></div>
+    <div id="teacherReviewEditor" style="display:none;padding:14px;background:#f5f7fa;border-radius:12px">
+      <label id="teacherReviewCellLabel" for="teacherReviewGroup" style="display:block;font-weight:600;margin-bottom:8px"></label>
+      <select id="teacherReviewGroup" class="planControl" style="width:100%;max-width:360px"></select>
+      <p style="margin:8px 0 0;color:#64748b;font-size:13px">Tu peux également écrire un nouveau code de groupe ci-dessous.</p>
+      <input id="teacherReviewCustom" class="planControl" placeholder="Autre groupe (facultatif)" style="margin-top:8px;max-width:360px;width:100%">
+      <button type="button" class="itemBtn" style="margin-top:10px" onclick="applyTeacherReviewCell()">Appliquer</button>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button type="button" class="planPrimary" onclick="confirmTeacherScheduleReview()">Confirmer cet horaire</button><span id="teacherReviewHelp" style="color:#64748b;font-size:13px">Vérifie les cellules avant de confirmer.</span></div>
+  </section>
   <div id="importLinksReview" class="placeholder" role="status" aria-live="polite"></div>
   <div class="generateBox">
     <button id="generateScheduleBtn" class="generateBtn" onclick="generateMySchedule()" disabled>Générer mon horaire</button>
@@ -2574,6 +2586,93 @@ function parseTeacherScheduleGrid(words){return HenriImport.scheduleGrid(words);
 
 function parseTeacherScheduleText(text){return HenriImport.scheduleText(text);}
 
+const teacherReviewState={draft:null,days:9,periods:4,selected:null,previous:null};
+function teacherReviewPeriod(entry){
+  const value=String(entry?.time||'');
+  const m=value.match(/(\\d{1,2})\\s*[:hH]\\s*(\\d{2})/);
+  if(!m)return -1;
+  const minutes=Number(m[1])*60+Number(m[2]);
+  if(minutes>=655&&minutes<=675)return -2; // intégration cognitive 10 h 55 à 11 h 15
+  const starts=[490,575,675,775]; // repères utilisés uniquement si aucun numéro de période n'existe
+  let best=0;starts.forEach((v,i)=>{if(Math.abs(minutes-v)<Math.abs(minutes-starts[best]))best=i});
+  return best;
+}
+function teacherReviewIsStudy(entry){
+  return /int[eé]gration\\s*cognitive|\\b[eé]tude\\b/i.test([entry?.group,entry?.groupCode,entry?.activity,entry?.kind].join(' '))||teacherReviewPeriod(entry)===-2;
+}
+function teacherReviewStart(parsed){
+  teacherReviewState.previous=importedSetupData.teacherSchedule;
+  teacherReviewState.draft={};
+  const keys=Object.keys(parsed).filter(k=>/^Jour\\s*\\d+$/i.test(k));
+  teacherReviewState.days=Math.max(9,...keys.map(k=>Number(k.match(/\\d+/)?.[0]||0)));
+  teacherReviewState.periods=4;
+  for(let d=1;d<=teacherReviewState.days;d++){
+    const key='Jour '+d,entries=parsed[key]||[],slots=Array.from({length:4},()=>null);
+    entries.forEach((entry,index)=>{
+      if(teacherReviewIsStudy(entry))return;
+      const explicit=Number(entry.period||entry.periode||entry.periodNumber||0);
+      const period=explicit>=1&&explicit<=4?explicit-1:teacherReviewPeriod(entry);
+      const slot=period>=0&&period<4?period:Math.min(index,3);
+      if(!slots[slot])slots[slot]={...entry};
+      else {const free=slots.findIndex(x=>!x);if(free>=0)slots[free]={...entry};}
+    });
+    teacherReviewState.draft[key]=slots;
+  }
+  teacherReviewState.selected=null;
+  document.getElementById('teacherScheduleReview').style.display='block';
+  renderTeacherScheduleReview();
+  document.getElementById('teacherScheduleReview').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function teacherReviewEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function renderTeacherScheduleReview(){
+  const st=teacherReviewState,grid=document.getElementById('teacherReviewGrid');
+  let html='<table style="border-collapse:separate;border-spacing:4px;min-width:680px;width:100%;font-size:13px"><thead><tr><th style="text-align:left;padding:8px">Période</th>';
+  for(let d=1;d<=st.days;d++)html+='<th style="padding:8px">Jour '+d+'</th>';
+  html+='</tr></thead><tbody>';
+  for(let p=0;p<st.periods;p++){
+    html+='<tr><th style="text-align:left;padding:8px">P'+(p+1)+'</th>';
+    for(let d=1;d<=st.days;d++){
+      const item=st.draft['Jour '+d][p],name=item?(teacherReviewIsStudy(item)?'Étude':item.group||item.groupCode||'À vérifier'):'Libre';
+      const active=st.selected?.day===d&&st.selected?.period===p;
+      html+='<td><button type="button" onclick="selectTeacherReviewCell('+d+','+p+')" style="width:100%;min-height:46px;border-radius:9px;border:'+(active?'2px solid #426f9b':'1px solid #dce3e9')+';background:'+(active?'#e8f0f7':'#f7f9fb')+';color:#243746;cursor:pointer;padding:6px;font:inherit">'+teacherReviewEscape(name)+'</button></td>';
+    }
+    html+='</tr>';
+  }
+  html+='</tbody></table><p style="font-size:12px;color:#64748b">Intégration cognitive : 10 h 55–11 h 15, après P2. Elle ne compte pas comme un cours.</p>';
+  grid.innerHTML=html;
+  document.getElementById('teacherReviewCount').textContent=Object.values(st.draft).flat().filter(Boolean).length+' cours détectés';
+}
+function selectTeacherReviewCell(day,period){
+  const st=teacherReviewState;st.selected={day,period};
+  const editor=document.getElementById('teacherReviewEditor');editor.style.display='block';
+  document.getElementById('teacherReviewCellLabel').textContent='Jour '+day+' · période '+(period+1);
+  const select=document.getElementById('teacherReviewGroup'),current=st.draft['Jour '+day][period];
+  const names=[...new Set([...groupsData.map(g=>g.name),...Object.values(st.draft).flat().filter(Boolean).map(x=>x.group)].filter(Boolean))];
+  select.innerHTML='<option value="">Libre</option><option value="__study">Étude / intégration cognitive</option>'+names.map(n=>'<option value="'+teacherReviewEscape(n)+'">'+teacherReviewEscape(n)+'</option>').join('');
+  select.value=current?(teacherReviewIsStudy(current)?'__study':current.group||''):'';
+  document.getElementById('teacherReviewCustom').value='';
+  renderTeacherScheduleReview();
+}
+function applyTeacherReviewCell(){
+  const st=teacherReviewState;if(!st.selected)return;
+  const {day,period}=st.selected,custom=document.getElementById('teacherReviewCustom').value.trim(),value=custom||document.getElementById('teacherReviewGroup').value;
+  const old=st.draft['Jour '+day][period];
+  const defaultTimes=['08:10','09:35','11:15','13:00'];
+  st.draft['Jour '+day][period]=value?{...(old||{}),group:value==='__study'?'Intégration cognitive':value,groupCode:value==='__study'?'':value,time:old?.time||defaultTimes[period],period:period+1,kind:value==='__study'?'study':'course',matchedGroupId:value==='__study'?null:(groupsData.find(g=>g.name===value)?.id||null)}:null;
+  renderTeacherScheduleReview();
+}
+function confirmTeacherScheduleReview(){
+  const parsed={};
+  Object.entries(teacherReviewState.draft).forEach(([day,slots])=>{parsed[day]=slots.filter(Boolean).filter(x=>!teacherReviewIsStudy(x));});
+  importedSetupData.teacherSchedule=parsed;
+  localStorage.setItem('previewHenriSlate:henriImportedTeacherSchedule',JSON.stringify(parsed));
+  setupFiles.teacherSchedule=true;
+  document.getElementById('teacherScheduleState').textContent='Horaire vérifié · '+Object.values(parsed).flat().length+' cours';
+  document.getElementById('teacherScheduleCard').classList.add('ready');
+  document.getElementById('teacherScheduleReview').style.display='none';
+  refreshImportedLinks();updateGenerateState();
+  henriSyncSharedData({skipSequenceEditor:true});
+}
 function parseTeacherScheduleDocs(docs){
   const merged={};
   docs.forEach(doc=>{
@@ -2741,9 +2840,10 @@ async function handleSetupFile(type,input){
       const lessons=Object.values(parsed).reduce((n,a)=>n+a.length,0);
       if(!lessons)throw new Error('Aucun cours détecté dans l’horaire. Essaie une photo cadrée sur la grille complète.');
       const linked=Object.values(parsed).flat().filter(x=>x.matchedGroupId).length;
-      importedSetupData.teacherSchedule=parsed;
-      state.textContent=Object.keys(parsed).length+' jours-cycle · '+lessons+' créneaux · '+linked+' liés aux groupes';
-      localStorage.setItem('previewHenriSlate:henriImportedTeacherSchedule',JSON.stringify(parsed));
+      teacherReviewStart(parsed);
+      state.textContent='Analyse terminée · vérifier la grille';
+      updateGenerateState();
+      return;
     }else{
       const parsed=await parseSchoolCalendarDocs(docs);
       const days=Object.keys(parsed).length;
