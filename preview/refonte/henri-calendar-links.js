@@ -196,7 +196,7 @@ function henriChooseSequenceCourse(date,index){
     return n+' — '+(block.sport==='Ultimate'&&n===4?'Évaluation':'Cours '+n);
   });
   if(options.length<2){alert('Il n’y a pas de cours suivant dans cette séquence.');return;}
-  const answer=prompt('Choisir le numéro du cours à faire maintenant pour ce groupe :\\n'+options.join('\\n')+'\\n\\nLes cours intermédiaires seront sautés, mais resteront dans la banque.',String(current+1));
+  const answer=prompt('Choisir le numéro du cours à faire maintenant pour ce groupe :\n'+options.join('\n')+'\n\nLes cours intermédiaires seront sautés, mais resteront dans la banque.',String(current+1));
   if(answer===null)return;
   const number=Number(answer);
   if(!Number.isInteger(number)||number<=current+1||number>count){alert('Choisis un numéro de cours suivant valide.');return;}
