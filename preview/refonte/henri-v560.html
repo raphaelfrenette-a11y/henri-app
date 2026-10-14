@@ -469,6 +469,7 @@
     <strong id="courseSessionTitle">Séance</strong>
     <div id="coursePlanContent" class="muted" style="margin-top:10px"></div>
     <div id="coursePlanningActions" class="itemActions" style="margin-top:12px"></div>
+    <div id="courseStudentActions" class="itemActions" style="margin-top:12px"></div>
   </div>
 </section>
 
@@ -660,11 +661,34 @@ function openDayPlan(date){
   go('dayPlan');
 }
 
+function renderCourseStudentActions(entry,date,index){
+  const target=document.getElementById('courseStudentActions');
+  if(!target)return;
+  const groupId=getEntryGroupId(entry);
+  const group=groupsData.find(g=>String(g.id)===String(groupId));
+  if(!group){target.innerHTML='';return;}
+  target.innerHTML='<button class="itemBtn" onclick="openCourseStudents(\''+date+'\','+index+')">Voir les '+group.students.length+' élèves</button>'+
+    '<button class="itemBtn" onclick="openCourseTeamBuilder(\''+date+'\','+index+')">Générer les équipes</button>';
+}
+function openCourseStudents(date,index){
+  const entry=(scheduleEntries[date]||[])[index];
+  const id=entry&&getEntryGroupId(entry);
+  if(id)openGroup(id);
+}
+function openCourseTeamBuilder(date,index){
+  const entry=(scheduleEntries[date]||[])[index];
+  const id=entry&&getEntryGroupId(entry);
+  if(!id)return;
+  fillTeamBuilderGroups();
+  selectTeamGroup(String(id));
+  go('teamBuilder');
+}
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
   calendarCourseContext={date,index};
   renderCoursePlanningActions(entry,date,index);
+  renderCourseStudentActions(entry,date,index);
   if(!entry.annualPlan&&!entry.isIndividual&&isPlanningEntry(entry)){
     openQuickSessionForCourse(date,index);
     return;
