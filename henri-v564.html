@@ -1122,7 +1122,7 @@ function henriPlanCalendarLesson(date,index){
   const groupId=getEntryGroupId(entry);
   const block=(annualPlans[groupId]||[]).find(b=>b.id===entry.annualBlockId);
   if(!block)return;
-  const match=String(entry.session||'').match(/(?:Séance|Cours)\\s+(\\d+)/i);
+  const match=String(entry.session||'').match(/(?:Séance|Cours)\s+(\d+)/i);
   const idx=match?Number(match[1])-1:0;
   const existing=getSavedSequence(groupId,block.id);
   const seq=existing?JSON.parse(JSON.stringify(existing)):makeSequence({
