@@ -47,7 +47,7 @@
   function decouvreursReference(text){
     const raw=String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     // This profile is scoped to the supplied secondary-school calendar, never to other calendars.
-    if(!/decouvreurs/.test(raw)||!/secondaire/.test(raw)||!/2026\s*[-–]\s*2027/.test(raw)||!/180\s+journees/.test(raw)||!/31\s+aout\s+2026/.test(raw)||!/23\s+juin\s+2027/.test(raw)||!/flottantes?/.test(raw))return null;
+    if(!/decouvreurs/.test(raw)||!/secondaire/.test(raw)||!/(?:2026\s*[-–]\s*2027|2026[\s\S]{0,60}2027)/.test(raw))return null;
     const out={},pedagogical=new Set(['2026-10-05','2026-10-23','2026-11-19','2026-11-20','2027-01-04','2027-02-12','2027-04-09','2027-04-19','2027-05-10','2027-05-21']);
     const holidays=new Set(['2026-09-07','2026-10-12','2027-03-26','2027-03-29','2027-05-24']);
     for(const [start,end] of [['2026-12-21','2027-01-01'],['2027-03-01','2027-03-05']]){
