@@ -176,7 +176,17 @@ function renderCoursePlanningActions(entry,date,index){
   const add=(text,fn)=>{const button=document.createElement('button');button.className='itemBtn';button.textContent=text;button.onclick=fn;container.append(button);};
   if(isPlanningEntry(entry)&&entry.planData)add('Ouvrir la séance',()=>openCalendarSession(date,index));
   else if(isPlanningEntry(entry))add('Préparer cette séance',()=>openQuickSessionForCourse(date,index));
-  if(isPlanningEntry(entry)&&!entry.isIndividual)add('Remplacer cette période',()=>openQuickSessionForCourse(date,index));
+  if(isPlanningEntry(entry)&&entry.isIndividual){
+    add('Modifier cette séance',()=>openCalendarSession(date,index));
+    add('Supprimer cette séance',()=>{
+      const individual=individualSessions.find(x=>x.id===entry.individualId);
+      if(!individual||!confirm('Supprimer cette séance individuelle de ce cours ? La planification annuelle reprendra sa place et les autres groupes ne seront pas modifiés.'))return;
+      individualSessions=individualSessions.filter(x=>x.id!==individual.id);
+      localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
+      rebuildPlanningAssignments();
+      openCourseEntry(date,index);
+    });
+  }else if(isPlanningEntry(entry))add('Remplacer cette période',()=>openQuickSessionForCourse(date,index));
   if(isPlanningEntry(entry)&&entry.annualBlockId)add('Changer de cours dans la séquence',()=>henriChooseSequenceCourse(date,index));
   if(isPlanningEntry(entry)&&(entry.annualBlockId||entry.sequenceId))add(entry.sequenceId?'Ouvrir la séquence':'Préparer la séquence',()=>openCalendarSequence(date,index));
   const groupId=getEntryGroupId(entry),group=groupsData.find(g=>g.id===groupId);
