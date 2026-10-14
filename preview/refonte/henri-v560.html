@@ -247,6 +247,7 @@
   <button class="back" onclick="returnFromSessionEditor()">‹ Retour</button>
   <div class="muted" id="editSessionMeta"></div>
   <h1 id="editSessionTitle">Séance</h1>
+  <button id="henriCalendarRenameSession" type="button" class="itemBtn" onclick="henriRenameCalendarIndividual()" hidden>Modifier le titre</button>
   <div class="planForm" style="margin-top:12px">
     <div class="planField"><label>Objectif du cours</label><small class="pdaCategory" id="sessionPdaCategory"></small><select id="sessionObjectiveSelect" class="planControl" onchange="handleObjectiveChoice('session',this.value)"></select></div>
     <div class="planField" id="sessionObjectiveCustomWrap" style="display:none;margin-top:8px"><label>Objectif personnalisé</label><input id="sessionObjectiveCustom" class="planControl" placeholder="Écrire l’objectif du cours" oninput="saveCustomObjective('session',this.value)"></div>
