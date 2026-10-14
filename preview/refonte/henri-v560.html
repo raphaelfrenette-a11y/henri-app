@@ -713,6 +713,21 @@ function saveCoursePersonalNote(value){
     renderWeek();renderMonth();
   }catch(error){if(status)status.textContent='Impossible d’enregistrer la note';console.error(error);}
 }
+function henriCoursePosition(date,entry){
+  const groupId=getEntryGroupId(entry);
+  if(!groupId)return null;
+  const slots=getGroupCourseOccurrences(groupId);
+  const position=slots.findIndex(slot=>slot.key===courseOccurrenceKey(date,entry));
+  if(position<0)return null;
+  const blocks=annualPlans[groupId]||[];
+  let offset=0;
+  for(const block of blocks){
+    const count=Math.max(0,Number(block.courses)||0);
+    if(position<offset+count)return {number:position-offset+1,total:count,sport:block.sport,blockId:block.id,groupId};
+    offset+=count;
+  }
+  return {number:position+1,total:slots.length,sport:entry.annualPlan||'',groupId};
+}
 function openCourseEntry(date,index){
   const entry=(scheduleEntries[date]||[])[index];
   if(!entry) return;
@@ -724,7 +739,8 @@ function openCourseEntry(date,index){
   previousScreen=document.querySelector('.screen.active')?.id||'home';
   const sport=entry.annualPlan||entry.activity||'Cours';
   courseDetailTitle.textContent=sport;
-  courseDetailMeta.textContent=date+' · '+entry.time;
+  const coursePosition=henriCoursePosition(date,entry);
+  courseDetailMeta.textContent=date+' · '+entry.time+(coursePosition?' · Cours '+coursePosition.number+(coursePosition.total?'/'+coursePosition.total:''):'');
   courseDetailGroup.textContent=entry.group;
   courseDetailCycle.textContent=schoolDays[date]||'';
   courseSessionTitle.textContent=entry.planData?.title||entry.session||(HenriImport.isCognitive(entry)?'Intégration cognitive':'Séance à planifier');
@@ -1801,6 +1817,7 @@ function renderQuickResult(message=''){
     '<div class="quickScheduleBox"><strong>Ajouter à l’horaire</strong><p>Choisis un cours de '+quickSessionData.groupName+'. Henri insère cette séance et décale automatiquement les séquences déjà prévues.</p>'+
       '<select id="quickScheduleDate" class="planControl">'+options+'</select>'+
       '<button class="planPrimary" onclick="scheduleQuickSession()">Insérer dans l’horaire</button>'+
+      '<label style="display:flex;align-items:center;gap:8px;margin:12px 0"><input type="checkbox" id="quickApplyMatchingCourses" checked> Appliquer aussi ce cours aux autres groupes (même sport et numéro de cours)</label>'+
       (message?'<div class="quickScheduleSuccess">'+message+'</div>':'')+
       renderScheduleConflict(quickSessionData.groupId)+
     '</div>';
@@ -1833,6 +1850,26 @@ function scheduleQuickSession(){
     time:slot.entry.time,
     blocks:quickSessionData.blocks.map(b=>({...b}))
   });
+  const sourcePosition=henriCoursePosition(date,slot.entry);
+  if(document.getElementById('quickApplyMatchingCourses')?.checked&&sourcePosition&&sourcePosition.sport&&sourcePosition.sport!=='À choisir'){
+    for(const group of groupsData){
+      if(String(group.id)===String(quickSessionData.groupId))continue;
+      const otherSlots=getGroupCourseOccurrences(group.id);
+      const match=otherSlots.find(other=>{
+        const position=henriCoursePosition(other.date,other.entry);
+        return position&&position.number===sourcePosition.number&&position.sport===sourcePosition.sport;
+      });
+      if(!match)continue;
+      const existing=individualForOccurrence(group.id,match);
+      if(existing)continue;
+      individualSessions.push({
+        id:'ind-'+Date.now()+'-'+String(group.id),date:match.date,groupId:group.id,groupName:group.name,
+        sport:quickSessionData.sport,title:quickSessionData.title,duration:quickSessionData.duration,
+        objective:quickSessionData.objective,comp:quickSessionData.comp,courseKey:match.key,time:match.entry.time,
+        blocks:quickSessionData.blocks.map(b=>({...b}))
+      });
+    }
+  }
   individualSessions.sort((a,b)=>a.date.localeCompare(b.date));
   delete scheduleConflictIgnores[quickSessionData.groupId];
   saveConflictIgnores();
