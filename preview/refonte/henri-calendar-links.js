@@ -32,7 +32,7 @@ function renderImportLinksReview(){
   const teacher=importedSetupData.teacherSchedule,calendar=importedSetupData.schoolCalendar,groups=importedSetupData.groupSheets;
   container.hidden=!teacher&&!calendar&&!groups;
   const report=HenriImport.review(teacher,calendar,groups);
-  generateScheduleBtn.disabled=!Object.values(setupFiles).every(Boolean)||!report.ready;
+  generateScheduleBtn.disabled=!(teacher&&calendar&&groups?.length&&Object.values(setupFiles).every(Boolean));
   container.replaceChildren();
   const title=document.createElement('strong');title.textContent='Liens entre tes documents';container.append(title);
   const summary=document.createElement('p');
