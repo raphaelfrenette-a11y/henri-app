@@ -327,7 +327,7 @@ function henriCourseIsEvaluation(entry){
   const groupId=getEntryGroupId(entry);
   const sequence=calendarSequenceFor(entry);
   const block=(annualPlans[groupId]||[]).find(block=>block.id===entry.annualBlockId);
-  const count=sequence?.sessions.length?Math.min(sequence.sessions.length,Number(block?.courses)||sequence.sessions.length):Number(block?.courses)||0;
+  const count=String(block?.sport||'').trim().toLowerCase()==='ultimate'&&Number(block.courses)===4?4:sequence?.sessions.length?Math.min(sequence.sessions.length,Number(block?.courses)||sequence.sessions.length):Number(block?.courses)||0;
   const index=Number.isInteger(entry.courseIndex)?entry.courseIndex:entry.sessionIndex;
   return count>0&&index===count-1;
 }

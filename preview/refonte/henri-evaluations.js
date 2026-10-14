@@ -43,7 +43,7 @@ function sportChoices(e){
 function sequenceTargets(groupId,sport){
  const same=value=>String(value||'').trim().toLowerCase()===String(sport||'').trim().toLowerCase();
  const blocks=(annualPlans[groupId]||[]).filter(block=>same(block.sport));
- const annual=blocks.map(block=>({key:'annual:'+block.id,count:Math.min(getSavedSequence(groupId,block.id)?.sessions.length||Number(block.courses)||0,Number(block.courses)||0)}));
+ const annual=blocks.map(block=>({key:'annual:'+block.id,count:String(block.sport||'').trim().toLowerCase()==='ultimate'&&Number(block.courses)===4?4:Math.min(getSavedSequence(groupId,block.id)?.sessions.length||Number(block.courses)||0,Number(block.courses)||0)}));
  const standalone=Object.values(savedSequences).filter(sequence=>String(sequence.groupId)===String(groupId)&&!sequence.annualBlockId&&same(sequence.sport)).map(sequence=>({key:'sequence:'+sequence.id,count:sequence.sessions.length}));
  return [...annual,...standalone];
 }
