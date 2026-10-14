@@ -573,7 +573,7 @@
 <script src="henri-visuals.js?v=d3c3f1cf"></script>
 <script src="henri-pedagogy.js?v=d3c3f1cf"></script>
 <script src="henri-planning.js?v=annual-exact-counts-1"></script>
-<script src="henri-import.js?v=d3c3f1cf"></script>
+<script src="henri-import.js?v=teacher-roster-removal-1"></script>
 <script src="henri-calendar-links.js?v=evaluation-links-1"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
@@ -2235,6 +2235,7 @@ function makeDefaultGroups(){
   return groups;
 }
 
+try{HenriImport.removeTeacherFromStoredRosters(localStorage);}catch(error){console.error('Retrait de l’enseignant des listes',error);planningReport('Impossible de mettre à jour les listes d’élèves : '+error.message,true);}
 let storedGroups=JSON.parse(localStorage.getItem('previewHenriSlate:henriGroupsData')||'null');
 let importedGroupsAtStart=JSON.parse(localStorage.getItem('previewHenriSlate:henriImportedGroups')||'null');
 let groupsData=Array.isArray(storedGroups)&&storedGroups.length?storedGroups:Array.isArray(importedGroupsAtStart)?importedGroupsAtStart:[];
@@ -2250,6 +2251,7 @@ localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsDa
 let activeGroupId=null;
 setTimeout(fillPlanGroupSelects,0);
 function saveGroups(){
+  groupsData=HenriImport.cleanTeacherRosters(groupsData).groups;
   localStorage.setItem('previewHenriSlate:henriGroupsData',JSON.stringify(groupsData));
   localStorage.setItem('previewHenriSlate:henriImportedGroups',JSON.stringify(groupsData));
   if(typeof importedSetupData!=='undefined')importedSetupData.groupSheets=groupsData;
@@ -2981,7 +2983,7 @@ function parseGroupDocuments(docs){
     }
     const canonical=name=>normalizePersonName(name).replace(/\s*,\s*/g,' ').replace(/\s+/g,' ').trim();
     const seen=new Set();
-    const unique=candidates.map(canonical).filter(name=>{
+    const unique=candidates.map(canonical).filter(name=>!HenriImport.isTeacherRosterName(name)).filter(name=>{
       const key=name.toLocaleLowerCase('fr-CA');
       if(seen.has(key))return false;
       seen.add(key);return true;

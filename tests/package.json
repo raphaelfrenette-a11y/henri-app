@@ -6,7 +6,9 @@
     "browser": "cd .. && node tests/browser-sequence-keep.cjs",
     "browser:course-numbers": "cd .. && node tests/browser-course-numbers.cjs",
     "browser:evaluations": "cd .. && node tests/browser-evaluation-links.cjs",
-    "browser:annual": "cd .. && node tests/browser-annual-capacity.cjs"
+    "browser:annual": "cd .. && node tests/browser-annual-capacity.cjs",
+    "unit:roster": "cd .. && node tests/teacher-roster.test.cjs",
+    "browser:roster": "cd .. && node tests/browser-teacher-roster.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"
