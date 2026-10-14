@@ -2604,6 +2604,8 @@ function teacherReviewStart(parsed){
   teacherReviewState.previous=importedSetupData.teacherSchedule;
   teacherReviewState.draft={};
   const keys=Object.keys(parsed).filter(k=>/^Jour\s*\d+$/i.test(k));
+  const detectedDays=new Set(keys.map(k=>Number(k.match(/\d+/)?.[0])));
+  teacherReviewState.missingDays=Array.from({length:9},(_,i)=>i+1).filter(d=>!detectedDays.has(d));
   teacherReviewState.days=Math.max(9,...keys.map(k=>Number(k.match(/\d+/)?.[0]||0)));
   teacherReviewState.periods=4;
   for(let d=1;d<=teacherReviewState.days;d++){
@@ -2640,7 +2642,8 @@ function renderTeacherScheduleReview(){
   }
   html+='</tbody></table><p style="font-size:12px;color:#64748b">Intégration cognitive : 10 h 55–11 h 15, après P2. Elle ne compte pas comme un cours.</p>';
   grid.innerHTML=html;
-  document.getElementById('teacherReviewCount').textContent=Object.values(st.draft).flat().filter(Boolean).length+' cours détectés';
+  document.getElementById('teacherReviewCount').textContent=Object.values(st.draft).flat().filter(Boolean).length+' cours détectés · '+(9-st.missingDays.length)+'/9 jours reconnus';
+  document.getElementById('teacherReviewHelp').textContent=st.missingDays.length?'Attention : jours '+st.missingDays.join(', ')+' non reconnus dans le document. Vérifie et complète ces colonnes avant de confirmer.':'Les 9 jours ont été reconnus. Vérifie les cellules avant de confirmer.';
 }
 function selectTeacherReviewCell(day,period){
   const st=teacherReviewState;st.selected={day,period};
@@ -2662,6 +2665,7 @@ function applyTeacherReviewCell(){
   renderTeacherScheduleReview();
 }
 function confirmTeacherScheduleReview(){
+  if(teacherReviewState.missingDays?.length&&!confirm('Henri n’a pas reconnu les jours '+teacherReviewState.missingDays.join(', ')+'. Les cases vides peuvent contenir des cours non détectés. As-tu vérifié et corrigé ces colonnes ?'))return;
   const parsed={};
   Object.entries(teacherReviewState.draft).forEach(([day,slots])=>{parsed[day]=slots.filter(Boolean).filter(x=>!teacherReviewIsStudy(x));});
   importedSetupData.teacherSchedule=parsed;
