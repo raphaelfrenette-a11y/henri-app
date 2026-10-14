@@ -361,6 +361,11 @@
       <input class="fileInput" id="teacherScheduleFile" type="file" multiple accept=".pdf,.csv,.txt,image/*" onchange="handleSetupFile('teacherSchedule',this)">
     </label>
 
+    <div style="margin:-6px 0 14px;padding:13px 16px;border:1px solid #dce5ec;border-radius:12px;background:#f8fafc">
+      <strong>Horaire personnel · photo vérifiée</strong>
+      <p style="font-size:13px;color:#64748b;margin:7px 0">Ton horaire à neuf jours, retranscrit à partir de la photo envoyée. Tu pourras corriger chaque période avant de confirmer.</p>
+      <button type="button" class="itemBtn" onclick="loadVerifiedFrenetteSchedule()">Charger mon horaire de la photo</button>
+    </div>
     <label class="importCard" id="schoolCalendarCard">
       <span class="importIcon"><svg viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Z"/><path d="M8 1v4M16 1v4M4 8h16M8 12h3M13 12h3M8 16h3"/></svg></span>
       <span class="importText"><strong>Calendrier scolaire</strong><span>Photos, PDF ou CSV · toute l’année, jours-cycle et congés</span></span>
@@ -2802,6 +2807,32 @@ async function parseSchoolCalendarDocs(docs){
   return out;
 }
 
+function loadVerifiedFrenetteSchedule(){
+  const matrix=[
+    ['EDU4G2-02','EDU4G2-01','EDU4G2-01','EDU3G2-02',''],
+    ['EDU3G2-03','EDU2G2-05','EDU2G2-05','EDU2G2-01',''],
+    ['','EDU4G2-04','EDU4G2-04','',''],
+    ['','EDU3G2-05','EDU3G2-05','EDU3G2-04',''],
+    ['EDU2G2-03','EDU2G2-02','EDU2G2-02','EDU4G2-02','EDU4G2-01'],
+    ['EDU3G2-02','','','EDU3G2-03','EDU2G2-05'],
+    ['EDU2G2-01','','','','EDU4G2-04'],
+    ['','','','','EDU3G2-05'],
+    ['EDU3G2-04','','','EDU2G2-03','EDU2G2-02']
+  ];
+  const times=['8 h 10','9 h 35','10 h 55','12 h 35','14 h 00'];
+  const endTimes=['9 h 20','10 h 45','11 h 15','13 h 45','15 h 10'];
+  const parsed={};
+  matrix.forEach((row,i)=>{
+    parsed['Jour '+(i+1)]=row.flatMap((code,col)=>{
+      if(!code)return [];
+      const matched=matchImportedGroup(code);
+      return [{time:times[col],endTime:endTimes[col],period:col<2?col+1:col>2?col: null,kind:col===2?'cognitive':'course',durationMinutes:col===2?20:70,group:matched?.name||code,groupCode:code,matchedGroupId:matched?.id||null,activity:col===2?'Intégration cognitive':'Éducation physique'}];
+    });
+  });
+  teacherReviewStart(parsed);
+  document.getElementById('teacherScheduleState').textContent='Horaire de la photo · à vérifier';
+  updateGenerateState();
+}
 function useDecouvreursCalendar2026(){
   // Le calendrier de référence est généré à partir des dates scolaires 2026-2027
   // déjà intégrées dans HenriImport, indépendamment de la qualité de la photo.
