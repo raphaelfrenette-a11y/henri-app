@@ -135,6 +135,10 @@ function studentResults(groupId,studentId){
  if(!rows.length)return '<div class="detailRow"><div class="detailLabel">Évaluations</div><p class="studentMeta">Aucune évaluation enregistrée.</p></div>';
  return '<div class="detailRow"><div class="detailLabel">Évaluations</div>'+rows.map(r=>'<div style="padding:9px 0;border-bottom:1px solid var(--line)"><strong>'+esc(r.grid.title)+'</strong><div class="studentMeta">'+esc(r.date||'Sans date')+' · '+esc(r.grid.sport)+' · '+(r.complete?'Note finale : '+r.total.toFixed(1)+' %':'En cours · '+r.total.toFixed(1)+' % provisoire')+'</div>'+(r.values.__remark?'<p class="studentMeta" style="margin:7px 0;white-space:pre-wrap">'+esc(r.values.__remark)+'</p>':'')+'<div class="itemActions"><button type="button" class="itemBtn" onclick="henriEvalScore('+JSON.stringify(r.grid.id)+','+JSON.stringify(String(groupId))+','+JSON.stringify(r.date)+')">Consulter la grille</button></div></div>').join('')+'</div>';
 }
+function courseLabel(groupId,sport,number){
+ const matches=Object.values(read(KEY)).filter(e=>e.groupIds.includes(String(groupId))&&String(e.sport).trim().toLowerCase()===String(sport).trim().toLowerCase()&&Number(e.courseNumber)===Number(number));
+ return matches.map(e=>e.title).join(', ');
+}
 function course(entry,date,index){
  const target=document.getElementById('henriCourseEvaluations');if(!target)return;target.replaceChildren();
  const gid=typeof getEntryGroupId==='function'?getEntryGroupId(entry):null;
@@ -142,5 +146,5 @@ function course(entry,date,index){
  const matches=Object.values(read(KEY)).filter(e=>e.groupIds.includes(String(gid))&&e.sport.trim().toLowerCase()===sport&&(!e.courseNumber||Number(e.courseNumber)===Number(entry.sessionIndex)+1));
  for(const e of matches){const b=document.createElement('button');b.className='itemBtn';b.textContent='Évaluer · '+e.title;b.onclick=()=>score(e.id,gid,date);target.append(b)}
 }
-Object.assign(window,{henriEvalOpenBank:open,henriEvalList:list,henriEvalNew:create,henriEvalEdit:edit,henriEvalSave:saveGrid,henriEvalAddCriterion:add,henriEvalRemoveCriterion:remove,henriEvalChangeComp:changeComp,henriEvalDelete:del,henriEvalOpenResults:results,henriEvalScore:score,henriEvalRenderStudent:renderStudent,henriEvalSaveScore:saveScore,henriEvalCourseActions:course,henriEvalStudentResults:studentResults,henriEvalSportChanged:sportChanged,henriEvalGroupChanged:groupChanged});
+Object.assign(window,{henriEvalOpenBank:open,henriEvalList:list,henriEvalNew:create,henriEvalEdit:edit,henriEvalSave:saveGrid,henriEvalAddCriterion:add,henriEvalRemoveCriterion:remove,henriEvalChangeComp:changeComp,henriEvalDelete:del,henriEvalOpenResults:results,henriEvalScore:score,henriEvalRenderStudent:renderStudent,henriEvalSaveScore:saveScore,henriEvalCourseActions:course,henriEvalStudentResults:studentResults,henriEvalSportChanged:sportChanged,henriEvalGroupChanged:groupChanged,henriEvalCourseLabel:courseLabel});
 })();
