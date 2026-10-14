@@ -309,14 +309,44 @@ function henriSyncSequenceToAnnual(){
   Object.assign(block,{comp:activeSequence.comp,sport:activeSequence.sport,objective:activeSequence.objective||'',courses:activeSequence.sessions.length});
   savedSequences[sequenceStorageKey(activeSequence.groupId,block.id)]=JSON.parse(JSON.stringify(activeSequence));
 }
+function henriAutoLinkStandaloneSequence(sequence){
+  if(sequence.annualBlockId||sequence.startCourseKey)return {linked:true};
+  const blocks=annualPlans[sequence.groupId]||[];
+  const matching=blocks.filter(b=>String(b.sport||'').trim().toLowerCase()===String(sequence.sport||'').trim().toLowerCase()&&Number(b.courses)===sequence.sessions.length&&!getSavedSequence(sequence.groupId,b.id));
+  if(matching.length===1){
+    const block=matching[0];
+    sequence.annualBlockId=block.id;
+    return {linked:true,method:'annual'};
+  }
+  // Never replace an annual block or an already planned course.
+  const slots=getGroupCourseOccurrences(sequence.groupId);
+  const free=slots.filter(slot=>!slot.entry.annualBlockId&&!slot.entry.sequenceId&&!slot.entry.individualId&&!slot.entry.planData&&!slot.entry.isIndividual);
+  for(const first of free){
+    const candidate={...sequence,startCourseKey:first.key};
+    const placed=getDatedSequenceOccurrences(candidate);
+    if(placed.length===sequence.sessions.length&&placed.every(slot=>free.some(f=>f.key===slot.key))){
+      sequence.startCourseKey=first.key;
+      return {linked:true,method:'dated'};
+    }
+  }
+  return {linked:false,reason:matching.length>1?'Plusieurs blocs annuels correspondent à ce sport. Choisis la séquence depuis la planification annuelle pour éviter une mauvaise association.':'Aucune série de '+sequence.sessions.length+' périodes libres n’est disponible. Les cours déjà planifiés ont été protégés.'};
+}
 async function saveSequence(){
   if(!activeSequence)return;
+  if(planningActionBusy)return;
+  planningActionBusy=true;
+  const original=JSON.parse(JSON.stringify(activeSequence));
   try{
+    const result=henriAutoLinkStandaloneSequence(activeSequence);
+    if(!result.linked){activeSequence=original;planningReport('Séquence non placée : '+result.reason+' Aucun cours existant n’a été modifié.',true);return;}
     henriSyncSequenceToAnnual();henriPersistSharedState();rebuildPlanningAssignments();
     await henriBankStoreSequence(activeSequence,activeSequence.bankCreationMode||'Créée dans Henri');
-    const missing=activeSequence.annualBlockId||activeSequence.startCourseKey?Math.max(0,activeSequence.sessions.length-getSequenceDates(activeSequence).length):0;
-    planningReport('Séquence enregistrée.'+(missing?' '+missing+' séances restent sans date : ajuste les périodes de l’année.':activeSequence.annualBlockId||activeSequence.startCourseKey?' Calendrier mis à jour.':' Elle est disponible dans Ma banque.'));
-  }catch(error){planningError(error);}
+    const assigned=getSequenceDates(activeSequence).length;
+    const total=activeSequence.sessions.length;
+    planningReport('Séquence enregistrée : '+total+' séances créées, '+assigned+'/'+total+' placées dans le calendrier.'+(assigned<total?' Vérifie les dates disponibles.':''));
+    renderSequenceEditor();
+  }catch(error){activeSequence=original;planningError(error);}
+  finally{planningActionBusy=false;}
 }
 function editSessionBlock(i){
   const session=currentEditableSession(),block=session?.blocks[i];if(!block)return;
