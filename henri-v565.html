@@ -2542,7 +2542,7 @@ async function henriPdfGet(id){
 function openHenriPdfSequenceImport(){go('henriPdfImport');}
 async function henriImportPdfSequence(){
   const file=document.getElementById('henriPdfFile')?.files?.[0];
-  if(!file||!(file.type==='application/pdf'||/\\.pdf$/i.test(file.name))){alert('Sélectionne un fichier PDF.');return;}
+  if(!file||!(file.type==='application/pdf'||/\.pdf$/i.test(file.name))){alert('Sélectionne un fichier PDF.');return;}
   const id='pdf-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   try{await henriPdfPut(id,file);}
   catch(e){alert('Le PDF n’a pas pu être enregistré sur cet appareil. '+e.message);return;}
