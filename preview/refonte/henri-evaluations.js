@@ -29,11 +29,15 @@ function sportsForSelectedGroups(){
  const selected=current?.groupIds?.length?current.groupIds:groups().map(g=>String(g.id));
  const sports=new Set();
  if(typeof annualPlans!=='undefined')for(const gid of selected)for(const block of (annualPlans[gid]||[]))if(block.sport)sports.add(String(block.sport).trim());
+ if(typeof savedSequences!=='undefined'){
+  const sequences=Array.isArray(savedSequences)?savedSequences:Object.values(savedSequences||{});
+  for(const sequence of sequences)if(selected.some(id=>String(sequence.groupId)===id)&&sequence.sport)sports.add(String(sequence.sport).trim());
+ }
  return [...sports].filter(Boolean).sort((a,b)=>a.localeCompare(b,'fr'));
 }
 function sportChoices(e){
  const sports=sportsForSelectedGroups();
- if(e.sport&&!sports.some(x=>x.toLowerCase()===e.sport.toLowerCase()))sports.unshift(e.sport);
+
  return '<select id="heSport" class="planControl" onchange="henriEvalSportChanged()"><option value="">Choisir un sport</option>'+sports.map(x=>'<option value="'+esc(x)+'"'+(x===e.sport?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';
 }
 function courseChoices(e){
@@ -42,7 +46,7 @@ function courseChoices(e){
  return '<select id="heCourse" class="planControl">'+(max?Array.from({length:max},(_,i)=>'<option value="'+(i+1)+'"'+(Number(e.courseNumber)===i+1?' selected':'')+'>Cours '+(i+1)+'</option>').join(''):'<option value="">Sélectionne un sport et ses groupes</option>')+'</select>';
 }
 function sportChanged(){collect();current.courseNumber=1;editor()}
-function groupChanged(){collect();editor()}
+function groupChanged(){collect();if(!sportsForSelectedGroups().some(s=>s.toLowerCase()===current.sport.toLowerCase())){current.sport='';current.courseNumber=1}editor()}
 function editor(){
  const e=current;if(!e)return;
  root().innerHTML='<div class="planForm"><label>Titre de la grille<input id="heTitle" class="planControl" value="'+esc(e.title)+'" placeholder="Ex. Évaluation handball"></label><label>Sport<input id="heSport" class="planControl" value="'+esc(e.sport)+'"></label><label>Compétence<select id="heComp" class="planControl" onchange="henriEvalChangeComp(this.value)">'+Object.entries(competences).map(([k,v])=>'<option value="'+k+'"'+(e.comp===k?' selected':'')+'>'+k+' — '+esc(v)+'</option>').join('')+'</select></label><p class="planHint">Les propositions Henri sont des exemples alignés sur les grandes dimensions du cadre ministériel. Vérifie leur adaptation à la tâche et aux normes de ton école.</p><strong>Groupes concernés</strong><div>'+groups().map(g=>'<label style="display:block;margin:8px 0"><input type="checkbox" class="heGroup" onchange="henriEvalGroupChanged()" value="'+esc(g.id)+'"'+(e.groupIds.includes(String(g.id))?' checked':'')+'> '+esc(g.name)+'</label>').join('')+'</div><strong>Critères · points et pondération</strong><div id="heCriteria">'+e.criteria.map((c,i)=>'<div class="placeholder" style="margin-top:8px"><label>Critère '+(i+1)+'<input class="planControl heName" value="'+esc(c.name)+'"></label><label>Note maximale<input class="planControl heMax" type="number" min="1" value="'+c.max+'"></label><label>Pondération (%)<input class="planControl heWeight" type="number" min="0" value="'+c.weight+'"></label><button class="itemBtn danger" onclick="henriEvalRemoveCriterion('+i+')">Retirer</button></div>').join('')+'</div><div class="itemActions"><button class="itemBtn" onclick="henriEvalAddCriterion()">+ Critère</button><button class="planPrimary" onclick="henriEvalSave()">Enregistrer la grille</button><button class="itemBtn" onclick="henriEvalList()">Annuler</button></div></div>';
@@ -60,6 +64,7 @@ function collect(){
 function saveGrid(){
  collect();
  if(!current.title||!current.sport||!current.groupIds.length||!current.criteria.length||current.criteria.some(c=>!c.name||!(c.max>0)||c.weight<0)){alert('Complète le titre, le sport, les groupes et les critères.');return}
+ if(!sportsForSelectedGroups().some(s=>s.toLowerCase()===current.sport.toLowerCase())){alert('Choisis un sport déjà présent dans la planification annuelle ou une séquence des groupes sélectionnés.');return}
  const total=current.criteria.reduce((a,c)=>a+c.weight,0);
  if(Math.abs(total-100)>0.01){alert('Les pondérations doivent totaliser 100 %. Total actuel : '+total+' %.');return}
  const all=read(KEY);all[current.id]=current;save(KEY,all);list();
