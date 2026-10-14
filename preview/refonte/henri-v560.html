@@ -11,6 +11,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
+/* Refined course detail: quieter hierarchy, all actions remain accessible. */
+#courseDetail{--course-accent:#395770}
+#courseDetail > .muted{font-size:13px;letter-spacing:.01em;color:#778490;margin-bottom:5px}
+#courseDetail > h1{font-size:30px;letter-spacing:-.035em;margin:4px 0 22px}
+#courseDetail .placeholder{border:1px solid #e6ebef!important;box-shadow:none!important;background:#fff!important;border-radius:15px!important;padding:22px 26px!important;margin-bottom:12px!important}
+#courseDetail .placeholder:first-of-type{padding:18px 24px!important}
+#courseDetail #courseDetailGroup{font-size:16px!important;letter-spacing:-.01em}
+#courseDetail #courseDetailCycle{font-size:13px;margin-top:5px!important}
+#courseDetail #courseSessionTitle{font-size:18px!important;letter-spacing:-.02em}
+#courseDetail #coursePlanContent{font-size:14px;color:#75818d;line-height:1.55!important;margin-top:6px!important}
+#courseDetail .henriCoursePlanActions{gap:5px 14px!important;margin-top:17px!important;padding-top:15px!important;border-top:1px solid #edf0f2!important;align-items:center}
+#courseDetail .henriCoursePlanActions .itemBtn,
+#courseDetail .henriCourseStudentActions .itemBtn{min-height:36px!important;padding:8px 3px!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px!important;color:#45627a!important;font-size:13px!important;font-weight:500!important}
+#courseDetail .henriCoursePlanActions .itemBtn:first-child{background:var(--course-accent)!important;color:white!important;padding:10px 16px!important;min-height:40px!important;border-radius:9px!important;font-weight:600!important}
+#courseDetail .henriCoursePlanActions .itemBtn:not(:first-child):hover,
+#courseDetail .henriCourseStudentActions .itemBtn:hover{background:#f2f6f8!important}
+#courseDetail .henriCourseStudentActions{margin-top:11px!important;padding-top:12px;border-top:1px solid #edf0f2;gap:8px 18px!important}
+#courseDetail #coursePersonalNotes{margin-top:18px!important;padding-top:16px;border-top:1px solid #edf0f2}
+#courseDetail #coursePersonalNotes .detailLabel{font-size:13px;font-weight:600}
+#courseDetail #coursePersonalNote{border-color:#e3e9ed!important;background:#fcfdfd;min-height:72px}
+@media(max-width:700px){#courseDetail .placeholder{padding:17px!important}#courseDetail .henriCoursePlanActions{gap:4px 12px!important}}
+
 /* Course detail only — airy, touch-friendly hierarchy. */
 #courseDetail .placeholder{border-radius:18px;padding:26px 30px;margin-bottom:16px}
 #courseDetail #courseDetailGroup{font-size:17px;line-height:1.5}
