@@ -204,15 +204,41 @@ async function deleteAnnualBlock(id){
   }catch(error){const snapshot=JSON.parse(before);annualPlans=snapshot.annualPlans;savedSequences=snapshot.savedSequences;activeSequence=snapshot.activeSequence;planningError(error);renderAnnualPlanner();}
 }
 function saveAnnualAndPlanSequences(){
-  if(!requirePlanningGroup(annualGroup.value))return;
-  if(!annualPlans[annualGroup.value]?.length){planningReport('Crée ta répartition avant de l’enregistrer.',true);return;}
+  const sourceId=annualGroup.value;
+  if(!requirePlanningGroup(sourceId))return;
+  const source=annualPlans[sourceId];
+  if(!source?.length){planningReport('Crée ta répartition avant de l’enregistrer.',true);return;}
+  const ids=annualTargetIds();
+  if(!ids.length){planningReport('Sélectionne au moins un groupe.',true);return;}
+  const snapshot=JSON.stringify({annualPlans,savedSequences,activeSequence});
   try{
-    saveAnnual();
+    // The edited annual plan is the template for all selected groups.
+    // Keep each group's actual number of available teaching periods.
+    for(const id of ids){
+      if(id===sourceId)continue;
+      const available=getGroupCourseSlots(id);
+      if(!available)continue;
+      const total=source.reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0);
+      let allocated=0;
+      annualPlans[id]=source.map((block,index)=>{
+        const end=total?Math.round(source.slice(0,index+1).reduce((sum,b)=>sum+Math.max(0,Number(b.courses)||0),0)*available/total):0;
+        const courses=Math.max(0,end-allocated);allocated=end;
+        return {...block,id:planningId('annual'),courses};
+      }).filter(b=>b.courses>0);
+      // Previously saved sequences refer to the old annual block IDs; leave them
+      // in the bank rather than associating them with a different sport.
+    }
+    henriPersistSharedState();
     rebuildPlanningAssignments();
     renderMonth();renderWeek();
+    for(const id of ids)if(annualPlans[id]?.length&&typeof henriBankStoreAnnual==='function')henriBankStoreAnnual(id,annualPlans[id]).catch(planningError);
     go('home');setCalendarView('month');
-    planningReport('Planification annuelle appliquée immédiatement au calendrier. Les périodes et dates propres à chaque groupe sont conservées.');
-  }catch(error){planningError(error);}
+    planningReport('Planification appliquée au calendrier pour '+ids.length+' groupe(s), selon leurs périodes réelles.');
+  }catch(error){
+    const before=JSON.parse(snapshot);
+    annualPlans=before.annualPlans;savedSequences=before.savedSequences;activeSequence=before.activeSequence;
+    planningError(error);
+  }
 }
 function openMacroSequence(groupId,blockId,fromCalendar=false){
   calendarPlanEditing=fromCalendar;calendarIndividualEditing=null;
