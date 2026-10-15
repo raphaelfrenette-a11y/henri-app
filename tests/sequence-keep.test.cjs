@@ -82,3 +82,18 @@ test('an old oversized sequence never adds a fifth calendar course to an annual 
  const c=app();c.annualPlans.g1=[{id:'u',sport:'Ultimate',courses:4}];c.savedSequences['g1::u'].sessions.push({id:'extra',title:'Ancienne séance 5',blocks:[]});c.rebuildCalendarPlanning();
  const slots=c.getGroupCourseOccurrences('g1');assert.equal(slots.filter(s=>s.entry.annualBlockId==='u').length,4);assert.equal(slots[3].entry.courseTotal,4);assert.equal(slots[4].entry.annualBlockId,null);c.getEntryGroupId=e=>e.groupId;assert.equal(c.henriCourseIsEvaluation(slots[3].entry),true);assert.equal(c.henriCourseIsEvaluation(slots[4].entry),false);
 });
+test('different standalone sport does not consume lesson 1 of the following annual block',()=>{
+ const c=app();c.annualPlans.g1=[{id:'u',sport:'Ultimate',courses:4},{id:'b',sport:'Badminton',courses:3}];
+ c.savedSequences['g1::b']={id:'badminton',groupId:'g1',annualBlockId:'b',sport:'Badminton',sessions:[{id:'bad-1'},{id:'bad-2'},{id:'bad-3'}]};
+ c.individualSessions.push({id:'pool',groupId:'g1',courseKey:'2026-10-23|g1',annualBlockId:'b',independent:false,sport:'Poolball',title:'Poolball',blocks:[]});
+ c.rebuildCalendarPlanning();const slots=c.getGroupCourseOccurrences('g1');
+ assert.equal(slots[4].entry.annualPlan,'Poolball');assert.equal(slots[4].entry.annualBlockId,null);
+ assert.deepEqual(slots.slice(5).map(s=>s.entry.courseIndex),[0,1,2]);assert.equal(slots[5].entry.sessionId,'bad-1');
+ assert.equal(c.getSequenceOccurrences(c.savedSequences['g1::b'])[0].key,slots[5].key);
+ c.rebuildCalendarPlanning();assert.equal(slots[5].entry.courseIndex,0);assert.equal(c.annualPlans.g1[1].courses,3);
+});
+test('matching standalone sport still counts once, with spelling normalization',()=>{
+ const c=app();c.annualPlans.g1=[{id:'b',sport:' BADMINTON ',courses:3}];
+ c.individualSessions.push({id:'first',groupId:'g1',courseKey:'2026-10-19|g1',sport:'Badminton',title:'Première séance',blocks:[]});
+ c.rebuildCalendarPlanning();const slots=c.getGroupCourseOccurrences('g1');assert.equal(slots[0].entry.courseIndex,0);assert.equal(slots[1].entry.courseIndex,1);assert.equal(slots[2].entry.courseIndex,2);assert.equal(slots[3].entry.annualBlockId,null);
+});
