@@ -108,11 +108,24 @@ function henriSaveSequenceJump(groupId,slot,target){
   localStorage.setItem(henriSequenceJumpsKey,JSON.stringify(jumps));
   rebuildPlanningAssignments();
 }
+function henriSamePlanningSport(left,right){
+  if(henriIsPoolball(left)&&henriIsPoolball(right))return true;
+  const key=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  return !!key(left)&&key(left)===key(right);
+}
 function getGroupAnnualOccurrences(groupId){
   const reserved=new Set(datedSequences(groupId).flatMap(getDatedSequenceOccurrences).map(s=>s.key));
+  const queue=(annualPlans[groupId]||[]).flatMap(block=>Array.from({length:Math.max(0,Number(block.courses)||0)},()=>block));
+  let cursor=0;
   return getGroupCourseOccurrences(groupId).filter(slot=>{
     const individual=individualForOccurrence(groupId,slot);
-    return !reserved.has(slot.key)&&!individual?.independent;
+    if(reserved.has(slot.key)||individual?.independent)return false;
+    const block=queue[cursor];
+    // A different activity occupies a period, not a lesson of the upcoming sport.
+    // In particular, Poolball must never consume Badminton lesson 1 invisibly.
+    if(individual&&block&&!henriSamePlanningSport(individual.sport,block.sport))return false;
+    cursor++;
+    return true;
   });
 }
 function getSequenceOccurrences(sequence){
