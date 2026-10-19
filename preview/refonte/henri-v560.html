@@ -576,7 +576,7 @@
 <script src="henri-import.js?v=teacher-roster-removal-1"></script>
 <script src="henri-ultimate-migration.js?v=ultimate-four-1"></script>
 <script src="henri-calendar-links.js?v=first-course-1"></script>
-<script src="henri-cancellations.js?v=outing-oct16-1"></script>
+<script src="henri-cancellations.js?v=shift-all-lessons-2"></script>
 <script>
 const HENRI_FRESH_START_VERSION='fresh-real-test-v2';
 // Ne jamais vider les données de l’enseignant lors d’une mise à jour.
@@ -1137,7 +1137,10 @@ function addCalendarException(){
   };
   const affected=getExceptionAffectedGroupIds(ex);
   const before=snapshotGroupPlanEnds(affected);
+  const cancellationSlots=henriSnapshotCancellationSlots(affected);
   calendarExceptions.push(ex);
+  henriShiftCancellationSessions(ex,cancellationSlots);
+  henriPersistSharedState();
   calendarExceptions.sort((a,b)=>(a.startDate||a.date||'').localeCompare(b.startDate||b.date||''));
   affected.forEach(id=>delete scheduleConflictIgnores[id]);
   saveConflictIgnores();
@@ -1166,7 +1169,8 @@ function deleteCalendarException(id){
   const ex=calendarExceptions.find(x=>x.id===id);
   if(!ex)return;
   const affected=getExceptionAffectedGroupIds(ex);
-  if(ex.relocatedIndividual){const move=ex.relocatedIndividual,session=individualSessions.find(session=>session.id===move.id);if(session?.courseKey===move.destinationCourseKey)Object.assign(session,move.previous);}
+  for(const move of [...(ex.relocatedIndividuals||[]),...(ex.relocatedIndividual?[ex.relocatedIndividual]:[])].reverse()){const session=individualSessions.find(session=>session.id===move.id);if(session?.courseKey===move.destinationCourseKey)Object.assign(session,move.previous);}
+  localStorage.setItem('previewHenriSlate:henriIndividualSessions',JSON.stringify(individualSessions));
   calendarExceptions=calendarExceptions.filter(x=>x.id!==id);
   affected.forEach(id=>delete scheduleConflictIgnores[id]);
   saveConflictIgnores();

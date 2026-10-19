@@ -1,0 +1,10 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+function app(){
+ const c={individualSessions:[{id:'pool',groupId:'g',date:'20',courseKey:'20',time:'8:00',title:'Poolball 1'}],calendarExceptions:[],slots:['19','20','21','22'].map(date=>({date,key:date,entry:{time:'8:00'}}))};
+ c.getGroupCourseOccurrences=()=>c.slots.filter(s=>!c.calendarExceptions.includes(s.key));c.individualForOccurrence=(g,s)=>c.individualSessions.find(x=>x.courseKey===s.key);
+ vm.createContext(c);vm.runInContext(fs.readFileSync('preview/refonte/henri-cancellations.js','utf8'),c);return c;
+}
+test('cancelling an annual lesson moves later Poolball one period, preserving order',()=>{const c=app(),before=c.henriSnapshotCancellationSlots(['g']),record={id:'e'};c.calendarExceptions.push('19');c.henriShiftCancellationSessions(record,before);assert.equal(c.individualSessions[0].date,'21');assert.equal(record.relocatedIndividuals[0].previous.courseKey,'20');});
+test('cancelling Poolball itself moves it to next available period',()=>{const c=app(),before=c.henriSnapshotCancellationSlots(['g']);c.calendarExceptions.push('20');c.henriShiftCancellationSessions({id:'e'},before);assert.equal(c.individualSessions[0].courseKey,'21');});
+test('consecutive cancellations shift again without losing content',()=>{const c=app();for(const date of ['19','20']){const before=c.henriSnapshotCancellationSlots(['g']);c.calendarExceptions.push(date);c.henriShiftCancellationSessions({id:date},before);}assert.equal(c.individualSessions[0].courseKey,'22');assert.equal(c.individualSessions[0].title,'Poolball 1');});
+test('overflow keeps session pending instead of overwriting another lesson',()=>{const c=app();c.individualSessions[0].courseKey='22';c.individualSessions[0].date='22';const before=c.henriSnapshotCancellationSlots(['g']),record={id:'e'};c.calendarExceptions.push('19');c.henriShiftCancellationSessions(record,before);assert.match(c.individualSessions[0].courseKey,/^pending:/);assert.equal(record.pendingIndividualIds[0],'pool');});

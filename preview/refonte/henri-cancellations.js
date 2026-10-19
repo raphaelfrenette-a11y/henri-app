@@ -1,4 +1,24 @@
 /* A cancellation removes an occurrence, never a lesson or an annual block. */
+// Preserve the position of standalone lessons in the group's lesson queue.
+function henriSnapshotCancellationSlots(ids){
+  return Object.fromEntries(ids.map(id=>[id,getGroupCourseOccurrences(id).map(slot=>({...slot,individual:individualForOccurrence(id,slot)}))]));
+}
+function henriShiftCancellationSessions(record,before){
+  record.relocatedIndividuals=[];
+  for(const [groupId,slots] of Object.entries(before)){
+    const after=getGroupCourseOccurrences(groupId);
+    slots.forEach((slot,index)=>{
+      const session=slot.individual;
+      if(!session)return;
+      const next=after[index];
+      if(next?.key===slot.key)return;
+      const destinationCourseKey=next?.key||'pending:'+record.id+':'+session.id;
+      record.relocatedIndividuals.push({id:session.id,previous:{date:session.date,courseKey:session.courseKey||null,time:session.time||null},destinationCourseKey});
+      Object.assign(session,{date:next?.date||session.date,courseKey:destinationCourseKey,time:next?.entry.time||session.time});
+      if(!next)(record.pendingIndividualIds||=[]).push(session.id);
+    });
+  }
+}
 function henriCancelCourses(date,indices,reason='Sortie scolaire'){
   const selections=[...new Set(indices)].map(index=>({index,entry:scheduleEntries[date]?.[index]})).filter(item=>item.entry&&isPlanningEntry(item.entry)&&getEntryGroupId(item.entry));
   const changes=selections.filter(({entry})=>!getCalendarException(date,getEntryGroupId(entry),entry));
@@ -8,20 +28,15 @@ function henriCancelCourses(date,indices,reason='Sortie scolaire'){
     const backupKey='previewHenriSlate:backupBeforeCourseCancellation:'+planningId('backup');
     localStorage.setItem(backupKey,JSON.stringify({at:new Date().toISOString(),date,...before}));
     const records=changes.map(({entry,index})=>({id:planningId('exc'),date,startDate:date,endDate:date,groupId:getEntryGroupId(entry),courseKey:courseOccurrenceKey(date,entry),type:reason==='Sortie scolaire'?'Sortie scolaire':'Cours annulé',reason,originalIndex:index,originalIndividualId:entry.individualId||null}));
-    calendarExceptions.push(...records);
     for(const record of records){
-      const individual=individualSessions.find(session=>session.groupId===record.groupId&&(session.id===record.originalIndividualId||session.courseKey===record.courseKey));
-      if(!individual)continue;
-      const next=getGroupCourseOccurrences(record.groupId).find(slot=>slot.date>date&&!individualForOccurrence(record.groupId,slot));
-      if(next){
-        record.relocatedIndividual={id:individual.id,previous:{date:individual.date,courseKey:individual.courseKey||null,time:individual.time||null},destinationCourseKey:next.key};
-        Object.assign(individual,{date:next.date,courseKey:next.key,time:next.entry.time});
-      }else record.pendingIndividualId=individual.id;
+      const slots=henriSnapshotCancellationSlots([record.groupId]);
+      calendarExceptions.push(record);
+      henriShiftCancellationSessions(record,slots);
     }
     henriPersistSharedState();committed=true;rebuildPlanningAssignments();renderCalendarExceptions();
     const ids=[...new Set(records.map(record=>record.groupId))];
     const overflow=ids.reduce((sum,id)=>sum+getScheduleConflict(id).overflow,0);
-    const pending=records.filter(record=>record.pendingIndividualId).length;
+    const pending=records.reduce((sum,record)=>sum+(record.pendingIndividualIds||[]).length,0);
     planningReport(records.length+' cours annulé(s). Les séances sont conservées et reportées dans le même ordre.'+(overflow?' '+overflow+' cours restent sans date en fin d’année; aucune séance n’a été supprimée.':'')+(pending?' '+pending+' séance individuelle reste à replacer faute de période disponible.':''));
     return true;
   }catch(error){
