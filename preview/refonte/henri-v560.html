@@ -730,8 +730,14 @@ function renderWeek(){
     const today=key===getLocalTodayKey();
     out+='<div class="weekDay'+(today?' today':'')+'">'+
       '<button class="dayHead" onclick="openDayPlan(\''+key+'\')"><span class="'+(today?'todayBadge':'')+'">'+(today?'<span class="todayDot"></span>':'')+'<span class="dayName">'+dayNames[d.getDay()]+'</span></span><span class="dayDate">'+d.getDate()+' '+shortMonths[d.getMonth()]+'</span></button>';
-    if(entries.length){
-      entries.forEach((entry)=>{
+    const chronologicalEntries=[...entries.map(entry=>({entry,exception:null})),...blocked]
+      .sort((a,b)=>scheduleTimeMinutes(a.entry.time)-scheduleTimeMinutes(b.entry.time));
+    if(chronologicalEntries.length){
+      chronologicalEntries.forEach(({entry,exception})=>{
+        if(exception){
+      out+='<button class="weekEvent blockedCourse" style="--groupColor:#9a654b" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+planningHtml(entry.group)+'</span><span class="quickSport">'+HenriVisuals.icon('pause')+exception.type+'</span></button>';
+          return;
+        }
         const originalIndex=(scheduleEntries[key]||[]).indexOf(entry);
         let sport=henriCalendarSportLabel(entry)||(HenriImport.isCognitive(entry)?'Intégration cognitive':'À planifier');
         if(sport==='À choisir') sport='À planifier';
@@ -753,9 +759,6 @@ function renderWeek(){
           '</span>'+
         '</button>'+henriCalendarEvaluationButton(key,entry,originalIndex);     });
     }
-    blocked.forEach(({entry,exception})=>{
-      out+='<button class="weekEvent blockedCourse" style="--groupColor:#9a654b" onclick="openDayPlan(\''+key+'\')"><span class="time">'+entry.time+'</span><span class="groupBar" aria-hidden="true"></span><span class="course">'+planningHtml(entry.group)+'</span><span class="quickSport">'+HenriVisuals.icon('pause')+exception.type+'</span></button>';
-    });
     if(!entries.length&&!blocked.length){
       out+='<div class="empty">'+(cycle==='Pédagogique'?'Journée pédagogique':cycle==='Congé'?'Congé':/^Jour [xyz]$/.test(cycle||'')?'Jour-cycle à préciser · '+cycle:'Aucun cours prévu')+'</div>';
     }
