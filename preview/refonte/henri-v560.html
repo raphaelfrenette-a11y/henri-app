@@ -511,7 +511,7 @@
 </section>
 
 <section id="groups" class="screen">
-  <div class="screenHeading"><div><p class="screenKicker">Mes classes</p><h1>Groupes et élèves</h1></div><button class="itemBtn" onclick="go('settings');document.getElementById('groupSheetsCard').scrollIntoView({block:'center'})">Importer des listes</button></div>
+  <div class="screenHeading"><div><p class="screenKicker">Mes classes</p><h1>Groupes et élèves</h1></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="itemBtn" onclick="go('settings');document.getElementById('groupSheetsCard').scrollIntoView({block:'center'})">Importer des listes</button><button class="itemBtn primary" onclick="henriExportBadmintonGroups()">Exporter pour Badminton</button></div></div>
   <div id="groupList" class="groupList"></div>
   <p class="dataNote">Les profils et les compatibilités sont utilisés pour former les équipes.</p>
 </section>
@@ -3462,5 +3462,23 @@ setTimeout(()=>{
 <script src="henri-calendar-pdf.js?v=5efa0d3"></script>
 <script src="henri-ux.js?v=poolball-one-1"></script>
 <script src="henri-evaluations.js?v=ultimate-four-repair-1"></script>
+
+<script>
+function henriExportBadmintonGroups(){
+  try{
+    const source=Array.isArray(groupsData)?groupsData:[];
+    const groups=source.map(g=>({name:String(g.name||g.groupName||'Groupe'),students:(Array.isArray(g.students)?g.students:[]).map(s=>typeof s==='string'?s:String(s.name||s.fullName||s.studentName||'')).filter(Boolean)})).filter(g=>g.students.length);
+    if(!groups.length){alert('Aucun groupe avec des élèves à exporter.');return;}
+    const payload={source:'Henri ÉPS',exportedAt:new Date().toISOString(),groups};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='henri-groupes-badminton.json';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const students=groups.reduce((n,g)=>n+g.students.length,0);
+    const status=document.getElementById('henriActionStatus');
+    if(status){status.hidden=false;status.textContent=groups.length+' groupes et '+students+' élèves exportés. Ouvre ensuite Badminton > Données et importe le fichier.';}
+  }catch(error){alert('Export impossible : '+error.message);}
+}
+</script>
 </body>
 </html>
