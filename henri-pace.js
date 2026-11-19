@@ -2,6 +2,7 @@
 (function(){
   'use strict';
   const STORAGE_KEY='henriPaceGradesV1';
+  const isRefonte=typeof openCalendarSession==='function';
   let current=null;
   let gradebook=readSaved();
 
@@ -171,8 +172,13 @@
     document.getElementById('henriPaceStatus').textContent='Les notes sont sauvegardées automatiquement sur cet appareil.';
     renderPace();
     selectTab(dialog,tab==='course'?0:1);
+    dialog.querySelector('.henriPaceTabs').hidden=isRefonte;
+    dialog.querySelector('#henriPaceBack').textContent=isRefonte?'‹ Retour au cours':'‹ Retour au calendrier';
+    if(isRefonte)document.getElementById('henriPaceTitle').textContent='Notes PACE /10';
+    const focused=document.activeElement;
     dialog.showModal();
-    dialog.querySelector('[aria-selected="true"]').focus();
+    dialog.querySelector(isRefonte?'#henriPaceBack':'[aria-selected="true"]').focus();
+    if(isRefonte)dialog.addEventListener('close',()=>focused?.focus(),{once:true});
   }
   function renderPace(){
     const roster=document.getElementById('henriPaceRoster');
@@ -256,7 +262,26 @@
     target.appendChild(progress);
     target.appendChild(average);
   }
+  function withPaceAction(open,screenId){
+    return function(date,index){
+      const result=open.apply(this,arguments);
+      const screen=document.getElementById(screenId);
+      screen.querySelector('.henriPaceCourseAction')?.remove();
+      const entry=getEntry(date,index);
+      if(!entry||!screen.classList.contains('active')||!isPlanningEntry(entry)||
+        getCalendarException(date,getEntryGroupId(entry),entry))return result;
+      const button=makeButton(date,index);
+      button.classList.add('henriPaceCourseAction');
+      screen.querySelector('h1').after(button);
+      return result;
+    };
+  }
   function init(){
+    if(isRefonte){
+      openCourseEntry=withPaceAction(openCourseEntry,'courseDetail');
+      openCalendarSession=withPaceAction(openCalendarSession,'sessionEditor');
+      return;
+    }
     const week=document.getElementById('weekGrid');
     const day=document.getElementById('dayPlanCourses');
     const month=document.getElementById('monthGrid');
@@ -272,6 +297,7 @@
     '.henriPaceWeekAction{display:flex;justify-content:flex-end;padding:0 14px 10px;background:#fff}'+
     '.weekDay.today .henriPaceWeekAction{background:#fbfdff}'+
     '.henriPaceCalendarBtn{border:1px solid #d2dfe6;background:#f4f8fa;color:var(--accent,#314a5b);padding:7px 11px;border-radius:10px;font-size:11px;font-weight:800;min-height:34px}'+
+    '.henriPaceCourseAction{display:block;min-height:44px;margin:12px 0;padding:8px 16px;font-size:14px;background:#edf5ef;color:#245b43;border-color:#c7dccc}'+
     '.henriPaceCalendarBtn:hover{background:#eaf1f5}'+
     '.dayPlanCard>.henriPaceCalendarBtn{margin:9px 0 0 8px}'+
     '#henriPace{box-sizing:border-box;width:min(640px,calc(100% - 24px));max-height:85dvh;border:1px solid #d2dfe6;border-radius:20px;padding:18px;color:#24323a;background:#fff}'+
