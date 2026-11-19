@@ -3,7 +3,6 @@
   'use strict';
   const STORAGE_KEY='henriPaceGradesV1';
   let current=null;
-  let returnScreen='home';
   let gradebook=readSaved();
 
   function readSaved(){
@@ -53,7 +52,7 @@
     b.addEventListener('click',function(ev){
       ev.preventDefault();
       ev.stopPropagation();
-      openPace(date,index);
+      openCourseDialog(date,index,'pace');
     });
     return b;
   }
@@ -72,6 +71,7 @@
       action.className='henriPaceWeekAction';
       const button=makeButton(link.date,link.index);
       if(!button)return;
+      wireCourseLink(event,link);
       action.appendChild(button);
       event.insertAdjacentElement('afterend',action);
     });
@@ -80,10 +80,12 @@
     document.querySelectorAll('#dayPlanCourses .dayPlanCard').forEach(card=>{
       if(card.dataset.henriPaceEnhanced)return;
       card.dataset.henriPaceEnhanced='1';
-      const link=readCourseLink(card.querySelector('.sessionLink'));
+      const courseLink=card.querySelector('.sessionLink');
+      const link=readCourseLink(courseLink);
       if(!link)return;
       const button=makeButton(link.date,link.index);
       if(!button)return;
+      wireCourseLink(courseLink,link);
       card.appendChild(button);
     });
   }
@@ -92,39 +94,74 @@
       button.textContent='PACE /10'+displayCount(button.dataset.paceDate,Number(button.dataset.paceIndex));
     });
   }
-  function ensureScreen(){
-    let screen=document.getElementById('henriPace');
-    if(screen)return screen;
-    screen=document.createElement('section');
-    screen.id='henriPace';
-    screen.className='screen';
-    screen.innerHTML=
-      '<button class="back" id="henriPaceBack" type="button">‹ Retour au cours</button>'+
-      '<div class="muted" id="henriPaceMeta"></div>'+
-      '<h1>PACE <span class="henriPaceTitleSuffix">/10</span></h1>'+
-      '<div class="henriPaceSummary" id="henriPaceSummary"></div>'+
-      '<div class="henriPaceRoster" id="henriPaceRoster"></div>'+
-      '<p class="henriPaceSaveHint" id="henriPaceStatus" role="status">Chaque note est sauvegardée automatiquement sur cet appareil.</p>';
-    document.querySelector('main')?.appendChild(screen);
-    screen.querySelector('#henriPaceBack').addEventListener('click',closePace);
-    return screen;
+  function wireCourseLink(element,link){
+    element.onclick=()=>openCourseDialog(link.date,link.index,'course');
   }
-  function openPace(date,index){
+  function ensureDialog(){
+    let dialog=document.getElementById('henriPace');
+    if(dialog)return dialog;
+    dialog=document.createElement('dialog');
+    dialog.id='henriPace';
+    dialog.setAttribute('aria-labelledby','henriPaceTitle');
+    dialog.innerHTML=
+      '<button class="back" id="henriPaceBack" type="button">‹ Retour au calendrier</button>'+
+      '<h1 id="henriPaceTitle"></h1>'+
+      '<div class="muted" id="henriPaceMeta"></div>'+
+      '<div class="henriPaceTabs" role="tablist" aria-label="Détails du cours">'+
+        '<button type="button" id="henriPaceCourseTab" role="tab" aria-controls="henriPaceCoursePanel">Cours</button>'+
+        '<button type="button" id="henriPaceGradeTab" role="tab" aria-controls="henriPaceGradePanel">PACE /10</button>'+
+      '</div>'+
+      '<div id="henriPaceCoursePanel" role="tabpanel" aria-labelledby="henriPaceCourseTab">'+
+        '<button type="button" class="sessionLink" id="henriPaceOpenLesson">Ouvrir la séance</button>'+
+      '</div>'+
+      '<div id="henriPaceGradePanel" role="tabpanel" aria-labelledby="henriPaceGradeTab">'+
+        '<div class="henriPaceSummary" id="henriPaceSummary"></div>'+
+        '<div class="henriPaceRoster" id="henriPaceRoster"></div>'+
+        '<p class="henriPaceSaveHint" id="henriPaceStatus" role="status"></p>'+
+      '</div>';
+    document.body.appendChild(dialog);
+    dialog.querySelector('#henriPaceBack').onclick=()=>dialog.close();
+    dialog.querySelector('#henriPaceOpenLesson').onclick=()=>{
+      const {date,index}=current;
+      dialog.close();
+      openCourseEntry(date,index);
+    };
+    const tabs=[...dialog.querySelectorAll('[role="tab"]')];
+    tabs.forEach((tab,index)=>{
+      tab.onclick=()=>selectTab(dialog,index);
+      tab.onkeydown=event=>{
+        const destinations={ArrowLeft:1-index,ArrowRight:1-index,Home:0,End:1};
+        const target=destinations[event.key];
+        if(target===undefined)return;
+        event.preventDefault();
+        selectTab(dialog,target);
+        tabs[target].focus();
+      };
+    });
+    return dialog;
+  }
+  function selectTab(dialog,index){
+    dialog.querySelectorAll('[role="tab"]').forEach((tab,i)=>{
+      const selected=i===index;
+      tab.setAttribute('aria-selected',String(selected));
+      tab.tabIndex=selected?0:-1;
+      document.getElementById(tab.getAttribute('aria-controls')).hidden=!selected;
+    });
+  }
+  function openCourseDialog(date,index,tab){
     const entry=getEntry(date,index);
     if(!entry)return;
     const group=getGroup(entry);
-    returnScreen=document.querySelector('.screen.active')?.id||'home';
-    if(returnScreen==='henriPace')returnScreen='home';
-    current={date,index,entry,group,key:courseKey(date,entry,group)};
-    ensureScreen();
+    current={date,index,group,key:courseKey(date,entry,group)};
+    const dialog=ensureDialog();
     const dateText=new Date(date+'T12:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('henriPaceTitle').textContent=entry.annualPlan||entry.activity||'Cours';
     document.getElementById('henriPaceMeta').textContent=entry.group+' · '+dateText+' · '+(entry.time||'Cours');
+    document.getElementById('henriPaceStatus').textContent='Les notes sont sauvegardées automatiquement sur cet appareil.';
     renderPace();
-    if(typeof go==='function')go('henriPace');
-  }
-  function closePace(){
-    current=null;
-    if(typeof go==='function')go(returnScreen);
+    selectTab(dialog,tab==='course'?0:1);
+    dialog.showModal();
+    dialog.querySelector('[aria-selected="true"]').focus();
   }
   function renderPace(){
     const roster=document.getElementById('henriPaceRoster');
@@ -209,7 +246,6 @@
     target.appendChild(average);
   }
   function init(){
-    ensureScreen();
     const week=document.getElementById('weekGrid');
     const day=document.getElementById('dayPlanCourses');
     const observer=new MutationObserver(()=>{enhanceWeek();enhanceDay();});
@@ -225,7 +261,12 @@
     '.henriPaceCalendarBtn{border:1px solid #d2dfe6;background:#f4f8fa;color:var(--accent,#314a5b);padding:7px 11px;border-radius:10px;font-size:11px;font-weight:800;min-height:34px}'+
     '.henriPaceCalendarBtn:hover{background:#eaf1f5}'+
     '.dayPlanCard>.henriPaceCalendarBtn{margin:9px 0 0 8px}'+
-    '.henriPaceTitleSuffix{color:var(--muted);font-weight:570;font-size:.7em}'+
+    '#henriPace{box-sizing:border-box;width:min(640px,calc(100% - 24px));max-height:85dvh;border:1px solid #d2dfe6;border-radius:20px;padding:18px;color:#24323a;background:#fff}'+
+    '#henriPace::backdrop{background:rgba(24,34,42,.45)}'+
+    '#henriPaceTitle{margin:8px 0;font-size:24px}'+
+    '.henriPaceTabs{display:flex;gap:8px;margin:15px 0}'+
+    '.henriPaceTabs button{min-height:44px;border:1px solid #d2dfe6;border-radius:10px;padding:0 14px;background:#fff;color:#314a5b;font-weight:700}'+
+    '.henriPaceTabs button[aria-selected="true"]{background:#314a5b;color:#fff}'+
     '.henriPaceSummary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 15px}'+
     '.henriPaceSummary>div{border:1px solid var(--line);background:#fff;padding:14px 15px;border-radius:16px}'+
     '.henriPaceSummary small{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:5px}'+
