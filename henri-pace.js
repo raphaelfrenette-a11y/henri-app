@@ -25,7 +25,8 @@
     return (typeof scheduleEntries!=='undefined'&&scheduleEntries[date]||[])[index]||null;
   }
   function getGroup(entry){
-    return typeof groupsData!=='undefined'&&groupsData.find(g=>g.id===entry.matchedGroupId||g.name===entry.group)||null;
+    const groupId=entry.matchedGroupId||getEntryGroupId(entry);
+    return groupsData.find(g=>g.id===groupId)||groupsData.find(g=>g.name===entry.group)||null;
   }
   function courseKey(date,entry,group){
     return [date,group?.id||entry.group,String(entry.time||'')].join('::');
@@ -58,7 +59,7 @@
   }
   function readCourseLink(element){
     const raw=element?.getAttribute('onclick')||'';
-    const match=raw.match(/openCourseEntry\('([^']+)',\s*(\d+)\)/);
+    const match=raw.match(/open(?:CalendarCourse|CourseEntry)\(['"]([^'"]+)['"],\s*(\d+)\)/);
     return match?{date:match[1],index:Number(match[2])}:null;
   }
   function enhanceWeek(){
@@ -87,6 +88,15 @@
       if(!button)return;
       wireCourseLink(courseLink,link);
       card.appendChild(button);
+    });
+  }
+  function enhanceMonth(){
+    document.querySelectorAll('#monthGrid .monthCourseButton').forEach(button=>{
+      if(button.dataset.henriPaceEnhanced)return;
+      const link=readCourseLink(button);
+      if(!link)return;
+      button.dataset.henriPaceEnhanced='1';
+      wireCourseLink(button,link);
     });
   }
   function refreshButtons(){
@@ -124,7 +134,8 @@
     dialog.querySelector('#henriPaceOpenLesson').onclick=()=>{
       const {date,index}=current;
       dialog.close();
-      openCourseEntry(date,index);
+      if(typeof openCalendarCourse==='function')openCalendarCourse(date,index);
+      else openCourseEntry(date,index);
     };
     const tabs=[...dialog.querySelectorAll('[role="tab"]')];
     tabs.forEach((tab,index)=>{
@@ -248,11 +259,13 @@
   function init(){
     const week=document.getElementById('weekGrid');
     const day=document.getElementById('dayPlanCourses');
-    const observer=new MutationObserver(()=>{enhanceWeek();enhanceDay();});
-    if(week)observer.observe(week,{childList:true});
-    if(day)observer.observe(day,{childList:true});
+    const month=document.getElementById('monthGrid');
+    if(week)new MutationObserver(enhanceWeek).observe(week,{childList:true});
+    if(day)new MutationObserver(enhanceDay).observe(day,{childList:true});
+    if(month)new MutationObserver(enhanceMonth).observe(month,{childList:true});
     enhanceWeek();
     enhanceDay();
+    enhanceMonth();
   }
   const css=document.createElement('style');
   css.textContent=
